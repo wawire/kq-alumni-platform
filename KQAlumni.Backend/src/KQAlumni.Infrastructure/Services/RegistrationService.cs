@@ -1,0 +1,423 @@
+using System.Text.Json;
+using KQAlumni.Core.DTOs;
+using KQAlumni.Core.Entities;
+using KQAlumni.Core.Enums;
+using KQAlumni.Core.Interfaces;
+using KQAlumni.Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+
+namespace KQAlumni.Infrastructure.Services;
+
+/// <summary>
+/// Service for managing alumni registrations
+/// Implements the async approval workflow:
+/// 1. Register → Save as Pending → Send confirmation email (immediate)
+/// 2. Background job validates ERP → Send approval email (async)
+/// 3. User clicks link → Email verified → Active status
+/// </summary>
+public class RegistrationService : IRegistrationService
+{
+  private readonly AppDbContext _context;
+  private readonly IErpService _erpService;
+  private readonly IEmailService _emailService;
+  private readonly ILogger<RegistrationService> _logger;
+
+  public RegistrationService(
+      AppDbContext context,
+      IErpService erpService,
+      IEmailService emailService,
+      ILogger<RegistrationService> logger)
+  {
+    _context = context;
+    _erpService = erpService;
+    _emailService = emailService;
+    _logger = logger;
+  }
+
+  /// <summary>
+  /// Registers a new alumni member
+  /// NEW WORKFLOW: Saves as Pending, sends confirmation email, returns immediately
+  /// Background job will handle ERP validation asynchronously
+  /// </summary>
+  public async Task<RegistrationResponse> RegisterAlumniAsync(
+      RegistrationRequest request,
+      CancellationToken cancellationToken = default)
+  {
+    try
+    {
+      _logger.LogInformation(
+          "Starting registration for staff number: {StaffNumber}",
+          request.StaffNumber);
+
+
+      // DUPLICATE CHECKS
+
+
+      // Check: Staff Number
+      var existingByStaffNumber = await IsStaffNumberRegisteredAsync(
+          request.StaffNumber,
+          cancellationToken);
+
+      if (existingByStaffNumber)
+      {
+        _logger.LogWarning(
+            "Staff number {StaffNumber} already registered",
+            request.StaffNumber);
+
+        throw new InvalidOperationException(
+            "This staff number is already registered. " +
+            "Contact KQ.Alumni@kenya-airways.com to update your profile.");
+      }
+
+      // Check: Email
+      var existingByEmail = await IsEmailRegisteredAsync(
+          request.Email,
+          cancellationToken);
+
+      if (existingByEmail)
+      {
+        _logger.LogWarning(
+            "Email {Email} already registered",
+            request.Email);
+
+        throw new InvalidOperationException(
+            "This email address is already registered. " +
+            "Contact KQ.Alumni@kenya-airways.com to update your profile.");
+      }
+
+      // Check: Mobile Number (if provided)
+      var existingByMobile = await IsMobileRegisteredAsync(
+          request.MobileCountryCode,
+          request.MobileNumber,
+          cancellationToken);
+
+      if (existingByMobile)
+      {
+        _logger.LogWarning(
+            "Mobile number {Mobile} already registered",
+            $"{request.MobileCountryCode}{request.MobileNumber}");
+
+        throw new InvalidOperationException(
+            "This mobile number is already registered. " +
+            "Contact KQ.Alumni@kenya-airways.com to update your profile.");
+      }
+
+      // Check: LinkedIn Profile (if provided)
+      var existingByLinkedIn = await IsLinkedInRegisteredAsync(
+          request.LinkedInProfile,
+          cancellationToken);
+
+      if (existingByLinkedIn)
+      {
+        _logger.LogWarning(
+            "LinkedIn profile {LinkedIn} already registered",
+            request.LinkedInProfile);
+
+        throw new InvalidOperationException(
+            "This LinkedIn profile is already registered. " +
+            "Contact KQ.Alumni@kenya-airways.com to update your profile.");
+      }
+
+
+      // CREATE REGISTRATION
+
+
+      var registration = new AlumniRegistration
+      {
+        Id = Guid.NewGuid(),
+
+        // Personal Information
+        StaffNumber = request.StaffNumber.ToUpper().Trim(),
+        FullName = request.FullName.Trim(),
+
+        // Contact Information
+        Email = request.Email.ToLower().Trim(),
+        MobileCountryCode = request.MobileCountryCode?.Trim(),
+        MobileNumber = request.MobileNumber?.Trim(),
+        CurrentCountry = request.CurrentCountry.Trim(),
+        CurrentCountryCode = request.CurrentCountryCode.ToUpper().Trim(),
+        CurrentCity = request.CurrentCity.Trim(),
+        CityCustom = request.CityCustom?.Trim(),
+
+        // Employment Information
+        CurrentEmployer = request.CurrentEmployer?.Trim(),
+        CurrentJobTitle = request.CurrentJobTitle?.Trim(),
+        Industry = request.Industry?.Trim(),
+        LinkedInProfile = request.LinkedInProfile?.Trim(),
+
+        // Education
+        QualificationsAttained = JsonSerializer.Serialize(request.QualificationsAttained),
+        ProfessionalCertifications = request.ProfessionalCertifications?.Trim(),
+
+        // Engagement
+        EngagementPreferences = JsonSerializer.Serialize(request.EngagementPreferences),
+
+        // Consent
+        ConsentGiven = request.ConsentGiven,
+        ConsentGivenAt = DateTime.UtcNow,
+
+        // Status (NEW WORKFLOW: Start as Pending)
+        RegistrationStatus = RegistrationStatus.Pending.ToString(),
+
+        // Audit
+        CreatedAt = DateTime.UtcNow,
+        UpdatedAt = DateTime.UtcNow,
+        CreatedBy = "System"
+      };
+
+      // Save to database
+      await _context.AlumniRegistrations.AddAsync(registration, cancellationToken);
+      await _context.SaveChangesAsync(cancellationToken);
+
+      _logger.LogInformation(
+          "Registration created with ID {Id} and status Pending",
+          registration.Id);
+
+
+      // SEND CONFIRMATION EMAIL
+
+
+      try
+      {
+        var emailSent = await _emailService.SendConfirmationEmailAsync(
+            registration.FullName,
+            registration.Email,
+            registration.Id,
+            cancellationToken);
+
+        if (emailSent)
+        {
+          registration.ConfirmationEmailSent = true;
+          registration.ConfirmationEmailSentAt = DateTime.UtcNow;
+          await _context.SaveChangesAsync(cancellationToken);
+
+          _logger.LogInformation(
+              "Confirmation email sent to {Email}",
+              registration.Email);
+        }
+        else
+        {
+          _logger.LogWarning(
+              "Failed to send confirmation email to {Email}",
+              registration.Email);
+        }
+      }
+      catch (Exception ex)
+      {
+        _logger.LogError(ex,
+            "Error sending confirmation email to {Email}",
+            registration.Email);
+        // Don't fail registration if email fails
+      }
+
+      // Return response (background job will handle ERP validation)
+      return new RegistrationResponse
+      {
+        Id = registration.Id,
+        StaffNumber = registration.StaffNumber,
+        FullName = registration.FullName,
+        Email = registration.Email,
+        Status = registration.RegistrationStatus,
+        RegisteredAt = registration.CreatedAt,
+        Message = "Registration received! Check your email for confirmation. " +
+                     "We will notify you within 24 hours once your registration is approved."
+      };
+    }
+    catch (InvalidOperationException)
+    {
+      // Re-throw business logic exceptions
+      throw;
+    }
+    catch (Exception ex)
+    {
+      _logger.LogError(ex, "Error registering alumni");
+      throw new InvalidOperationException(
+          "An error occurred while processing your registration. Please try again later.",
+          ex);
+    }
+  }
+
+  /// <summary>
+  /// Verify email using token from approval email
+  /// </summary>
+  public async Task<EmailVerificationResult> VerifyEmailAsync(
+      string token,
+      CancellationToken cancellationToken = default)
+  {
+    try
+    {
+      _logger.LogInformation("Attempting to verify token: {Token}", token);
+
+      // Find registration by token
+      var registration = await _context.AlumniRegistrations
+          .FirstOrDefaultAsync(
+              r => r.EmailVerificationToken == token &&
+                   r.RegistrationStatus == RegistrationStatus.Approved.ToString(),
+              cancellationToken);
+
+      if (registration == null)
+      {
+        _logger.LogWarning("Token not found or registration not approved: {Token}", token);
+
+        return new EmailVerificationResult
+        {
+          Success = false,
+          Message = "Invalid or expired verification token. Please contact support if you need assistance."
+        };
+      }
+
+      // Check if token is expired (30 days from approval)
+      if (registration.EmailVerificationTokenExpiry.HasValue &&
+          registration.EmailVerificationTokenExpiry.Value < DateTime.UtcNow)
+      {
+        _logger.LogWarning(
+            "Verification token expired for: {Email}",
+            registration.Email);
+
+        return new EmailVerificationResult
+        {
+          Success = false,
+          Message = "Verification link has expired. Please contact KQ.Alumni@kenya-airways.com for a new link."
+        };
+      }
+
+      // Check if already verified
+      if (registration.EmailVerified)
+      {
+        _logger.LogInformation(
+            "Email already verified for: {Email}",
+            registration.Email);
+
+        return new EmailVerificationResult
+        {
+          Success = true,
+          Message = "Email already verified. Welcome back!",
+          Email = registration.Email,
+          FullName = registration.FullName
+        };
+      }
+
+      // Mark as verified
+      registration.EmailVerified = true;
+      registration.EmailVerifiedAt = DateTime.UtcNow;
+      registration.UpdatedAt = DateTime.UtcNow;
+
+      await _context.SaveChangesAsync(cancellationToken);
+
+      _logger.LogInformation(
+          "✅ Email verified successfully for: {Email}",
+          registration.Email);
+
+      return new EmailVerificationResult
+      {
+        Success = true,
+        Message = "Email verified successfully! Welcome to the KQ Alumni family.",
+        Email = registration.Email,
+        FullName = registration.FullName
+      };
+    }
+    catch (Exception ex)
+    {
+      _logger.LogError(ex, "Error verifying email with token: {Token}", token);
+
+      return new EmailVerificationResult
+      {
+        Success = false,
+        Message = "An error occurred during verification. Please try again or contact support."
+      };
+    }
+  }
+
+  /// <summary>
+  /// Get registration by email address
+  /// </summary>
+  public async Task<AlumniRegistration?> GetRegistrationByEmailAsync(
+      string email,
+      CancellationToken cancellationToken = default)
+  {
+    var normalized = email.ToLower().Trim();
+
+    return await _context.AlumniRegistrations
+        .Where(r => r.Email == normalized)
+        .OrderByDescending(r => r.CreatedAt)
+        .FirstOrDefaultAsync(cancellationToken);
+  }
+
+  /// <summary>
+  /// Checks if staff number is already registered
+  /// </summary>
+  public async Task<bool> IsStaffNumberRegisteredAsync(
+      string staffNumber,
+      CancellationToken cancellationToken = default)
+  {
+    var normalized = staffNumber.ToUpper().Trim();
+    return await _context.AlumniRegistrations
+        .AnyAsync(r => r.StaffNumber == normalized, cancellationToken);
+  }
+
+  /// <summary>
+  /// Checks if email is already registered
+  /// </summary>
+  public async Task<bool> IsEmailRegisteredAsync(
+      string email,
+      CancellationToken cancellationToken = default)
+  {
+    var normalized = email.ToLower().Trim();
+    return await _context.AlumniRegistrations
+        .AnyAsync(r => r.Email == normalized, cancellationToken);
+  }
+
+  /// <summary>
+  /// Checks if mobile number is already registered
+  /// </summary>
+  public async Task<bool> IsMobileRegisteredAsync(
+      string? mobileCountryCode,
+      string? mobileNumber,
+      CancellationToken cancellationToken = default)
+  {
+    // If either is null/empty, mobile is not being provided, so not a duplicate
+    if (string.IsNullOrWhiteSpace(mobileCountryCode) || string.IsNullOrWhiteSpace(mobileNumber))
+      return false;
+
+    var normalizedCountryCode = mobileCountryCode.Trim();
+    var normalizedNumber = mobileNumber.Trim();
+
+    return await _context.AlumniRegistrations
+        .AnyAsync(r =>
+            r.MobileCountryCode == normalizedCountryCode &&
+            r.MobileNumber == normalizedNumber,
+            cancellationToken);
+  }
+
+  /// <summary>
+  /// Checks if LinkedIn profile is already registered
+  /// </summary>
+  public async Task<bool> IsLinkedInRegisteredAsync(
+      string? linkedInProfile,
+      CancellationToken cancellationToken = default)
+  {
+    // If null or empty, LinkedIn is not being provided, so not a duplicate
+    if (string.IsNullOrWhiteSpace(linkedInProfile))
+      return false;
+
+    var normalized = linkedInProfile.ToLower().Trim();
+
+    return await _context.AlumniRegistrations
+        .AnyAsync(r =>
+            r.LinkedInProfile != null &&
+            r.LinkedInProfile.ToLower() == normalized,
+            cancellationToken);
+  }
+
+  /// <summary>
+  /// Gets registration by ID
+  /// </summary>
+  public async Task<AlumniRegistration?> GetRegistrationByIdAsync(
+      Guid id,
+      CancellationToken cancellationToken = default)
+  {
+    return await _context.AlumniRegistrations
+        .FirstOrDefaultAsync(r => r.Id == id, cancellationToken);
+  }
+}

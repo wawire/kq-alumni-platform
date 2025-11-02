@@ -1,0 +1,146 @@
+@font-face {
+  font-family: 'Cabrito Flare';
+  src: url('/fonts/Cabrito_Flare.otf') format('opentype');
+  font-display: swap;
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Design Tokens - Colors */
+:root {
+  --color-kq-red: #ed1c24;
+  --color-kq-dark: #0d0d0d;
+  --color-kq-light: #f5f5f5;
+  --color-kq-border: #e0e0e0;
+
+  /* Fonts */
+  --font-cabrito: 'Cabrito Flare', serif;
+  --font-roboto: 'Segoe UI', 'Roboto', system-ui, sans-serif;
+}
+
+/* Base Styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-roboto);
+  background-color: var(--color-kq-light);
+  color: #111827;
+  line-height: 1.6;
+}
+
+/* Typography */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-cabrito);
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+h1 {
+  font-size: 3rem;
+}
+
+h2 {
+  font-size: 2.25rem;
+}
+
+h3 {
+  font-size: 1.875rem;
+}
+
+/* Links */
+a {
+  color: var(--color-kq-red);
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+a:hover {
+  color: #ff3333;
+}
+
+/* Utility Classes */
+.container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.text-kq-red {
+  color: var(--color-kq-red);
+}
+
+.bg-kq-dark {
+  background-color: var(--color-kq-dark);
+}
+
+.border-kq {
+  border-color: var(--color-kq-border);
+}
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #DC143C;
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #B01030;
+}
+
+/* Phone Input Custom Styles */
+.phone-input-container .form-control {
+  width: 100% !important;
+  border: 0 !important;
+  border-bottom: 2px solid #d1d5db !important;
+  border-radius: 0 !important;
+  padding: 12px 4px 12px 48px !important;
+  font-size: 16px !important;
+  background-color: transparent !important;
+}
+
+.phone-input-container .form-control:focus {
+  border-bottom: 2px solid #DC143C !important;
+  box-shadow: none !important;
+}
+
+.phone-input-container .flag-dropdown {
+  border: 0 !important;
+  border-bottom: 2px solid #d1d5db !important;
+  border-radius: 0 !important;
+  background-color: transparent !important;
+}
+
+/* Toast Custom Styles */
+.toast-custom {
+  font-family: 'Roboto Flex', sans-serif !important;
+}
+/* Responsive */
+@media (max-width: 768px) {
+  h1 {
+    font-size: 2rem;
+  }
+
+  h2 {
+    font-size: 1.5rem;
+  }
+
+  h3 {
+    font-size: 1.25rem;
+  }
+}

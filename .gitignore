@@ -1,0 +1,136 @@
+# =============================================================================
+# ROOT GITIGNORE - KQ Alumni Platform
+# =============================================================================
+
+# Sensitive configuration files - DO NOT COMMIT
+CONFIG_DEV_SERVER.md
+appsettings.Production.json
+appsettings.Development.json
+**/Properties/launchSettings.json
+.env.production.local
+.env.development.local
+.env.local
+*.env.local
+
+# =============================================================================
+# BACKEND (.NET) BUILD FILES
+# =============================================================================
+
+# Build results
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+# Visual Studio cache/options
+.vs/
+.vscode/
+*.user
+*.userosscache
+*.suo
+*.userprefs
+
+# Build outputs
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Ww][Ii][Nn]32/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+
+# Publish outputs
+[Pp]ublish/
+PublishProfiles/
+*.pubxml
+*.PublishSettings
+
+# NuGet
+*.nupkg
+*.snupkg
+**/packages/*
+!**/packages/build/
+
+# SQL Server files
+*.mdf
+*.ldf
+*.ndf
+
+# Entity Framework
+*.dbmdl
+*.jfm
+
+# =============================================================================
+# FRONTEND (Next.js/Node) BUILD FILES
+# =============================================================================
+
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Next.js build output
+.next/
+out/
+dist/
+build/
+
+# TypeScript build info
+*.tsbuildinfo
+tsconfig.tsbuildinfo
+
+# Testing
+coverage/
+.nyc_output
+
+# =============================================================================
+# OS FILES
+# =============================================================================
+
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+
+# =============================================================================
+# IDE/EDITOR FILES
+# =============================================================================
+
+.idea/
+*.sublime-project
+*.sublime-workspace
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.code-workspace
+
+# =============================================================================
+# TEMPORARY/CACHE FILES
+# =============================================================================
+
+tmp/
+temp/
+*.tmp
+*.log
+*.pid
+*.seed
+*.pid.lock
+pids
+
+# =============================================================================
+# BACKUP FILES
+# =============================================================================
+
+*.bak
+*.backup
+*~.nib
+*.orig
