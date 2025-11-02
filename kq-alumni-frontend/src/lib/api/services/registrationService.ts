@@ -23,13 +23,14 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
-import { queryKeys } from '../queryClient';
+
 import { API_BASE_URL } from '@/config/api';
 import type {
   RegistrationFormData,
   RegistrationResponse,
   RegistrationStatusResponse,
 } from '@/types';
+import { queryKeys } from '../queryClient';
 
 /**
  * Submit registration mutation

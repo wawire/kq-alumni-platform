@@ -22,7 +22,7 @@ export default function NotFound() {
             <h1 className="text-7xl font-cabrito font-bold text-kq-dark mb-3">404</h1>
             <h2 className="text-3xl font-semibold text-gray-800 mb-3">Page Not Found</h2>
             <p className="text-lg text-gray-600 mb-8">
-              Oops! The page you're looking for seems to have taken an unexpected flight path.
+              Oops! The page you&apos;re looking for seems to have taken an unexpected flight path.
             </p>
           </div>
 

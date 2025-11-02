@@ -1,4 +1,5 @@
 import axios, { AxiosError, AxiosInstance } from "axios";
+
 import type { RegistrationFormData } from "../../components/registration/RegistrationForm";
 import { API_BASE_URL, API_TIMEOUT } from "@/config/api";
 import type { RegistrationResponse, ValidationError } from "@/types";
@@ -8,7 +9,9 @@ import type { RegistrationResponse, ValidationError } from "@/types";
 // ======================================================
 const isDev = process.env.NODE_ENV !== "production";
 const logger = {
+  // eslint-disable-next-line no-console
   info: (...args: unknown[]) => isDev && console.info("[API]", ...args),
+  // eslint-disable-next-line no-console
   error: (...args: unknown[]) => isDev && console.error("[API]", ...args),
 };
 

@@ -5,9 +5,10 @@
  * View admin user profile information
  */
 
+import { Mail, Shield, Calendar, User } from 'lucide-react';
+
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { useAdminUser } from '@/store/adminStore';
-import { Mail, Shield, Calendar, User } from 'lucide-react';
 
 export default function AdminProfilePage() {
   const user = useAdminUser();

@@ -5,8 +5,9 @@ import { ArrowLeftIcon, ArrowRightIcon } from "@heroicons/react/24/solid";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { FormProvider, useForm } from "react-hook-form";
 import { z } from "zod";
-import { Button } from "@/components/ui";
+
 import { FormField, FormSelect, FormTextarea } from "@/components/forms";
+import { Button } from "@/components/ui";
 import { QUALIFICATIONS, INDUSTRIES, type IndustryOption } from "@/constants/forms";
 import type { RegistrationFormData } from "../RegistrationForm";
 

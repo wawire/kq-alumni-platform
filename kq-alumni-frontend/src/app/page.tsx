@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Users, Briefcase, Heart } from "lucide-react";
+
 import { Button } from "@/components/ui";
 
 export default function Home() {

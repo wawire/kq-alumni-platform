@@ -22,11 +22,12 @@ import {
   ExternalLink,
   RefreshCw,
 } from 'lucide-react';
+
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { DashboardCharts } from '@/components/admin/DashboardCharts';
 import { SystemHealth } from '@/components/admin/SystemHealth';
-import { useDashboardStats, useAdminRegistrations } from '@/lib/api/services/adminService';
 import { Button } from '@/components/ui/button/Button';
+import { useDashboardStats, useAdminRegistrations } from '@/lib/api/services/adminService';
 
 // ============================================
 // Stats Card Component
@@ -186,7 +187,7 @@ export default function AdminDashboardPage() {
                   Failed to load dashboard statistics
                 </p>
                 <p className="text-sm text-red-700 mt-1">
-                  {(error as any)?.response?.data?.detail || (error as any)?.message || 'Please try again later'}
+                  {(error as Error)?.message || 'Please try again later'}
                 </p>
               </div>
             </div>

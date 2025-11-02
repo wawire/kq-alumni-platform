@@ -11,8 +11,9 @@ import PhoneInput, {
 import "react-phone-input-2/lib/style.css";
 import { SingleValue } from "react-select";
 import { z } from "zod";
-import { Button } from "@/components/ui";
+
 import { FormField, FormSelect } from "@/components/forms";
+import { Button } from "@/components/ui";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useDuplicateCheck } from "@/hooks/useDuplicateCheck";
 import type { RegistrationFormData } from "../RegistrationForm";

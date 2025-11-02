@@ -6,10 +6,11 @@
  */
 
 import { useState } from 'react';
-import { AdminLayout } from '@/components/admin/AdminLayout';
-import { useAdminUser } from '@/store/adminStore';
 import { Lock, AlertCircle, CheckCircle2, Eye, EyeOff } from 'lucide-react';
+
+import { AdminLayout } from '@/components/admin/AdminLayout';
 import { Button } from '@/components/ui/button/Button';
+import { useAdminUser } from '@/store/adminStore';
 
 export default function AdminSettingsPage() {
   const user = useAdminUser();
@@ -200,7 +201,7 @@ export default function AdminSettingsPage() {
             <li>Use a mix of uppercase, lowercase, numbers, and symbols</li>
             <li>Avoid using personal information or common words</li>
             <li>Change your password regularly (every 3-6 months)</li>
-            <li>Don't reuse passwords across different accounts</li>
+            <li>Don&apos;t reuse passwords across different accounts</li>
           </ul>
         </div>
       </div>

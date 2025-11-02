@@ -5,6 +5,7 @@
  * View and manage individual registration
  */
 
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -20,17 +21,17 @@ import {
   AlertCircle,
   User,
 } from 'lucide-react';
+import { toast, Toaster } from 'sonner';
+
 import { AdminLayout } from '@/components/admin/AdminLayout';
+import { Button } from '@/components/ui/button/Button';
+import { ConfirmationModal } from '@/components/ui/modal/ConfirmationModal';
 import {
   useRegistrationDetail,
   useApproveRegistration,
   useRejectRegistration,
   useRegistrationAuditLogs,
 } from '@/lib/api/services/adminService';
-import { Button } from '@/components/ui/button/Button';
-import { ConfirmationModal } from '@/components/ui/modal/ConfirmationModal';
-import { useState } from 'react';
-import { toast, Toaster } from 'sonner';
 
 interface Props {
   params: { id: string };
@@ -53,7 +54,9 @@ export default function RegistrationDetailPage({ params }: Props) {
   };
 
   const handleApproveConfirm = () => {
-    if (!registration) return;
+    if (!registration) {
+      return;
+    }
     setShowApproveModal(false);
     toast.loading('Approving registration...', { id: 'approve-toast' });
     approveMutation.mutate(
@@ -69,10 +72,10 @@ export default function RegistrationDetailPage({ params }: Props) {
             router.push('/admin/registrations');
           }, 1000);
         },
-        onError: (error: any) => {
+        onError: (error: Error) => {
           toast.error('Failed to approve registration', {
             id: 'approve-toast',
-            description: error?.response?.data?.detail || error?.message || 'Please try again.',
+            description: error?.message || 'Please try again.',
             duration: 5000,
           });
         },
@@ -81,7 +84,9 @@ export default function RegistrationDetailPage({ params }: Props) {
   };
 
   const handleReject = () => {
-    if (!registration || !rejectReason.trim()) return;
+    if (!registration || !rejectReason.trim()) {
+      return;
+    }
     toast.loading('Rejecting registration...', { id: 'reject-toast' });
     rejectMutation.mutate(
       {
@@ -100,10 +105,10 @@ export default function RegistrationDetailPage({ params }: Props) {
             router.push('/admin/registrations');
           }, 1000);
         },
-        onError: (error: any) => {
+        onError: (error: Error) => {
           toast.error('Failed to reject registration', {
             id: 'reject-toast',
-            description: error?.response?.data?.detail || error?.message || 'Please try again.',
+            description: error?.message || 'Please try again.',
             duration: 5000,
           });
         },
@@ -136,7 +141,7 @@ export default function RegistrationDetailPage({ params }: Props) {
                   Failed to load registration details
                 </p>
                 <p className="text-sm text-red-700 mt-1">
-                  {(error as any)?.message || 'Registration not found'}
+                  {(error as Error)?.message || 'Registration not found'}
                 </p>
               </div>
             </div>

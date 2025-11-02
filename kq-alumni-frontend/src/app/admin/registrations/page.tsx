@@ -19,11 +19,12 @@ import {
   AlertCircle,
   Mail,
 } from 'lucide-react';
+
 import { AdminLayout } from '@/components/admin/AdminLayout';
-import { RegistrationsFilters } from '@/components/admin/RegistrationsFilters';
 import { BulkActions } from '@/components/admin/BulkActions';
-import { useAdminRegistrations, useApproveRegistration, useRejectRegistration } from '@/lib/api/services/adminService';
+import { RegistrationsFilters } from '@/components/admin/RegistrationsFilters';
 import { Button } from '@/components/ui/button/Button';
+import { useAdminRegistrations, useApproveRegistration, useRejectRegistration } from '@/lib/api/services/adminService';
 import type { RegistrationStatus, RegistrationFilters } from '@/types/admin';
 
 // ============================================
@@ -231,7 +232,7 @@ function RegistrationsPageContent() {
               <div>
                 <p className="text-sm font-medium text-red-800">Failed to load registrations</p>
                 <p className="text-sm text-red-700 mt-1">
-                  {(error as any)?.response?.data?.detail || (error as any)?.message || 'Please try again later'}
+                  {(error as Error)?.message || 'Please try again later'}
                 </p>
               </div>
             </div>

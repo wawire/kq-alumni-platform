@@ -11,6 +11,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Shield, AlertCircle } from 'lucide-react';
+
 import { Button } from '@/components/ui/button/Button';
 import { useAdminLogin } from '@/lib/api/services/adminService';
 import { useAdminAuthActions } from '@/store/adminStore';
@@ -93,7 +94,7 @@ export default function AdminLoginPage() {
                     Login Failed
                   </p>
                   <p className="text-sm text-red-700 mt-1">
-                    {(error as any)?.response?.data?.detail ||
+                    {(error as Error)?.message ||
                       'Invalid username or password'}
                   </p>
                 </div>

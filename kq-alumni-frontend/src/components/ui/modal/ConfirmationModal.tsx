@@ -29,7 +29,9 @@ export function ConfirmationModal({
   type = 'info',
   isLoading = false,
 }: ConfirmationModalProps) {
-  if (!isOpen) return null;
+  if (!isOpen) {
+    return null;
+  }
 
   const iconColors = {
     danger: 'text-red-600',

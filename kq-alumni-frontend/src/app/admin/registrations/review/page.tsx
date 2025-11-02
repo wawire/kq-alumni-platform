@@ -7,9 +7,10 @@
 
 import Link from 'next/link';
 import { AlertCircle, Search, Eye, Calendar, User } from 'lucide-react';
+
 import { AdminLayout } from '@/components/admin/AdminLayout';
-import { useRequiringReviewRegistrations } from '@/lib/api/services/adminService';
 import { Button } from '@/components/ui/button/Button';
+import { useRequiringReviewRegistrations } from '@/lib/api/services/adminService';
 
 // ============================================
 // Main Component
@@ -85,7 +86,7 @@ export default function RequiringReviewPage() {
                   Failed to load registrations
                 </p>
                 <p className="text-sm text-red-700 mt-1">
-                  {(error as any)?.response?.data?.detail || (error as any)?.message || 'Please try again later'}
+                  {(error as Error)?.message || 'Please try again later'}
                 </p>
               </div>
             </div>
