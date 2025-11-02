@@ -6,14 +6,7 @@
  * Handles authentication check and navigation
  */
 
-import { Button } from '@/components/ui/button/Button';
-import {
-  getStoredAdminUser,
-  isAdminAuthenticated,
-  useAdminLogout,
-  useDashboardStats,
-} from '@/lib/api/services/adminService';
-import { useAdminAuthActions, useAdminUser } from '@/store/adminStore';
+import { useEffect, useState } from 'react';
 import {
   AlertCircle,
   ArrowRight,
@@ -31,7 +24,15 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+
+import { Button } from '@/components/ui/button/Button';
+import {
+  getStoredAdminUser,
+  isAdminAuthenticated,
+  useAdminLogout,
+  useDashboardStats,
+} from '@/lib/api/services/adminService';
+import { useAdminAuthActions, useAdminUser } from '@/store/adminStore';
 
 // ============================================
 // Types

@@ -7,8 +7,9 @@ import {
   UserGroupIcon,
 } from "@heroicons/react/24/outline";
 import { toast, Toaster } from "sonner";
-import { useRegistrationFormData, useRegistrationActions, useRegistrationStatus, useRegistrationId, useCurrentStep, RegistrationStatus } from "@/store";
+
 import { useSubmitRegistration } from "@/lib/api/services/registrationService";
+import { useRegistrationFormData, useRegistrationActions, useRegistrationStatus, useRegistrationId, useCurrentStep, RegistrationStatus } from "@/store";
 import EmploymentStep from "./steps/EmploymentStep";
 import EngagementStep from "./steps/EngagementStep";
 import PersonalInfoStep from "./steps/PersonalInfoStep";

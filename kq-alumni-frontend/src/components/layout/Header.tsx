@@ -1,11 +1,12 @@
 'use client';
 
-import { MAIN_NAV_LINKS, MOBILE_QUICK_LINKS, QUICK_LINKS } from '@/constants';
+import { useEffect, useRef, useState } from 'react';
 import { Mail, Menu, Search, X } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useEffect, useRef, useState } from 'react';
+
+import { MAIN_NAV_LINKS, MOBILE_QUICK_LINKS, QUICK_LINKS } from '@/constants';
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -136,6 +137,7 @@ export default function Header() {
               onClick={() => {
                 // TODO: Implement search functionality
                 if (process.env.NODE_ENV === 'development') {
+                  // eslint-disable-next-line no-console
                   console.log('Search clicked');
                 }
               }}

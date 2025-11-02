@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
-import { QueryProvider } from '@/components/providers';
+
 import { ConditionalHeader } from '@/components/layout/ConditionalHeader';
+import { QueryProvider } from '@/components/providers';
 import '../styles/globals.css';
 
 export const metadata: Metadata = {

@@ -1,9 +1,10 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { CheckCircleIcon, XCircleIcon } from "@heroicons/react/24/solid";
 import axios, { AxiosError } from "axios";
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+
 import { API_BASE_URL } from "@/config/api";
 import type { VerificationResponse, ErrorResponse } from "@/types";
 

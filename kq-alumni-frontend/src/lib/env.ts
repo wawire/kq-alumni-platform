@@ -52,8 +52,10 @@ export type Environment = typeof env;
 
 // 🖥️ Log summary on server only (one-time)
 if (typeof window === 'undefined') {
+  /* eslint-disable no-console */
   console.log('🖥️ Environment initialized:');
   console.log(`  🌐 API URL: ${env.apiUrl}`);
   console.log(`  ⏱️ Timeout: ${env.apiTimeout}ms`);
   console.log(`  🧭 Env: ${env.environment}`);
+  /* eslint-enable no-console */
 }

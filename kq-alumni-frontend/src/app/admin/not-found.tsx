@@ -5,9 +5,10 @@
  * Custom error page for admin section
  */
 
-import Link from 'next/link';
-import { AdminLayout } from '@/components/admin/AdminLayout';
 import { Home, Search, ArrowLeft } from 'lucide-react';
+import Link from 'next/link';
+
+import { AdminLayout } from '@/components/admin/AdminLayout';
 import { Button } from '@/components/ui/button/Button';
 
 export default function AdminNotFound() {
@@ -23,7 +24,7 @@ export default function AdminNotFound() {
             <h1 className="text-6xl font-cabrito font-bold text-kq-dark mb-2">404</h1>
             <h2 className="text-2xl font-semibold text-gray-700 mb-2">Page Not Found</h2>
             <p className="text-gray-600">
-              The admin page you're looking for doesn't exist or has been moved.
+              The admin page you&apos;re looking for doesn&apos;t exist or has been moved.
             </p>
           </div>
 
