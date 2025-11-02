@@ -6,7 +6,6 @@
  */
 
 import { useState, useEffect } from 'react';
-import Link from 'next/link';
 import {
   Users,
   UserCheck,
@@ -22,6 +21,7 @@ import {
   ExternalLink,
   RefreshCw,
 } from 'lucide-react';
+import Link from 'next/link';
 
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { DashboardCharts } from '@/components/admin/DashboardCharts';

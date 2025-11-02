@@ -5,8 +5,8 @@
  * Lists registrations flagged for HR review after failed ERP validation
  */
 
-import Link from 'next/link';
 import { AlertCircle, Search, Eye, Calendar, User } from 'lucide-react';
+import Link from 'next/link';
 
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { Button } from '@/components/ui/button/Button';

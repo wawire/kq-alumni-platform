@@ -1,8 +1,8 @@
 import axios, { AxiosError, AxiosInstance } from "axios";
 
-import type { RegistrationFormData } from "../../components/registration/RegistrationForm";
 import { API_BASE_URL, API_TIMEOUT } from "@/config/api";
 import type { RegistrationResponse, ValidationError } from "@/types";
+import type { RegistrationFormData } from "../../components/registration/RegistrationForm";
 
 // ======================================================
 // LOGGER — Centralized logging (disable console in prod)

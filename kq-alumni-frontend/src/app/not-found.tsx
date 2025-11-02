@@ -5,8 +5,8 @@
  * Custom error page for public pages
  */
 
-import Link from 'next/link';
 import { Home, Search, ArrowLeft, Mail } from 'lucide-react';
+import Link from 'next/link';
 
 export default function NotFound() {
   return (

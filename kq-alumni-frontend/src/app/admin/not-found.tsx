@@ -5,8 +5,8 @@
  * Custom error page for admin section
  */
 
-import Link from 'next/link';
 import { Home, Search, ArrowLeft } from 'lucide-react';
+import Link from 'next/link';
 
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { Button } from '@/components/ui/button/Button';

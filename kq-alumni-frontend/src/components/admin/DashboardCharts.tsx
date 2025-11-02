@@ -6,6 +6,7 @@
  */
 
 import { useState } from 'react';
+import { ChevronDown, ChevronUp, TrendingUp, PieChart as PieChartIcon } from 'lucide-react';
 import {
   PieChart,
   Pie,
@@ -19,7 +20,6 @@ import {
   YAxis,
   CartesianGrid,
 } from 'recharts';
-import { ChevronDown, ChevronUp, TrendingUp, PieChart as PieChartIcon } from 'lucide-react';
 
 import type { DashboardStats } from '@/types/admin';
 

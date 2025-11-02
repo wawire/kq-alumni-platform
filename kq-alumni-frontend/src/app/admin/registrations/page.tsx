@@ -6,8 +6,6 @@
  */
 
 import { useState, Suspense } from 'react';
-import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
 import {
   Search,
   ChevronLeft,
@@ -19,6 +17,8 @@ import {
   AlertCircle,
   Mail,
 } from 'lucide-react';
+import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { BulkActions } from '@/components/admin/BulkActions';
