@@ -2,6 +2,7 @@ using FluentValidation;
 using FluentValidation.AspNetCore;
 using Hangfire;
 using Hangfire.SqlServer;
+using Hangfire.MemoryStorage;
 using Hangfire.Dashboard;
 using KQAlumni.API.Middleware;
 using KQAlumni.Core.Configuration;
@@ -210,20 +211,33 @@ catch (Exception ex)
 
 if (isDatabaseAvailable)
 {
-    builder.Services.AddHangfire(config => config
-        .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
-        .UseSimpleAssemblyNameTypeSerializer()
-        .UseRecommendedSerializerSettings()
-        .UseSqlServerStorage(connectionString, new SqlServerStorageOptions
-        {
-            CommandBatchMaxTimeout = TimeSpan.FromMinutes(5),
-            SlidingInvisibilityTimeout = TimeSpan.FromMinutes(5),
-            QueuePollInterval = TimeSpan.FromSeconds(15),
-            UseRecommendedIsolationLevel = true,
-            DisableGlobalLocks = true,
-            SchemaName = "Hangfire",
-            PrepareSchemaIfNecessary = true
-        }));
+    if (builder.Environment.IsDevelopment())
+    {
+        Console.WriteLine("ℹ️ Using Hangfire in-memory storage for local development");
+        builder.Services.AddHangfire(config => config
+            .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
+            .UseSimpleAssemblyNameTypeSerializer()
+            .UseRecommendedSerializerSettings()
+            .UseMemoryStorage());
+    }
+    else
+    {
+        Console.WriteLine("ℹ️ Using Hangfire SQL Server storage for production");
+        builder.Services.AddHangfire(config => config
+            .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
+            .UseSimpleAssemblyNameTypeSerializer()
+            .UseRecommendedSerializerSettings()
+            .UseSqlServerStorage(connectionString, new SqlServerStorageOptions
+            {
+                CommandBatchMaxTimeout = TimeSpan.FromMinutes(5),
+                SlidingInvisibilityTimeout = TimeSpan.FromMinutes(5),
+                QueuePollInterval = TimeSpan.FromSeconds(15),
+                UseRecommendedIsolationLevel = true,
+                DisableGlobalLocks = true,
+                SchemaName = "Hangfire",
+                PrepareSchemaIfNecessary = true
+            }));
+    }
 
     var workerCount = builder.Configuration.GetValue<int>("Hangfire:WorkerCount", 5);
     builder.Services.AddHangfireServer(options => options.WorkerCount = workerCount);
