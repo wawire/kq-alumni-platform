@@ -188,8 +188,18 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 bool isDatabaseAvailable = false;
 try
 {
-    using var testConn = new Microsoft.Data.SqlClient.SqlConnection(connectionString);
-    testConn.Open();
+    using (var testConn = new Microsoft.Data.SqlClient.SqlConnection(connectionString))
+    {
+        testConn.Open();
+        using var cmd = testConn.CreateCommand();
+        cmd.CommandText = "SELECT 1";
+        cmd.ExecuteScalar();
+        testConn.Close();
+    }
+
+    Microsoft.Data.SqlClient.SqlConnection.ClearAllPools();
+    System.Threading.Thread.Sleep(100);
+
     isDatabaseAvailable = true;
     Console.WriteLine("✅ Database connection successful.");
 }
