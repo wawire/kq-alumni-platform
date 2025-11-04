@@ -22,9 +22,7 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ========================================
 // 1. CONFIGURE SERVICES
-// ========================================
 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
@@ -38,9 +36,7 @@ builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddFluentValidationClientsideAdapters();
 builder.Services.AddValidatorsFromAssemblyContaining<RegistrationRequestValidator>();
 
-// ========================================
 // RESPONSE COMPRESSION
-// ========================================
 
 builder.Services.AddResponseCompression(options =>
 {
@@ -69,9 +65,7 @@ builder.Services.Configure<GzipCompressionProviderOptions>(options =>
     options.Level = CompressionLevel.Optimal;
 });
 
-// ========================================
 // RESPONSE CACHING & DISTRIBUTED CACHE
-// ========================================
 
 builder.Services.AddResponseCaching(options =>
 {
@@ -108,9 +102,7 @@ else
 
 builder.Services.AddEndpointsApiExplorer();
 
-// ========================================
 // SWAGGER CONFIGURATION
-// ========================================
 
 builder.Services.AddSwaggerGen(options =>
 {
@@ -160,9 +152,7 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
-// ========================================
 // 2. CONFIGURE SETTINGS
-// ========================================
 
 var backgroundJobSettings = builder.Configuration
     .GetSection("BackgroundJobs:ApprovalProcessing")
@@ -175,15 +165,11 @@ builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSet
 var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>()
     ?? throw new InvalidOperationException("JWT settings not configured");
 
-// ========================================
 // 3. ADD INFRASTRUCTURE
-// ========================================
 
 builder.Services.AddInfrastructureServices(builder.Configuration);
 
-// ========================================
 // 3A. HOSTED SERVICES (Configuration Validation & Monitoring)
-// ========================================
 
 // Configuration validator - runs on startup and validates all required settings
 builder.Services.AddHostedService<ConfigurationValidator>();
@@ -194,9 +180,7 @@ builder.Services.AddHostedService(sp => sp.GetRequiredService<RateLimitMonitor>(
 
 builder.Services.AddHttpClient();
 
-// ========================================
 // 4. DATABASE & HANGFIRE
-// ========================================
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
     ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
@@ -242,9 +226,7 @@ else
         .UseRecommendedSerializerSettings());
 }
 
-// ========================================
 // 5. CORS
-// ========================================
 
 builder.Services.AddCors(options =>
 {
@@ -260,9 +242,7 @@ builder.Services.AddCors(options =>
     });
 });
 
-// ========================================
 // 6. JWT AUTH
-// ========================================
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -287,9 +267,7 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy("HROfficer", policy => policy.RequireRole("SuperAdmin", "HRManager", "HROfficer"));
 });
 
-// ========================================
 // 7. HEALTH CHECKS (Enhanced with detailed monitoring)
-// ========================================
 
 builder.Services.AddHealthChecks()
     // Database health check with connection testing
@@ -317,9 +295,7 @@ builder.Services.AddHealthChecks()
         failureStatus: HealthStatus.Unhealthy,
         tags: new[] { "database", "ef" });
 
-// ========================================
 // 8. BUILD APP
-// ========================================
 
 var app = builder.Build();
 
@@ -329,9 +305,7 @@ foreach (var origin in builder.Configuration.GetSection("CorsSettings:AllowedOri
     app.Logger.LogInformation("   ✓ {Origin}", origin);
 }
 
-// ========================================
 // 9. PIPELINE
-// ========================================
 
 app.UseResponseCompression();
 app.UseResponseCaching();
@@ -378,9 +352,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
-// ========================================
 // 10. HEALTH CHECK ENDPOINTS
-// ========================================
 
 app.MapHealthChecks("/health", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
 {
@@ -434,9 +406,7 @@ if (app.Environment.IsDevelopment())
     }).WithTags("Test");
 }
 
-// ========================================
 // 11. MIGRATIONS
-// ========================================
 
 if (app.Environment.IsDevelopment() && isDatabaseAvailable)
 {
@@ -457,9 +427,7 @@ if (app.Environment.IsDevelopment() && isDatabaseAvailable)
     }
 }
 
-// ========================================
 // 12. SCHEDULE HANGFIRE JOBS
-// ========================================
 
 if (isDatabaseAvailable)
 {
@@ -500,16 +468,12 @@ if (isDatabaseAvailable)
     }
 }
 
-// ========================================
 // 13. RATE LIMIT CLEANUP
-// ========================================
 
 var window = TimeSpan.FromMinutes(builder.Configuration.GetValue<int>("RateLimiting:WindowMinutes", 60));
 RateLimitingMiddleware.StartCleanupTask(window);
 
-// ========================================
 // 14. RUN
-// ========================================
 
 app.Logger.LogInformation("🚀 KQ Alumni API Starting...");
 app.Logger.LogInformation("🌐 Environment: {Env}", app.Environment.EnvironmentName);
@@ -517,9 +481,7 @@ app.Logger.LogInformation("📍 Base URL: {BaseUrl}", builder.Configuration["App
 
 app.Run();
 
-// ========================================
 // HANGFIRE DASHBOARD AUTH
-// ========================================
 
 public class HangfireAuthorizationFilter : IDashboardAuthorizationFilter
 {
