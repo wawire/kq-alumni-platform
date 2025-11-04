@@ -248,7 +248,7 @@ public class EmailServiceWithTracking : IEmailService
         {
             Credentials = new NetworkCredential(_emailSettings.Username, _emailSettings.Password),
             EnableSsl = _emailSettings.EnableSsl,
-            Timeout = (_emailSettings.TimeoutSeconds ?? 30) * 1000
+            Timeout = _emailSettings.TimeoutSeconds * 1000
         };
 
         var mailMessage = new MailMessage

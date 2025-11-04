@@ -62,8 +62,7 @@ namespace KQAlumni.Infrastructure.Data.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_EmailLogs_SentAt",
                 table: "EmailLogs",
-                column: "SentAt",
-                descending: true);
+                column: "SentAt");
 
             migrationBuilder.CreateIndex(
                 name: "IX_EmailLogs_Status_SentAt",
