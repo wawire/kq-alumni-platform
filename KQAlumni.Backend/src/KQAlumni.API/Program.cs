@@ -17,6 +17,7 @@ using System.Text;
 using System.IO.Compression;
 using Microsoft.AspNetCore.ResponseCompression;
 using KQAlumni.API.HealthChecks;
+using KQAlumni.API.Services;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -181,6 +182,19 @@ var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSetting
 builder.Services.AddInfrastructureServices(builder.Configuration);
 
 // ========================================
+// 3A. HOSTED SERVICES (Configuration Validation & Monitoring)
+// ========================================
+
+// Configuration validator - runs on startup and validates all required settings
+builder.Services.AddHostedService<ConfigurationValidator>();
+
+// Rate limiting monitor - tracks and logs rate limiting metrics
+builder.Services.AddSingleton<RateLimitMonitor>();
+builder.Services.AddHostedService(sp => sp.GetRequiredService<RateLimitMonitor>());
+
+builder.Services.AddHttpClient();
+
+// ========================================
 // 4. DATABASE & HANGFIRE
 // ========================================
 
@@ -274,13 +288,34 @@ builder.Services.AddAuthorization(options =>
 });
 
 // ========================================
-// 7. HEALTH CHECKS
+// 7. HEALTH CHECKS (Enhanced with detailed monitoring)
 // ========================================
 
 builder.Services.AddHealthChecks()
-    .AddCheck<EmailHealthCheck>("email", tags: new[] { "email", "external" })
-    .AddCheck<ErpApiHealthCheck>("erp_api", tags: new[] { "erp", "external" })
-    .AddDbContextCheck<AppDbContext>("database", tags: new[] { "database" });
+    // Database health check with connection testing
+    .AddCheck<SqlServerHealthCheck>("database",
+        failureStatus: HealthStatus.Unhealthy,
+        tags: new[] { "database", "critical", "ready" })
+
+    // Email/SMTP health check with connectivity testing
+    .AddCheck<SmtpHealthCheck>("smtp",
+        failureStatus: HealthStatus.Degraded,
+        tags: new[] { "email", "external" })
+
+    // Legacy email settings check (kept for compatibility)
+    .AddCheck<EmailHealthCheck>("email_settings",
+        failureStatus: HealthStatus.Degraded,
+        tags: new[] { "email", "settings" })
+
+    // ERP API health check with timing
+    .AddCheck<ErpApiHealthCheck>("erp_api",
+        failureStatus: HealthStatus.Degraded,
+        tags: new[] { "erp", "external" })
+
+    // DbContext check (kept for Hangfire compatibility)
+    .AddDbContextCheck<AppDbContext>("ef_core",
+        failureStatus: HealthStatus.Unhealthy,
+        tags: new[] { "database", "ef" });
 
 // ========================================
 // 8. BUILD APP

@@ -32,6 +32,11 @@ public class AppDbContext : DbContext
         /// </summary>
         public DbSet<AuditLog> AuditLogs { get; set; } = null!;
 
+        /// <summary>
+        /// Email delivery logs table (tracks all email sending attempts)
+        /// </summary>
+        public DbSet<EmailLog> EmailLogs { get; set; } = null!;
+
         // ========================================
         // Model Configuration
         // ========================================
@@ -287,6 +292,72 @@ public class AppDbContext : DbContext
                         // Default values
                         entity.Property(e => e.Timestamp).HasDefaultValueSql("GETUTCDATE()");
                         entity.Property(e => e.IsAutomated).HasDefaultValue(false);
+                });
+
+                // ========================================
+                // Configure EmailLog entity
+                // ========================================
+                modelBuilder.Entity<EmailLog>(entity =>
+                {
+                        entity.ToTable("EmailLogs");
+
+                        entity.HasKey(e => e.Id);
+
+                        // Foreign key relationship to AlumniRegistration (nullable)
+                        entity.HasOne(e => e.Registration)
+                            .WithMany()
+                            .HasForeignKey(e => e.RegistrationId)
+                            .OnDelete(DeleteBehavior.SetNull);
+
+                        // Index on RegistrationId for filtering logs by registration
+                        entity.HasIndex(e => e.RegistrationId)
+                            .HasDatabaseName("IX_EmailLogs_RegistrationId");
+
+                        // Index on ToEmail for filtering by recipient
+                        entity.HasIndex(e => e.ToEmail)
+                            .HasDatabaseName("IX_EmailLogs_ToEmail");
+
+                        // Index on SentAt for chronological queries
+                        entity.HasIndex(e => e.SentAt)
+                            .IsDescending()
+                            .HasDatabaseName("IX_EmailLogs_SentAt");
+
+                        // Index on Status for filtering by delivery status
+                        entity.HasIndex(e => e.Status)
+                            .HasDatabaseName("IX_EmailLogs_Status");
+
+                        // Index on EmailType for filtering by type
+                        entity.HasIndex(e => e.EmailType)
+                            .HasDatabaseName("IX_EmailLogs_EmailType");
+
+                        // ========================================
+                        // COMPOSITE INDEXES (for query performance)
+                        // ========================================
+
+                        // Status + SentAt: For efficient delivery status queries
+                        entity.HasIndex(e => new { e.Status, e.SentAt })
+                            .IsDescending(false, true)
+                            .HasDatabaseName("IX_EmailLogs_Status_SentAt");
+
+                        // EmailType + Status: For monitoring email type success rates
+                        entity.HasIndex(e => new { e.EmailType, e.Status })
+                            .HasDatabaseName("IX_EmailLogs_EmailType_Status");
+
+                        // RegistrationId + SentAt: For tracking emails per registration
+                        entity.HasIndex(e => new { e.RegistrationId, e.SentAt })
+                            .IsDescending(false, true)
+                            .HasDatabaseName("IX_EmailLogs_Registration_SentAt");
+
+                        // Required fields
+                        entity.Property(e => e.ToEmail).IsRequired();
+                        entity.Property(e => e.Subject).IsRequired();
+                        entity.Property(e => e.EmailType).IsRequired();
+                        entity.Property(e => e.Status).IsRequired();
+
+                        // Default values
+                        entity.Property(e => e.Id).HasDefaultValueSql("NEWID()");
+                        entity.Property(e => e.SentAt).HasDefaultValueSql("GETUTCDATE()");
+                        entity.Property(e => e.RetryCount).HasDefaultValue(0);
                 });
         }
 

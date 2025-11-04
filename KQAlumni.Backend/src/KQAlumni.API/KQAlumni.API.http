@@ -1,6 +1,71 @@
-@KQAlumni.API_HostAddress = http://localhost:5295
+@baseUrl = http://localhost:5295
+@token = your-jwt-token-here
 
-GET {{KQAlumni.API_HostAddress}}/weatherforecast/
+### Health Check - Full System
+GET {{baseUrl}}/health
 Accept: application/json
 
-###
+### Health Check - Readiness
+GET {{baseUrl}}/health/ready
+Accept: application/json
+
+### Health Check - Liveness
+GET {{baseUrl}}/health/live
+Accept: application/json
+
+### Test Endpoint (Development Only)
+GET {{baseUrl}}/api/test
+Accept: application/json
+
+### Alumni Registration - Submit
+POST {{baseUrl}}/api/alumni/register
+Content-Type: application/json
+
+{
+  "staffNumber": "0012345",
+  "email": "test@example.com",
+  "firstName": "John",
+  "lastName": "Doe",
+  "phoneNumber": "+254712345678",
+  "department": "Engineering",
+  "jobTitle": "Software Engineer",
+  "yearsOfService": 5,
+  "lastWorkingDate": "2024-01-15",
+  "reasonForLeaving": "Retirement",
+  "linkedInUrl": "https://www.linkedin.com/in/johndoe",
+  "currentEmployer": "Tech Corp",
+  "currentJobTitle": "Senior Engineer",
+  "stayConnected": true
+}
+
+### Alumni Registration - Verify Email
+GET {{baseUrl}}/api/alumni/verify?token=verification-token-here
+Accept: application/json
+
+### Admin - Login
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@kenya-airways.com",
+  "password": "your-password"
+}
+
+### Admin - Get All Registrations (Requires Auth)
+GET {{baseUrl}}/api/admin/registrations?pageNumber=1&pageSize=20
+Authorization: Bearer {{token}}
+Accept: application/json
+
+### Admin - Approve Registration (Requires Auth)
+POST {{baseUrl}}/api/admin/registrations/{id}/approve
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+### Admin - Reject Registration (Requires Auth)
+POST {{baseUrl}}/api/admin/registrations/{id}/reject
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "reason": "Incomplete information"
+}

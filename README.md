@@ -1,193 +1,136 @@
 # KQ Alumni Platform
 
-A comprehensive web platform for the Kenya Airways Alumni Association, enabling former employees to register, stay connected, and engage with the Kenya Airways community.
+> A modern, enterprise-grade platform for the Kenya Airways Alumni Association, connecting former employees worldwide.
+
+**Version**: 2.0.0 | **Status**: Production Ready | **License**: Proprietary
+
+---
+
+## 📖 Table of Contents
+
+- [Overview](#overview)
+- [Features](#features)
+- [Quick Start](#quick-start)
+- [Architecture](#architecture)
+- [Validation Rules](#validation-rules)
+- [Monitoring](#monitoring)
+- [Deployment](#deployment)
+- [Troubleshooting](#troubleshooting)
+
+---
 
 ## Overview
 
-The KQ Alumni Platform is a full-stack application built with modern technologies:
+The KQ Alumni Platform is a comprehensive web application that manages registration, verification, and engagement for Kenya Airways alumni. Built with modern technologies and enterprise-grade features, it provides:
 
-- **Backend**: .NET 8.0 ASP.NET Core Web API with Entity Framework Core
-- **Frontend**: Next.js 14 with React 18 and TypeScript
-- **Database**: SQL Server
-- **Background Jobs**: Hangfire
-- **ERP Integration**: Oracle SOA Suite integration for employee validation
+- **Multi-step registration** with real-time validation
+- **ERP integration** for automatic employee verification via Oracle SOA
+- **Email verification** workflow with secure token-based authentication
+- **Admin dashboard** for managing registrations and approvals
+- **Background job processing** with smart scheduling
+- **Comprehensive monitoring** and health checks
+
+---
 
 ## Features
 
-### Registration System
-- **Multi-step Registration Wizard**
-  - Step 1: Personal Information (name, email, phone, location)
-  - Step 2: Employment Information (staff number, department, dates, certifications)
-  - Step 3: Engagement Preferences (volunteer interests, events, mentorship, newsletter)
-  - Real-time form validation with Zod schemas
-  - Form state persistence across page refreshes (Zustand + localStorage)
+### Core Functionality
+- ✅ **Registration System**: Multi-step wizard with form state persistence
+- ✅ **Real-time Validation**: Email and staff number duplicate detection
+- ✅ **ERP Integration**: Automatic employee verification via Oracle SOA Suite
+- ✅ **Email Verification**: 30-day token expiry with secure links
+- ✅ **Background Jobs**: Smart scheduling with Hangfire (business hours, off-hours, weekends)
 
-- **Real-time Validation**
-  - Duplicate email detection (debounced API checks)
-  - Duplicate phone number detection
-  - ERP integration for automatic staff validation
-  - Inline error messages and validation feedback
+### Monitoring & Reliability (v2.0.0)
+- ✅ **Email Delivery Tracking**: Database logging of all email attempts with status, duration, and errors
+- ✅ **Environment Validation**: Startup validation that fails fast on invalid configuration
+- ✅ **Enhanced Health Checks**: SQL Server, SMTP, and ERP connectivity monitoring
+- ✅ **Rate Limiting Monitor**: Automated reporting every 15 minutes
+- ✅ **Standardized Validation**: Frontend and backend validation patterns synchronized
 
-- **Email Verification Flow**
-  - Automated email confirmation with verification token
-  - Token-based email verification endpoint
-  - Success/error screens with user guidance
+### Security
+- 🔒 JWT authentication for admin access
+- 🔒 Rate limiting (100 requests/hour in production, 1000 in development)
+- 🔒 IP whitelisting support for admin dashboard
+- 🔒 CORS protection with configurable origins
+- 🔒 SQL injection protection via Entity Framework Core
+- 🔒 Disposable email domain blocking
 
-### Backend Features
-- Background job processing for approvals (Hangfire)
-- Email notifications (confirmation and approval/rejection)
-- Admin dashboard for job monitoring (Hangfire UI)
-- Rate limiting and security features
-- Mock services for local development (Email & ERP)
-- Health check endpoints
-- Comprehensive API documentation (Swagger)
+### Admin Features
+- 📊 Dashboard with registration statistics
+- ✅ Manual review workflow for flagged registrations
+- 📧 Email notification management (approval, rejection, verification)
+- 📝 Audit logging for all admin actions
+- ⚙️ Hangfire dashboard for background job monitoring
 
-### UI/UX Features
-- Fully responsive design (mobile-first)
-- Loading states and optimistic updates
-- Error boundaries for graceful error handling
-- Toast notifications for user feedback
-- Accessible form components (ARIA labels, keyboard navigation)
-- Kenya Airways branding (KQ Red #E30613, Cabrito & Roboto fonts)
-
-## Project Structure
-
-```
-kq-alumni-platform/
-├── KQAlumni.Backend/                 # Backend .NET solution
-│   ├── src/
-│   │   ├── KQAlumni.API/             # Web API project
-│   │   ├── KQAlumni.Core/            # Domain models and interfaces
-│   │   └── KQAlumni.Infrastructure/  # Data access and services
-│   └── tests/                        # Unit and integration tests
-│
-├── kq-alumni-frontend/               # Frontend Next.js application
-│   ├── src/
-│   │   ├── app/                      # Next.js app router pages
-│   │   ├── components/               # React components (ui, forms, registration)
-│   │   ├── services/                 # API services
-│   │   ├── store/                    # Zustand state management
-│   │   ├── hooks/                    # Custom hooks
-│   │   ├── types/                    # TypeScript definitions
-│   │   ├── utils/                    # Validation schemas and helpers
-│   │   └── constants/                # App constants
-│   └── public/                       # Static assets
-│
-├── DEPLOYMENT_GUIDE.md               # IIS deployment guide
-├── SQL_SERVER_SETUP.md               # Database setup guide
-├── CHANGELOG.md                      # Version history
-├── docker-compose.yml                # SQL Server Docker setup
-├── start-dev.ps1                     # Windows startup script
-└── start-dev.sh                      # macOS/Linux startup script
-```
+---
 
 ## Quick Start
 
 ### Prerequisites
 
-- .NET 8.0 SDK - [Download](https://dotnet.microsoft.com/download/dotnet/8.0)
-- Node.js 18.17+ - [Download](https://nodejs.org/)
-- SQL Server (choose one):
-  - **LocalDB** (Windows) - [Download](https://learn.microsoft.com/en-us/sql/database-engine/configure-windows/sql-server-express-localdb) or included with Visual Studio
-  - **Docker** (All platforms) - [Download](https://www.docker.com/products/docker-desktop)
-- Git - [Download](https://git-scm.com/downloads)
+Before you begin, install:
 
-### Clone Repository
+- **.NET 8.0 SDK**: https://dotnet.microsoft.com/download/dotnet/8.0
+- **Node.js 18+**: https://nodejs.org/
+- **Docker Desktop**: https://www.docker.com/products/docker-desktop/
+- **Git**: https://git-scm.com/
+
+### 1. Clone Repository
 
 ```bash
 git clone https://github.com/wawire/kq-alumni-platform.git
 cd kq-alumni-platform
 ```
 
-### Automated Start (Recommended)
-
-**Windows (PowerShell):**
-```powershell
-.\start-dev.ps1
-```
-
-**macOS/Linux:**
-```bash
-./start-dev.sh
-```
-
-The script will:
-- ✅ Check prerequisites
-- ✅ Install frontend dependencies
-- ✅ Start backend in a new window
-- ✅ Start frontend in a new window
-- ✅ Verify backend health
-
-Access the application:
-- **Frontend**: http://localhost:3000
-- **Backend API**: http://localhost:5295
-- **Swagger Docs**: http://localhost:5295/swagger
-- **Hangfire Dashboard**: http://localhost:5295/hangfire
-
-### Manual Setup
-
-<details>
-<summary>Click to expand manual setup instructions</summary>
-
-#### Step 1: Database Setup
-
-**Option A: Docker SQL Server (Recommended for Linux/Mac)**
+### 2. Start SQL Server (Docker)
 
 ```bash
-# Start SQL Server container
-docker-compose up -d
-
-# Verify it's running
-docker ps
-# You should see: kqalumni-sqlserver running on port 1433
+docker run -e "ACCEPT_EULA=Y" -e "SA_PASSWORD=YourStrong@Passw0rd" \
+  -p 1433:1433 --name kq-alumni-sql \
+  -d mcr.microsoft.com/mssql/server:2019-latest
 ```
 
-Connection Details:
-- Server: `localhost,1433`
-- Username: `sa`
-- Password: `YourStrong@Passw0rd`
-- Database: `KQAlumniDB` (will be created automatically)
-
-**Option B: LocalDB (Windows Only)**
-
-```powershell
-# Verify LocalDB is installed
-SqlLocalDB.exe info
-
-# Create and start instance
-SqlLocalDB.exe create MSSQLLocalDB
-SqlLocalDB.exe start MSSQLLocalDB
+**Manage Container**:
+```bash
+docker stop kq-alumni-sql    # Stop
+docker start kq-alumni-sql   # Start
+docker rm kq-alumni-sql      # Remove (start fresh)
 ```
 
-Connection string uses: `Server=(LocalDB)\\MSSQLLocalDB;Database=KQAlumniDB;Integrated Security=true;TrustServerCertificate=true;`
+### 3. Backend Setup
 
-For detailed database setup instructions, see [SQL_SERVER_SETUP.md](SQL_SERVER_SETUP.md).
-
-#### Step 2: Backend Setup
+The repository includes configuration templates. Create your local config:
 
 ```bash
 cd KQAlumni.Backend/src/KQAlumni.API
 
+# appsettings.Development.json already exists locally (not in git)
+# It uses: Server=localhost,1433;Database=KQAlumniDB;User Id=sa;Password=YourStrong@Passw0rd
+
 # Restore dependencies
 dotnet restore
 
-# Apply database migrations (creates database and tables)
-dotnet ef database update
+# Apply database migrations
+dotnet ef database update --project ../KQAlumni.Infrastructure
 
-# If dotnet-ef is not installed:
-# dotnet tool install --global dotnet-ef
-
-# Start the backend
+# Start backend
 dotnet run
 ```
 
-The API will be available at `http://localhost:5295`
+**Backend URLs**:
+- API: http://localhost:5295
+- Swagger: http://localhost:5295/swagger
+- Hangfire: http://localhost:5295/hangfire
+- Health: http://localhost:5295/health
 
-#### Step 3: Frontend Setup
+### 4. Frontend Setup
 
 ```bash
-# In a new terminal
 cd kq-alumni-frontend
+
+# .env.local already exists locally (not in git)
+# It uses: NEXT_PUBLIC_API_URL=http://localhost:5295
 
 # Install dependencies
 npm install
@@ -196,322 +139,475 @@ npm install
 npm run dev
 ```
 
-The frontend will be available at `http://localhost:3000`
-
-</details>
-
-### First Time Testing
-
-1. **Test Registration**: Go to http://localhost:3000 and click "Register Now"
-2. **Use Mock Staff Numbers**: `0012345`, `00C5050`, or `00A1234` (ERP is in mock mode)
-3. **Access Admin**: http://localhost:3000/admin/login (create admin user via API first)
-
-## Development
-
-### Backend Development
-
-**Commands:**
-- **Build**: `dotnet build`
-- **Run**: `dotnet run`
-- **Test**: `dotnet test`
-- **Publish**: `dotnet publish -c Release`
-
-**Mock Services:**
-
-For local development, the backend includes mock services:
-
-- **Mock Email Service**: Logs emails to console instead of sending via SMTP
-  - Enable in `appsettings.Development.json`: `"UseMockEmailService": true`
-
-- **Mock ERP Service**: Simulates ERP validation without network connection
-  - Enable in `appsettings.Development.json`: `"EnableMockMode": true`
-  - Configure test staff numbers in `MockStaffNumbers` array
-
-**Hangfire Dashboard:**
-
-Access the background job dashboard at: `http://localhost:5295/hangfire`
-
-### Frontend Development
-
-**Commands:**
-- **Dev server**: `npm run dev`
-- **Build**: `npm run build`
-- **Production**: `npm run start`
-- **Lint**: `npm run lint`
-- **Type check**: `npm run type-check`
-- **Format**: `npm run format`
-
-**Environment Variables:**
-
-- `.env.local` - Local development (git-ignored)
-- `.env.development.local` - Development environment (git-ignored)
-- `.env.production.local` - Production environment (git-ignored)
-- `.env.local.example` - Template for local development
-- `.env.production.local.example` - Template for production
-
-## Configuration
-
-### Backend Configuration Files
-
-- `appsettings.json` - Base configuration (localhost settings)
-- `appsettings.template.json` - Template for creating environment-specific configs
-- `appsettings.Development.template.json` - Development template
-- `appsettings.Production.template.json` - Production template
-- `appsettings.Development.json` - Development overrides (git-ignored, create from template)
-- `appsettings.Production.json` - Production settings (git-ignored, create from template)
-
-### Creating Environment-Specific Configs
-
-**For Development:**
-```bash
-cd KQAlumni.Backend/src/KQAlumni.API
-cp appsettings.Development.template.json appsettings.Development.json
-# Edit appsettings.Development.json with your connection strings and settings
-```
-
-**For Production:**
-```bash
-cd KQAlumni.Backend/src/KQAlumni.API
-cp appsettings.Production.template.json appsettings.Production.json
-# Edit appsettings.Production.json with production settings
-# IMPORTANT: Change JWT SecretKey, connection strings, and SMTP credentials!
-```
-
-### Key Configuration Sections
-
-**Database Connection:**
-```json
-"ConnectionStrings": {
-  "DefaultConnection": "Server=(LocalDB)\\MSSQLLocalDB;Database=KQAlumniDB;Integrated Security=true;TrustServerCertificate=true;"
-}
-```
-
-**Email Service:**
-```json
-"Email": {
-  "SmtpServer": "your-smtp-server",
-  "SmtpPort": 587,
-  "EnableSsl": true,
-  "Username": "your-smtp-username",
-  "Password": "your-smtp-password",
-  "From": "KQ.Alumni@kenya-airways.com",
-  "DisplayName": "Kenya Airways Alumni Relations",
-  "EnableEmailSending": false,
-  "UseMockEmailService": true
-}
-```
-
-**ERP Integration:**
-```json
-"ErpApi": {
-  "BaseUrl": "http://your-erp-server:port",
-  "Endpoint": "/soa-infra/resources/default/HR_Leavers/RestService/Leavers",
-  "Timeout": 30,
-  "RetryCount": 3,
-  "EnableMockMode": true,
-  "MockStaffNumbers": ["0012345", "00C5050", "00A1234"]
-}
-```
-
-## Troubleshooting
-
-### Database Connection Errors
-
-**Docker SQL Server not ready:**
-```bash
-# Check Docker is running
-docker ps
-
-# Check SQL Server logs
-docker logs kqalumni-sqlserver
-# Wait until you see: "SQL Server is now ready for client connections"
-
-# Test the connection
-sqlcmd -S localhost,1433 -U sa -P "YourStrong@Passw0rd" -Q "SELECT @@VERSION"
-
-# Restart if needed
-docker-compose restart sqlserver
-```
-
-**LocalDB issues (Windows):**
-```powershell
-# Check if LocalDB is running
-SqlLocalDB.exe info MSSQLLocalDB
-
-# Start LocalDB
-SqlLocalDB.exe start MSSQLLocalDB
-
-# Verify database exists
-sqlcmd -S "(LocalDB)\MSSQLLocalDB" -E -Q "SELECT name FROM sys.databases WHERE name = 'KQAlumniDB'"
-```
-
-### Backend Won't Start
-
-- **Check SQL Server connection**: Verify database is running and connection string is correct
-- **Verify .NET 8.0 SDK**: Run `dotnet --version`
-- **Check logs**: Review console output for error messages
-- **Apply migrations**: Run `dotnet ef database update` from `KQAlumni.Backend/src/KQAlumni.API`
-
-### Frontend Can't Connect to Backend
-
-- **Verify backend is running**: Check `http://localhost:5295/health`
-- **Check API URL**: Verify `NEXT_PUBLIC_API_URL` in `.env.local`
-- **Check CORS settings**: Backend must allow `http://localhost:3000`
-
-### Email Not Sending
-
-- **Enable mock mode**: Set `"UseMockEmailService": true` in appsettings
-- **Check SMTP credentials**: Verify username and password
-- **Verify network connectivity**: Ensure SMTP server is reachable
-
-### ERP Integration Failing
-
-- **Enable mock mode**: Set `"EnableMockMode": true` in ErpApi settings
-- **Verify network connectivity**: Ensure ERP server is reachable
-- **Check ERP endpoint URL**: Verify URL and credentials
-
-### Common Error Messages
-
-**"The term 'dotnet-ef' is not recognized"**
-```bash
-dotnet tool install --global dotnet-ef
-```
-
-**"Build failed" when running migrations**
-```bash
-# Ensure the build succeeds first
-dotnet build
-# Then run migrations
-dotnet ef database update
-```
-
-**"Cannot open database"**
-- Verify SQL Server/LocalDB is running
-- Check connection string is correct
-- Verify SQL Server allows connections
-
-## Deployment
-
-For deploying to production environments (IIS on Windows Server), see the comprehensive deployment guide:
-
-**📖 [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md)** - Complete IIS deployment instructions
-
-The deployment guide covers:
-- Server prerequisites
-- Backend and frontend deployment
-- IIS configuration
-- SSL/TLS setup
-- Troubleshooting
-
-## Architecture
-
-### Backend Architecture
-
-**Clean/Layered Architecture**:
-
-- **API Layer** (`KQAlumni.API`)
-  - Controllers, middleware, configuration
-  - Swagger/OpenAPI documentation
-  - Health checks
-
-- **Core Layer** (`KQAlumni.Core`)
-  - Domain models
-  - Repository interfaces
-  - Business logic interfaces
-
-- **Infrastructure Layer** (`KQAlumni.Infrastructure`)
-  - Entity Framework DbContext
-  - Repository implementations
-  - External service integrations (Email, ERP)
-  - Background jobs (Hangfire)
-
-### Frontend Architecture
-
-**Next.js 14 App Router with Modern React Patterns**:
-
-- **Pages** (`src/app/`) - Server and client components with app router
-- **Components** (`src/components/`) - UI, form, and registration components
-- **State Management** - Zustand for client state, React Query for server state
-- **Services** (`src/services/`) - API client with axios
-- **Types** (`src/types/`) - TypeScript definitions
-- **Hooks** (`src/hooks/`) - Custom React hooks (useDebounce, useDuplicateCheck)
-- **Utils** (`src/utils/`) - Validation schemas with Zod
-
-## API Documentation
-
-### Swagger UI
-
-When running locally, access the API documentation at: `http://localhost:5295/swagger`
-
-### Main Endpoints
-
-- `POST /api/v1/registrations` - Submit registration
-- `GET /api/v1/registrations/{id}` - Get registration by ID
-- `GET /api/v1/registrations/verify/{token}` - Verify email
-- `GET /api/health` - Health check endpoint
-
-## Testing
-
-### Backend Tests
-
-```bash
-cd KQAlumni.Backend
-dotnet test
-```
-
-### Frontend Tests
-
-```bash
-cd kq-alumni-frontend
-npm test
-```
-
-## Technology Stack
-
-### Backend
-- .NET 8.0
-- ASP.NET Core Web API
-- Entity Framework Core 8.0
-- SQL Server
-- Hangfire (background jobs)
-- FluentValidation
-- Polly (resilience)
-- Serilog (logging)
-- Swashbuckle (Swagger/OpenAPI)
-
-### Frontend
-- Next.js 14
-- React 18
-- TypeScript 5.3+
-- Tailwind CSS v3.4
-- React Hook Form 7.65 + Zod 3.25
-- Axios 1.12
-- TanStack React Query 5.90
-- Zustand 4.4
-- React Select 5.10
-- React Phone Input 2
-- Country State City 3.2
-- Sonner 2.0 (toast notifications)
-- Heroicons 2.2
-
-## Contributing
-
-1. Create a feature branch from `main`
-2. Make your changes
-3. Test thoroughly (both backend and frontend)
-4. Create a pull request
-
-## License
-
-Proprietary - Kenya Airways Alumni Association
-
-## Support
-
-For support and questions, please contact:
-- Development Team: [Contact details]
-- System Administrator: [Contact details]
+**Frontend URL**: http://localhost:3000
+
+### 5. Test Registration
+
+Use these test staff numbers (mock mode enabled in development):
+- `0012345` - Permanent staff
+- `00C5050` - Contract staff
+- `00A1234` - Intern
+- `00RG002` - Regional
+- `00EM004` - Engineering
+- `00H1234` - Any format
 
 ---
 
-**Version**: 1.0.0
-**Last Updated**: 2025-10-31
+## Architecture
+
+### Technology Stack
+
+**Backend**:
+- .NET 8.0 ASP.NET Core Web API
+- Entity Framework Core 8.0
+- Hangfire for background jobs
+- FluentValidation for input validation
+- SQL Server 2019+
+
+**Frontend**:
+- Next.js 14 with App Router
+- React 18 with TypeScript
+- TailwindCSS for styling
+- React Hook Form + Zod for validation
+- Axios for API communication
+
+**Infrastructure**:
+- IIS 10+ (production hosting)
+- SQL Server 2019+ (database)
+- Oracle SOA Suite (ERP integration)
+- Office 365 SMTP (email delivery)
+
+### Project Structure
+
+```
+kq-alumni-platform/
+├── KQAlumni.Backend/
+│   ├── src/
+│   │   ├── KQAlumni.API/              # API controllers, middleware, health checks
+│   │   ├── KQAlumni.Core/             # Domain models, validators, interfaces
+│   │   └── KQAlumni.Infrastructure/   # Services, data access, background jobs
+│   └── tests/                         # Unit and integration tests
+├── kq-alumni-frontend/
+│   └── src/
+│       ├── app/                       # Next.js App Router pages
+│       ├── components/                # React components
+│       ├── lib/                       # API client, utilities
+│       └── constants/                 # Configuration, navigation
+├── DEPLOYMENT.md                      # Production deployment guide
+└── README.md                          # This file
+```
+
+### Key Design Patterns
+
+- **Clean Architecture**: Separation of concerns (API, Core, Infrastructure)
+- **Repository Pattern**: Data access abstraction
+- **Service Layer**: Business logic encapsulation
+- **Middleware Pipeline**: Request processing (error handling, rate limiting, CORS)
+- **Background Jobs**: Async processing with Hangfire
+- **Health Checks**: Dependency monitoring (SQL, SMTP, ERP)
+
+---
+
+## Validation Rules
+
+### Staff Number Format
+
+**Pattern**: `^00[0-9A-Z]{5}$`
+
+**Format**: 7 characters total
+- First 2 characters: `00` (required prefix)
+- Next 5 characters: Any combination of digits (0-9) or uppercase letters (A-Z)
+
+**Valid Examples**:
+```
+✅ 0012345   - Permanent staff (digits only)
+✅ 00C5050   - Contract staff
+✅ 00A1234   - Intern/apprentice
+✅ 00RG002   - Regional staff
+✅ 00EM004   - Engineering/Maintenance
+✅ 00H1234   - HR department
+```
+
+**Invalid Examples**:
+```
+❌ 12345     - Missing '00' prefix
+❌ 0012345678 - Too long (must be exactly 7 characters)
+❌ 012345    - Missing one '0' (must start with '00')
+❌ 00123ab   - Lowercase letters not allowed
+❌ 00 12345  - Spaces not allowed
+```
+
+**Validation Notes**:
+- Frontend and backend use identical validation patterns
+- Auto-converts to uppercase
+- Trims whitespace
+- Backend validates with FluentValidation
+- Frontend validates with Zod schemas
+
+### Email Format
+
+**Pattern**: Standard RFC 5322
+- Maximum 255 characters
+- Must contain @ symbol
+- Valid domain name required
+- Disposable email domains blocked
+- Auto-converted to lowercase
+
+### Name Validation
+
+**Pattern**: `^[a-zA-Z\s'-]+$`
+- Only letters, spaces, hyphens, and apostrophes
+- 2-100 characters per name field
+- Trims whitespace
+
+### LinkedIn URL (Optional)
+
+**Pattern**: `^https?:\/\/(www\.)?linkedin\.com\/in\/[a-zA-Z0-9_-]+\/?$`
+- Must be valid LinkedIn profile URL
+- Optional field
+
+---
+
+## Monitoring
+
+### Health Endpoints
+
+The application exposes comprehensive health checks:
+
+**`GET /health`** - Full system health
+```json
+{
+  "status": "Healthy",
+  "timestamp": "2025-11-04T10:30:00Z",
+  "environment": "Production",
+  "checks": [
+    {
+      "name": "database",
+      "status": "Healthy",
+      "description": "Database is healthy (responded in 45ms)",
+      "duration": 45.2,
+      "tags": ["database", "critical", "ready"]
+    },
+    {
+      "name": "smtp",
+      "status": "Healthy",
+      "description": "SMTP server connection successful",
+      "duration": 120.5,
+      "tags": ["email", "external"]
+    },
+    {
+      "name": "erp_api",
+      "status": "Healthy",
+      "description": "ERP API is responding",
+      "duration": 200.1,
+      "tags": ["erp", "external"]
+    }
+  ],
+  "totalDuration": 365.8
+}
+```
+
+**`GET /health/ready`** - Kubernetes readiness probe (database check only)
+
+**`GET /health/live`** - Kubernetes liveness probe (always returns 200 OK)
+
+### Email Delivery Tracking
+
+All email delivery attempts are logged to the `EmailLogs` table with:
+- **ToEmail**: Recipient address
+- **Subject**: Email subject line
+- **EmailType**: Confirmation, Approval, or Rejection
+- **Status**: Sent, Failed, or MockMode
+- **ErrorMessage**: Error details (if failed)
+- **SentAt**: Timestamp
+- **DurationMs**: Delivery time in milliseconds
+- **RetryCount**: Number of retry attempts
+
+**Query Recent Emails**:
+```sql
+SELECT
+    ToEmail,
+    EmailType,
+    Status,
+    ErrorMessage,
+    SentAt,
+    DurationMs
+FROM EmailLogs
+ORDER BY SentAt DESC
+OFFSET 0 ROWS FETCH NEXT 50 ROWS ONLY;
+```
+
+**Email Delivery Statistics**:
+```sql
+SELECT
+    EmailType,
+    Status,
+    COUNT(*) as Total,
+    AVG(DurationMs) as AvgDurationMs,
+    MAX(DurationMs) as MaxDurationMs
+FROM EmailLogs
+WHERE SentAt >= DATEADD(DAY, -7, GETUTCDATE())
+GROUP BY EmailType, Status
+ORDER BY EmailType, Status;
+```
+
+**Failed Emails in Last 24 Hours**:
+```sql
+SELECT
+    ToEmail,
+    Subject,
+    ErrorMessage,
+    SentAt,
+    RetryCount
+FROM EmailLogs
+WHERE Status = 'Failed'
+  AND SentAt >= DATEADD(HOUR, -24, GETUTCDATE())
+ORDER BY SentAt DESC;
+```
+
+### Rate Limiting Monitor
+
+The `RateLimitMonitor` service runs in the background and logs statistics every 15 minutes:
+
+```
+╔════════════════════════════════════════╗
+║  RATE LIMITING STATISTICS REPORT      ║
+║  Total Requests: 5,423                ║
+║  Rate Limited:   12                   ║
+║  Hit Rate:       0.22%                ║
+║  Period:         15 minutes           ║
+╚════════════════════════════════════════╝
+```
+
+Check application logs for these reports to monitor rate limiting effectiveness.
+
+### Configuration Validation
+
+On startup, the application validates all required configuration:
+- ✅ Database connection string
+- ✅ JWT settings (secret key length, issuer, audience)
+- ✅ Email settings (SMTP server, credentials)
+- ✅ ERP API settings (base URL, endpoint)
+- ✅ App settings (BaseUrl not localhost in production)
+- ✅ CORS settings (allowed origins)
+
+**If validation fails**, the application logs detailed errors and **exits immediately** (fail-fast).
+
+**Successful validation** displays:
+```
+╔══════════════════════════════════════════════════════════╗
+║          CONFIGURATION VALIDATION SUCCESSFUL             ║
+╠══════════════════════════════════════════════════════════╣
+║  Environment:        Production                          ║
+║  Database:           ✓ Connected                         ║
+║  Email SMTP:         smtp.office365.com:587              ║
+║  ERP API:            http://10.2.131.147:7010           ║
+║  Base URL:           https://kqalumni-dev.kenya-airways.com ║
+║  JWT Configured:     ✓ Valid                            ║
+║  CORS Origins:       1 configured                       ║
+╚══════════════════════════════════════════════════════════╝
+```
+
+---
+
+## Deployment
+
+For **production deployment**, see **[DEPLOYMENT.md](DEPLOYMENT.md)**.
+
+Quick deployment checklist:
+1. ✅ Install prerequisites (.NET 8, Node.js 18+, IIS, SQL Server)
+2. ✅ Create `appsettings.Production.json` with production settings
+3. ✅ Update database connection string
+4. ✅ Configure email SMTP credentials
+5. ✅ Set `AppSettings.BaseUrl` to production URL
+6. ✅ Apply database migrations
+7. ✅ Build backend: `dotnet publish -c Release`
+8. ✅ Build frontend: `npm run build`
+9. ✅ Deploy to IIS (separate app pools for backend and frontend)
+10. ✅ Verify health check: `https://your-api-domain.com/health`
+
+**IMPORTANT**: The application performs configuration validation on startup and will **fail fast** if settings are invalid or contain placeholder values.
+
+---
+
+## Troubleshooting
+
+### Configuration Issues
+
+**Problem**: Configuration validation fails on startup
+
+**Solution**:
+1. Check `appsettings.Production.json` exists and has correct values
+2. Ensure `AppSettings.BaseUrl` is NOT `localhost` in production
+3. Verify JWT `SecretKey` is at least 32 characters
+4. Confirm database connection string is valid
+5. Test SMTP credentials: `telnet smtp.office365.com 587`
+
+**Problem**: "Connection string 'DefaultConnection' not found"
+
+**Solution**:
+- Verify `appsettings.Development.json` or `appsettings.Production.json` exists
+- Check `ConnectionStrings.DefaultConnection` is defined
+- Ensure file is in `KQAlumni.Backend/src/KQAlumni.API/` directory
+
+### Database Issues
+
+**Problem**: Database connection fails
+
+**Solution**:
+```bash
+# Test SQL Server connection
+docker ps | grep kq-alumni-sql   # Check container is running
+docker start kq-alumni-sql       # Start if stopped
+
+# Test connection with sqlcmd
+sqlcmd -S localhost,1433 -U sa -P 'YourStrong@Passw0rd'
+```
+
+**Problem**: Migrations fail
+
+**Solution**:
+```bash
+# Ensure you're in the API project directory
+cd KQAlumni.Backend/src/KQAlumni.API
+
+# Run migrations with explicit connection
+dotnet ef database update --project ../KQAlumni.Infrastructure --verbose
+```
+
+### Email Issues
+
+**Problem**: Emails not being sent
+
+**Solution**:
+1. Check `EmailLogs` table for error messages:
+   ```sql
+   SELECT TOP 10 * FROM EmailLogs
+   WHERE Status = 'Failed'
+   ORDER BY SentAt DESC;
+   ```
+2. Verify SMTP settings in appsettings
+3. Ensure `EnableEmailSending = true`
+4. Ensure `UseMockEmailService = false` (in production)
+5. Test SMTP connectivity: `telnet smtp.office365.com 587`
+6. Check firewall rules for port 587 (SMTP TLS)
+
+**Problem**: Email links point to localhost
+
+**Solution**:
+- Update `AppSettings.BaseUrl` in `appsettings.Production.json`
+- Restart the application
+- Configuration validator will catch this on next startup
+
+### Frontend Issues
+
+**Problem**: Frontend can't connect to backend
+
+**Solution**:
+1. Check `.env.local` (dev) or `.env.production.local` (prod) has correct API URL
+2. Verify backend is running: `curl http://localhost:5295/health`
+3. Check CORS settings in backend allow frontend origin
+4. Inspect browser console for CORS errors
+
+**Problem**: Staff number validation fails
+
+**Solution**:
+- Ensure staff number is UPPERCASE
+- Verify format: `00` + 5 alphanumeric characters (e.g., `0012345`, `00C5050`)
+- Check backend logs for validation errors
+- Frontend and backend validation now synchronized (v2.0.0)
+
+### Performance Issues
+
+**Problem**: Application running slowly
+
+**Solution**:
+1. Check health endpoint for slow dependencies: `/health`
+2. Query EmailLogs for slow email deliveries:
+   ```sql
+   SELECT * FROM EmailLogs
+   WHERE DurationMs > 5000
+   ORDER BY SentAt DESC;
+   ```
+3. Check Hangfire dashboard for stuck jobs: `/hangfire`
+4. Monitor SQL Server performance
+5. Check ERP API response times
+
+---
+
+## Configuration Files
+
+### Backend Configuration
+
+**`appsettings.json`** (Base configuration - in git)
+- Default settings for all environments
+- Contains shared configuration
+- Overridden by environment-specific files
+
+**`appsettings.Development.json`** (Local dev - NOT in git)
+- Docker SQL Server connection
+- Mock modes enabled (Email, ERP)
+- Lower rate limits
+- Debug logging
+
+**`appsettings.Production.json`** (Production - NOT in git)
+- Production database connection
+- Real SMTP and ERP settings
+- Strict rate limits
+- Production base URL
+
+### Frontend Configuration
+
+**`.env.example`** (Template - in git)
+- Template showing all available variables
+- Copy to `.env.local` for development
+
+**`.env.local`** (Local dev - NOT in git)
+- Points to `http://localhost:5295`
+- Debug mode enabled
+- Created automatically
+
+**`.env.production`** (Production - in git)
+- Production API URL
+- Production settings
+
+**`.env.production.local`** (Production override - NOT in git)
+- Override production settings if needed
+- Takes precedence over `.env.production`
+
+---
+
+## Support
+
+**For Production Deployment**: See [DEPLOYMENT.md](DEPLOYMENT.md)
+
+**For Issues**:
+- Email: KQ.Alumni@kenya-airways.com
+- Check health endpoint: `/health`
+- Review application logs
+- Query EmailLogs table for email issues
+
+---
+
+## Version History
+
+**v2.0.0** (2025-11-04)
+- ✅ Email delivery tracking with database logging
+- ✅ Environment variable validation on startup (fail-fast)
+- ✅ Enhanced health checks (SQL Server, SMTP, ERP)
+- ✅ Rate limiting monitoring service with automated reporting
+- ✅ Standardized frontend/backend staff number validation
+- ✅ Documentation consolidated into professional structure
+- ✅ Single connection string for database and Hangfire
+
+**v1.0.0** (2025-10-31)
+- 🚀 Initial production release
+- ✅ Multi-step registration wizard
+- ✅ ERP integration for staff validation
+- ✅ Email verification workflow
+- ✅ Admin dashboard with Hangfire background jobs
+- ✅ Rate limiting and security features
+
+---
+
+**Built with ❤️ for the Kenya Airways Alumni Community**

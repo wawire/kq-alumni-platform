@@ -20,6 +20,9 @@ import type { RegistrationFormData } from "../RegistrationForm";
 
 // =====================================================
 // VALIDATION SCHEMA - EXACT MATCH WITH BACKEND
+// Backend Pattern: ^00[0-9A-Z]{5}$
+// Format: 00 + 5 alphanumeric characters (0-9 or A-Z)
+// Examples: 0012345, 00C5050, 00RG002, 00EM004, 00H1234
 // =====================================================
 const personalInfoSchema = z.object({
   staffNumber: z
@@ -27,8 +30,8 @@ const personalInfoSchema = z.object({
     .min(1, "Staff number is required")
     .length(7, "Staff number must be exactly 7 characters")
     .regex(
-      /^(00\d{5}|00[CA]\d{4})$/,
-      "Invalid staff number format. Use: 00XXXXX (permanent), 00CXXXX (contract), or 00AXXXX (intern)",
+      /^00[0-9A-Z]{5}$/,
+      "Invalid staff number format. Must be 7 characters starting with '00' (e.g., 0012345, 00C5050, 00RG002)",
     )
     .refine((val) => val === val.toUpperCase(), {
       message: "Staff number must be uppercase",
@@ -243,14 +246,14 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
             name="staffNumber"
             label="Staff Number"
             type="text"
-            placeholder="00A7122"
+            placeholder="e.g., 0012345 or 00C5050"
             maxLength={7}
             required
             variant="underline"
             description={
               staffNumberCheck.isDuplicate
                 ? staffNumberCheck.error || "This staff number is already registered"
-                : undefined // Hide format text until error occurs
+                : "7 characters: 00 + any 5 alphanumeric characters"
             }
             rightIcon={getDuplicateIcon(staffNumberCheck)}
             onChange={(e) => {
