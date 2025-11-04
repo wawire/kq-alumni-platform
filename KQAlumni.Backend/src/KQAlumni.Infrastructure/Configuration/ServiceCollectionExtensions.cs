@@ -78,10 +78,10 @@ public static class ServiceCollectionExtensions
         .AddPolicyHandler(GetCircuitBreakerPolicy());
 
     // ========================================
-    // Email Service
+    // Email Service (with delivery tracking)
     // ========================================
 
-    services.AddScoped<IEmailService, EmailService>();
+    services.AddScoped<IEmailService, EmailServiceWithTracking>();
 
     // ========================================
     // Service Registration Complete
@@ -91,7 +91,7 @@ public static class ServiceCollectionExtensions
     // - IRegistrationService: RegistrationService
     // - ITokenService: TokenService
     // - IErpService: ErpService (with Polly policies)
-    // - IEmailService: EmailService
+    // - IEmailService: EmailServiceWithTracking (with database logging)
     // - Configuration: ErpApiSettings, EmailSettings
 
     return services;
