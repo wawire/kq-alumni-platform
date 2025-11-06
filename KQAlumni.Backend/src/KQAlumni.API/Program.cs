@@ -9,6 +9,7 @@ using KQAlumni.Core.Validators;
 using KQAlumni.Infrastructure.BackgroundJobs;
 using KQAlumni.Infrastructure.Configuration;
 using KQAlumni.Infrastructure.Data;
+using Microsoft.AspNetCore.OpenApi;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
