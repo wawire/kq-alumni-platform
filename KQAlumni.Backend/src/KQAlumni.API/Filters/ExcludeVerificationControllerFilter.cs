@@ -6,41 +6,59 @@ namespace KQAlumni.API.Filters;
 /// <summary>
 /// Filter to exclude VerificationController from Swagger documentation.
 /// This controller was deleted but may still exist in cached assemblies.
-/// The verification endpoint is now handled by Minimal API in Program.cs
 /// </summary>
 public class ExcludeVerificationControllerFilter : IDocumentFilter
 {
     public void Apply(OpenApiDocument swaggerDoc, DocumentFilterContext context)
     {
-        // Remove any paths that belong to VerificationController
-        var pathsToRemove = swaggerDoc.Paths
-            .Where(p => p.Key.Contains("/verify", StringComparison.OrdinalIgnoreCase))
-            .Where(p =>
+        try
+        {
+            // Remove VerificationController tag if it exists
+            if (swaggerDoc.Tags != null)
             {
-                // Check if any operation comes from VerificationController
-                return p.Value.Operations.Any(op =>
-                    op.Value.Tags?.Any(tag =>
-                        tag.Name.Contains("Verification", StringComparison.OrdinalIgnoreCase) &&
-                        context.ApiDescriptions.Any(d =>
-                            d.ActionDescriptor.DisplayName?.Contains("VerificationController") == true)
-                    ) == true
-                );
-            })
-            .Select(p => p.Key)
-            .ToList();
+                var verificationTag = swaggerDoc.Tags
+                    .FirstOrDefault(t => t.Name?.Equals("Verification", StringComparison.OrdinalIgnoreCase) == true);
 
-        foreach (var path in pathsToRemove)
-        {
-            swaggerDoc.Paths.Remove(path);
+                if (verificationTag != null)
+                {
+                    swaggerDoc.Tags.Remove(verificationTag);
+                }
+            }
+
+            // Remove paths that have Verification tag but not from RegistrationsController
+            var pathsToRemove = new List<string>();
+
+            foreach (var path in swaggerDoc.Paths)
+            {
+                var hasVerificationTag = path.Value.Operations.Values
+                    .Any(op => op.Tags?.Any(tag =>
+                        tag.Name?.Equals("Verification", StringComparison.OrdinalIgnoreCase) == true) == true);
+
+                // Only remove if it has Verification tag (from old VerificationController)
+                // Keep the verify endpoint from RegistrationsController
+                if (hasVerificationTag)
+                {
+                    // Check if this is from RegistrationsController
+                    var isFromRegistrations = path.Value.Operations.Values
+                        .Any(op => op.Tags?.Any(tag =>
+                            tag.Name?.Equals("Registrations", StringComparison.OrdinalIgnoreCase) == true) == true);
+
+                    if (!isFromRegistrations)
+                    {
+                        pathsToRemove.Add(path.Key);
+                    }
+                }
+            }
+
+            foreach (var path in pathsToRemove)
+            {
+                swaggerDoc.Paths.Remove(path);
+            }
         }
-
-        // Remove VerificationController tag if it exists
-        var verificationTag = swaggerDoc.Tags?
-            .FirstOrDefault(t => t.Name.Equals("Verification", StringComparison.OrdinalIgnoreCase));
-
-        if (verificationTag != null && swaggerDoc.Tags != null)
+        catch (Exception)
         {
-            swaggerDoc.Tags.Remove(verificationTag);
+            // Silently fail to avoid breaking Swagger generation
+            // The filter is a safety net for cached assemblies only
         }
     }
 }

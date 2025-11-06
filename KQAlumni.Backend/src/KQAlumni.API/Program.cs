@@ -124,24 +124,23 @@ builder.Services.AddSwaggerGen(options =>
     // This resolves Swagger errors when old compiled DLLs still contain deleted controllers
     options.ResolveConflictingActions(apiDescriptions =>
     {
-        var descriptions = apiDescriptions.ToList();
-
-        // Prefer Minimal API endpoints over controller endpoints for /verify
-        var minimalApiEndpoint = descriptions.FirstOrDefault(d =>
-            d.RelativePath?.Contains("verify") == true &&
-            d.ActionDescriptor.DisplayName?.Contains("HTTP: GET") == true);
-
-        if (minimalApiEndpoint != null)
+        try
         {
-            return minimalApiEndpoint;
+            var descriptions = apiDescriptions.ToList();
+            if (!descriptions.Any()) return null;
+
+            // Prefer non-VerificationController actions (deleted controller)
+            var nonVerificationController = descriptions.FirstOrDefault(d =>
+                d?.ActionDescriptor?.DisplayName?.Contains("VerificationController", StringComparison.OrdinalIgnoreCase) != true);
+
+            // Return the first non-verification controller action, or just the first action
+            return nonVerificationController ?? descriptions.FirstOrDefault();
         }
-
-        // For other conflicts, prefer the first non-VerificationController action
-        var nonVerificationController = descriptions.FirstOrDefault(d =>
-            !d.ActionDescriptor.DisplayName?.Contains("VerificationController") == true);
-
-        // Fall back to first description if no preference found
-        return nonVerificationController ?? descriptions.First();
+        catch
+        {
+            // Defensive: return first action if anything fails
+            return apiDescriptions.FirstOrDefault();
+        }
     });
 
     // Exclude VerificationController from Swagger docs (deleted but may exist in cached assemblies)
