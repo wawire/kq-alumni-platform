@@ -218,9 +218,9 @@ public class RegistrationsController : ControllerBase
         return BadRequest(new ErrorResponse
         {
           Type = "https://tools.ietf.org/html/rfc7231#section-6.5.1",
-          Title = result.ErrorCode == "TOKEN_EXPIRED" ? "Verification Link Expired" : "Invalid Verification Token",
+          Title = "Email Verification Failed",
           Status = StatusCodes.Status400BadRequest,
-          Detail = result.ErrorMessage
+          Detail = result.Message
         });
       }
 
