@@ -235,88 +235,148 @@ public class EmailService : IEmailService
             max-width: 600px;
             margin: 0 auto;
             padding: 20px;
-            background-color: #f5f5f5;
+            background-color: #f4f4f4;
         }}
         .email-container {{
             background-color: white;
-            border-radius: 8px;
+            border-radius: 4px;
             overflow: hidden;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
         }}
         .header {{
-            background: linear-gradient(135deg, #DC143C 0%, #B01030 100%);
+            background: #DC143C;
             color: white;
-            padding: 30px;
+            padding: 40px 30px;
             text-align: center;
         }}
         .content {{
-            padding: 30px;
+            padding: 40px 30px;
         }}
         .footer {{
             background: #f9fafb;
-            padding: 20px;
+            padding: 25px 30px;
             text-align: center;
             border-top: 1px solid #e5e7eb;
-            font-size: 14px;
+            font-size: 13px;
             color: #6b7280;
         }}
         .info-box {{
-            background: #f0f9ff;
-            border-left: 4px solid #3b82f6;
-            padding: 15px;
-            margin: 20px 0;
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 20px;
+            margin: 25px 0;
             border-radius: 4px;
         }}
-        h1 {{ margin: 0; font-size: 28px; }}
-        h2 {{ color: #DC143C; font-size: 22px; }}
-        ul {{ padding-left: 20px; }}
-        li {{ margin-bottom: 8px; }}
+        .info-row {{
+            display: block;
+            padding: 8px 0;
+            border-bottom: 1px solid #e9ecef;
+        }}
+        .info-row:last-child {{
+            border-bottom: none;
+        }}
+        .info-label {{
+            font-weight: 600;
+            color: #495057;
+            display: inline-block;
+            min-width: 140px;
+        }}
+        h1 {{
+            margin: 0;
+            font-size: 26px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }}
+        h2 {{
+            color: #1a1a1a;
+            font-size: 20px;
+            font-weight: 600;
+            margin: 0 0 20px 0;
+        }}
+        h3 {{
+            color: #DC143C;
+            font-size: 16px;
+            font-weight: 600;
+            margin: 30px 0 15px 0;
+        }}
+        p {{
+            margin: 0 0 15px 0;
+            color: #4a5568;
+        }}
+        ul {{
+            padding-left: 20px;
+            margin: 15px 0;
+        }}
+        li {{
+            margin-bottom: 10px;
+            color: #4a5568;
+        }}
+        .note {{
+            background: #fffbf0;
+            border-left: 3px solid #f59e0b;
+            padding: 15px;
+            margin: 20px 0;
+            font-size: 14px;
+        }}
     </style>
 </head>
 <body>
     <div class=""email-container"">
         <div class=""header"">
-            <h1>✈️ Kenya Airways Alumni Network</h1>
-            <p style=""margin: 10px 0 0 0; font-size: 16px;"">Registration Received</p>
+            <h1>KENYA AIRWAYS ALUMNI NETWORK</h1>
+            <p style=""margin: 10px 0 0 0; font-size: 15px; opacity: 0.95;"">Registration Confirmation</p>
         </div>
 
         <div class=""content"">
             <h2>Dear {recipientName},</h2>
 
-            <p>Thank you for registering with the <strong>Kenya Airways Alumni Association</strong>!</p>
+            <p>Thank you for registering with the Kenya Airways Alumni Association.</p>
 
-            <p>We have received your registration and it is currently being processed.</p>
+            <p>We have successfully received your registration and it is currently being processed by our verification team.</p>
 
             <div class=""info-box"">
-                <strong>📋 Registration ID:</strong> {registrationId}<br>
-                <strong>⏰ Status:</strong> Pending Verification<br>
-                <strong>📅 Submitted:</strong> {DateTime.UtcNow:yyyy-MM-dd HH:mm} UTC
+                <div class=""info-row"">
+                    <span class=""info-label"">Registration ID:</span>
+                    <span style=""color: #6c757d; font-family: monospace; font-size: 13px;"">{registrationId}</span>
+                </div>
+                <div class=""info-row"">
+                    <span class=""info-label"">Status:</span>
+                    <span style=""color: #6c757d;"">Pending Verification</span>
+                </div>
+                <div class=""info-row"">
+                    <span class=""info-label"">Submitted:</span>
+                    <span style=""color: #6c757d;"">{DateTime.UtcNow:MMMM dd, yyyy 'at' HH:mm} UTC</span>
+                </div>
             </div>
 
-            <h3>What Happens Next?</h3>
+            <h3>Next Steps</h3>
             <ul>
-                <li>✅ Your registration details are being verified against our records</li>
-                <li>✅ You will receive an approval email within 24-48 hours</li>
-                <li>✅ The approval email will contain a verification link to activate your account</li>
-                <li>✅ Once verified, you'll have full access to alumni benefits</li>
+                <li>Your registration details will be verified against our employee records</li>
+                <li>You will receive an approval notification within 24-48 hours</li>
+                <li>The approval email will contain a verification link to activate your account</li>
+                <li>Once verified, you will have full access to all alumni benefits and services</li>
             </ul>
 
-            <p><strong>Important:</strong> Please check your spam/junk folder if you don't see our next email.</p>
+            <div class=""note"">
+                <strong>Important:</strong> Please check your spam or junk folder if you do not receive our approval email within 48 hours.
+            </div>
 
-            <p>We're excited to have you as part of the KQ Alumni family!</p>
+            <p style=""margin-top: 30px; color: #4a5568;"">
+                We look forward to welcoming you to the KQ Alumni community.
+            </p>
 
-            <p style=""margin-top: 30px;"">
+            <p style=""margin-top: 25px; color: #4a5568;"">
                 Best regards,<br>
-                <strong>The KQ Alumni Team</strong>
+                <strong style=""color: #1a1a1a;"">Kenya Airways Alumni Team</strong>
             </p>
         </div>
 
         <div class=""footer"">
-            <p style=""margin: 0 0 10px 0;""><strong>Kenya Airways Alumni Association</strong></p>
-            <p style=""margin: 0 0 10px 0;"">
+            <p style=""margin: 0 0 8px 0; font-weight: 600; color: #4a5568;"">Kenya Airways Alumni Association</p>
+            <p style=""margin: 0 0 15px 0;"">
                 <a href=""mailto:KQ.Alumni@kenya-airways.com"" style=""color: #DC143C; text-decoration: none;"">KQ.Alumni@kenya-airways.com</a>
             </p>
-            <p style=""font-size: 12px; color: #9ca3af; margin: 10px 0 0 0;"">
+            <p style=""font-size: 12px; color: #9ca3af; margin: 0;"">
                 This is an automated message. Please do not reply to this email.
             </p>
         </div>
@@ -343,107 +403,176 @@ public class EmailService : IEmailService
             max-width: 600px;
             margin: 0 auto;
             padding: 20px;
-            background-color: #f5f5f5;
+            background-color: #f4f4f4;
         }}
         .email-container {{
             background-color: white;
-            border-radius: 8px;
+            border-radius: 4px;
             overflow: hidden;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
         }}
         .header {{
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            background: #DC143C;
             color: white;
-            padding: 30px;
+            padding: 40px 30px;
             text-align: center;
         }}
         .content {{
-            padding: 30px;
+            padding: 40px 30px;
         }}
         .footer {{
             background: #f9fafb;
-            padding: 20px;
+            padding: 25px 30px;
             text-align: center;
             border-top: 1px solid #e5e7eb;
-            font-size: 14px;
+            font-size: 13px;
             color: #6b7280;
         }}
         .button {{
             display: inline-block;
             background: #DC143C;
             color: white !important;
-            padding: 15px 40px;
+            padding: 16px 45px;
             text-decoration: none;
-            border-radius: 6px;
-            margin: 20px 0;
-            font-weight: bold;
-            font-size: 16px;
+            border-radius: 4px;
+            margin: 25px 0;
+            font-weight: 600;
+            font-size: 15px;
+            letter-spacing: 0.3px;
+        }}
+        .button:hover {{
+            background: #B01030;
         }}
         .success-box {{
             background: #f0fdf4;
-            border-left: 4px solid #10b981;
+            border: 1px solid #86efac;
+            border-left: 4px solid #22c55e;
+            padding: 18px 20px;
+            margin: 25px 0;
+            border-radius: 4px;
+        }}
+        .status-row {{
+            display: block;
+            padding: 6px 0;
+        }}
+        .status-label {{
+            font-weight: 600;
+            color: #166534;
+            display: inline-block;
+            min-width: 100px;
+        }}
+        h1 {{
+            margin: 0;
+            font-size: 26px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }}
+        h2 {{
+            color: #1a1a1a;
+            font-size: 20px;
+            font-weight: 600;
+            margin: 0 0 20px 0;
+        }}
+        h3 {{
+            color: #DC143C;
+            font-size: 16px;
+            font-weight: 600;
+            margin: 30px 0 15px 0;
+        }}
+        p {{
+            margin: 0 0 15px 0;
+            color: #4a5568;
+        }}
+        ul {{
+            padding-left: 20px;
+            margin: 15px 0;
+        }}
+        li {{
+            margin-bottom: 10px;
+            color: #4a5568;
+        }}
+        .link-box {{
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
             padding: 15px;
             margin: 20px 0;
             border-radius: 4px;
+            font-size: 13px;
         }}
-        h1 {{ margin: 0; font-size: 28px; }}
-        h2 {{ color: #DC143C; font-size: 22px; }}
-        ul {{ padding-left: 20px; }}
-        li {{ margin-bottom: 8px; }}
+        .expiry-note {{
+            background: #fff7ed;
+            border-left: 3px solid #fb923c;
+            padding: 12px 15px;
+            margin: 20px 0;
+            font-size: 14px;
+            color: #9a3412;
+        }}
     </style>
 </head>
 <body>
     <div class=""email-container"">
         <div class=""header"">
-            <h1>🎉 Welcome to KQ Alumni Network!</h1>
-            <p style=""margin: 10px 0 0 0; font-size: 16px;"">Registration Approved</p>
+            <h1>KENYA AIRWAYS ALUMNI NETWORK</h1>
+            <p style=""margin: 10px 0 0 0; font-size: 15px; opacity: 0.95;"">Registration Approved</p>
         </div>
 
         <div class=""content"">
             <h2>Dear {recipientName},</h2>
 
-            <p>Congratulations! Your registration has been <strong>approved</strong>.</p>
+            <p>We are pleased to inform you that your registration has been <strong>approved</strong>.</p>
 
             <div class=""success-box"">
-                <strong>✅ Status:</strong> Approved<br>
-                <strong>📧 Next Step:</strong> Verify your email address
+                <div class=""status-row"">
+                    <span class=""status-label"">Status:</span>
+                    <span style=""color: #166534;"">Approved</span>
+                </div>
+                <div class=""status-row"">
+                    <span class=""status-label"">Next Step:</span>
+                    <span style=""color: #166534;"">Verify your email address</span>
+                </div>
             </div>
 
             <p>To activate your account and access all alumni benefits, please verify your email address by clicking the button below:</p>
 
             <div style=""text-align: center;"">
-                <a href=""{verificationLink}"" class=""button"">Verify My Email Address</a>
+                <a href=""{verificationLink}"" class=""button"">VERIFY EMAIL ADDRESS</a>
             </div>
 
-            <p style=""font-size: 14px; color: #6b7280; padding: 15px; background: #f9fafb; border-radius: 4px;"">
-                Or copy and paste this link into your browser:<br>
-                <a href=""{verificationLink}"" style=""color: #DC143C; word-break: break-all;"">{verificationLink}</a>
-            </p>
+            <div class=""link-box"">
+                <strong style=""color: #495057; display: block; margin-bottom: 8px;"">Alternative Verification Link:</strong>
+                <a href=""{verificationLink}"" style=""color: #DC143C; word-break: break-all; font-size: 12px;"">{verificationLink}</a>
+            </div>
 
-            <p><strong>⏰ This verification link expires in 30 days.</strong></p>
+            <div class=""expiry-note"">
+                <strong>Important:</strong> This verification link will expire in 30 days.
+            </div>
 
-            <h3>What You'll Get:</h3>
+            <h3>Alumni Benefits</h3>
             <ul>
-                <li>✈️ Access to exclusive networking events and reunions</li>
-                <li>💼 Career growth and mentorship opportunities</li>
-                <li>🤝 Connect with fellow alumni worldwide</li>
-                <li>❤️ Opportunities to give back through volunteering</li>
-                <li>📰 Alumni newsletters and updates</li>
+                <li>Access to exclusive networking events and reunions</li>
+                <li>Career development and mentorship opportunities</li>
+                <li>Connect with fellow alumni worldwide</li>
+                <li>Opportunities to contribute through volunteering and community service</li>
+                <li>Regular alumni newsletters and industry updates</li>
             </ul>
 
-            <p style=""margin-top: 30px;"">
-                Welcome to the family!<br>
-                <strong>The KQ Alumni Team</strong>
+            <p style=""margin-top: 30px; color: #4a5568;"">
+                We look forward to your active participation in the KQ Alumni community.
+            </p>
+
+            <p style=""margin-top: 25px; color: #4a5568;"">
+                Best regards,<br>
+                <strong style=""color: #1a1a1a;"">Kenya Airways Alumni Team</strong>
             </p>
         </div>
 
         <div class=""footer"">
-            <p style=""margin: 0 0 10px 0;""><strong>Kenya Airways Alumni Association</strong></p>
-            <p style=""margin: 0 0 10px 0;"">
+            <p style=""margin: 0 0 8px 0; font-weight: 600; color: #4a5568;"">Kenya Airways Alumni Association</p>
+            <p style=""margin: 0 0 15px 0;"">
                 <a href=""mailto:KQ.Alumni@kenya-airways.com"" style=""color: #DC143C; text-decoration: none;"">KQ.Alumni@kenya-airways.com</a>
             </p>
-            <p style=""font-size: 12px; color: #9ca3af; margin: 10px 0 0 0;"">
-                If you didn't register for this account, please ignore this email.
+            <p style=""font-size: 12px; color: #9ca3af; margin: 0;"">
+                If you did not register for this account, please disregard this email.
             </p>
         </div>
     </div>
@@ -466,47 +595,97 @@ public class EmailService : IEmailService
             max-width: 600px;
             margin: 0 auto;
             padding: 20px;
-            background-color: #f5f5f5;
+            background-color: #f4f4f4;
         }}
         .email-container {{
             background-color: white;
-            border-radius: 8px;
+            border-radius: 4px;
             overflow: hidden;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
         }}
         .header {{
-            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            background: #DC143C;
             color: white;
-            padding: 30px;
+            padding: 40px 30px;
             text-align: center;
         }}
         .content {{
-            padding: 30px;
+            padding: 40px 30px;
         }}
         .footer {{
             background: #f9fafb;
-            padding: 20px;
+            padding: 25px 30px;
             text-align: center;
             border-top: 1px solid #e5e7eb;
-            font-size: 14px;
+            font-size: 13px;
             color: #6b7280;
         }}
         .warning-box {{
-            background: #fffbeb;
+            background: #fef3c7;
+            border: 1px solid #fcd34d;
             border-left: 4px solid #f59e0b;
-            padding: 15px;
+            padding: 18px 20px;
+            margin: 25px 0;
+            border-radius: 4px;
+        }}
+        .info-row {{
+            display: block;
+            padding: 6px 0;
+        }}
+        .info-label {{
+            font-weight: 600;
+            color: #92400e;
+            display: inline-block;
+            min-width: 140px;
+        }}
+        .contact-box {{
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 20px;
             margin: 20px 0;
             border-radius: 4px;
         }}
-        h1 {{ margin: 0; font-size: 28px; }}
-        h2 {{ color: #DC143C; font-size: 22px; }}
+        .contact-item {{
+            padding: 8px 0;
+            display: block;
+        }}
+        h1 {{
+            margin: 0;
+            font-size: 26px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }}
+        h2 {{
+            color: #1a1a1a;
+            font-size: 20px;
+            font-weight: 600;
+            margin: 0 0 20px 0;
+        }}
+        h3 {{
+            color: #DC143C;
+            font-size: 16px;
+            font-weight: 600;
+            margin: 30px 0 15px 0;
+        }}
+        p {{
+            margin: 0 0 15px 0;
+            color: #4a5568;
+        }}
+        ul {{
+            padding-left: 20px;
+            margin: 15px 0;
+        }}
+        li {{
+            margin-bottom: 10px;
+            color: #4a5568;
+        }}
     </style>
 </head>
 <body>
     <div class=""email-container"">
         <div class=""header"">
-            <h1>Kenya Airways Alumni Network</h1>
-            <p style=""margin: 10px 0 0 0; font-size: 16px;"">Registration Update</p>
+            <h1>KENYA AIRWAYS ALUMNI NETWORK</h1>
+            <p style=""margin: 10px 0 0 0; font-size: 15px; opacity: 0.95;"">Registration Status Update</p>
         </div>
 
         <div class=""content"">
@@ -515,38 +694,58 @@ public class EmailService : IEmailService
             <p>Thank you for your interest in joining the Kenya Airways Alumni Association.</p>
 
             <div class=""warning-box"">
-                <strong>⚠️ Registration Status:</strong> Unable to Verify<br>
-                <strong>📋 Staff Number:</strong> {staffNumber}
+                <div class=""info-row"">
+                    <span class=""info-label"">Registration Status:</span>
+                    <span style=""color: #92400e;"">Unable to Verify</span>
+                </div>
+                <div class=""info-row"">
+                    <span class=""info-label"">Staff Number:</span>
+                    <span style=""color: #92400e; font-family: monospace;"">{staffNumber}</span>
+                </div>
             </div>
 
-            <p>We were unable to verify your staff number against our employee records. This could be due to:</p>
+            <p>We were unable to verify your staff number against our employee records. This situation may occur due to the following reasons:</p>
 
             <ul>
                 <li>The staff number may have been entered incorrectly</li>
-                <li>The records may not have been updated in our system yet</li>
-                <li>You may have been employed before our digital records began</li>
+                <li>Employment records may not have been updated in our system</li>
+                <li>Employment may predate our digital record-keeping system</li>
+                <li>There may be a discrepancy requiring manual verification</li>
             </ul>
 
-            <h3>Next Steps:</h3>
-            <p>Please contact our HR department to verify your employment record:</p>
+            <h3>Next Steps</h3>
+            <p>To resolve this matter, please contact our HR department with your employment details:</p>
 
-            <p style=""background: #f9fafb; padding: 15px; border-radius: 4px;"">
-                <strong>📧 Email:</strong> <a href=""mailto:KQ.Alumni@kenya-airways.com"" style=""color: #DC143C;"">KQ.Alumni@kenya-airways.com</a><br>
-                <strong>📞 Phone:</strong> +254 20 661 6000
+            <div class=""contact-box"">
+                <div class=""contact-item"">
+                    <strong style=""color: #495057;"">Email:</strong>
+                    <a href=""mailto:KQ.Alumni@kenya-airways.com"" style=""color: #DC143C; text-decoration: none;"">KQ.Alumni@kenya-airways.com</a>
+                </div>
+                <div class=""contact-item"">
+                    <strong style=""color: #495057;"">Phone:</strong>
+                    <span style=""color: #6c757d;"">+254 20 661 6000</span>
+                </div>
+            </div>
+
+            <p>Our HR team will assist in verifying your employment history and guide you through the registration process.</p>
+
+            <p style=""margin-top: 30px; color: #4a5568;"">
+                We apologize for any inconvenience and look forward to welcoming you to the KQ Alumni community.
             </p>
 
-            <p>We apologize for any inconvenience and look forward to welcoming you to our alumni network.</p>
-
-            <p style=""margin-top: 30px;"">
+            <p style=""margin-top: 25px; color: #4a5568;"">
                 Best regards,<br>
-                <strong>The KQ Alumni Team</strong>
+                <strong style=""color: #1a1a1a;"">Kenya Airways Alumni Team</strong>
             </p>
         </div>
 
         <div class=""footer"">
-            <p style=""margin: 0 0 10px 0;""><strong>Kenya Airways Alumni Association</strong></p>
-            <p style=""margin: 0 0 10px 0;"">
+            <p style=""margin: 0 0 8px 0; font-weight: 600; color: #4a5568;"">Kenya Airways Alumni Association</p>
+            <p style=""margin: 0 0 15px 0;"">
                 <a href=""mailto:KQ.Alumni@kenya-airways.com"" style=""color: #DC143C; text-decoration: none;"">KQ.Alumni@kenya-airways.com</a>
+            </p>
+            <p style=""font-size: 12px; color: #9ca3af; margin: 0;"">
+                This is an automated message. Please do not reply to this email.
             </p>
         </div>
     </div>
