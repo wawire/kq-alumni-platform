@@ -169,7 +169,7 @@ public class VerificationController : ControllerBase
   /// <returns>Registration status with lifecycle information</returns>
   /// <response code="200">Registration status retrieved successfully</response>
   /// <response code="404">Registration not found</response>
-  [HttpGet("registrations/{id:guid}/status")]
+  [HttpGet("status/{id:guid}")]
   [ProducesResponseType(typeof(RegistrationStatusDetailResponse), StatusCodes.Status200OK)]
   [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
   public async Task<IActionResult> GetRegistrationStatus(Guid id)
