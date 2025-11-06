@@ -118,14 +118,6 @@ builder.Services.AddSwaggerGen(options =>
         }
     });
 
-    // Resolve route conflicts
-    options.ResolveConflictingActions(apiDescriptions =>
-    {
-        var description = apiDescriptions.First();
-        Console.WriteLine($"⚠️ Swagger conflict resolved: Using {description.ActionDescriptor.DisplayName}");
-        return description;
-    });
-
     // JWT Security Definition
     options.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
     {
@@ -407,6 +399,119 @@ if (!app.Environment.IsDevelopment())
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+// MINIMAL API: Email Verification Endpoint (Isolated to prevent Swagger conflicts)
+app.MapGet("/api/v1/verify/{token}", async (
+    string token,
+    AppDbContext context,
+    KQAlumni.Core.Interfaces.ITokenService tokenService,
+    ILogger<Program> logger) =>
+{
+    try
+    {
+        // Step 1: Validate token format
+        if (string.IsNullOrWhiteSpace(token) || !tokenService.ValidateTokenFormat(token))
+        {
+            logger.LogWarning("Invalid token format: {Token}", token);
+            return Results.Problem(
+                title: "Invalid Verification Token",
+                detail: "The verification token format is invalid.",
+                statusCode: StatusCodes.Status400BadRequest);
+        }
+
+        // Step 2: Find registration by token
+        var registration = await context.AlumniRegistrations
+            .FirstOrDefaultAsync(r => r.EmailVerificationToken == token);
+
+        if (registration == null)
+        {
+            logger.LogWarning("Token not found: {Token}", token);
+            return Results.Problem(
+                title: "Invalid Verification Token",
+                detail: "This verification token does not exist or has already been used.",
+                statusCode: StatusCodes.Status400BadRequest);
+        }
+
+        // Step 3: Check if token expired
+        if (registration.EmailVerificationTokenExpiry.HasValue &&
+            registration.EmailVerificationTokenExpiry < DateTime.UtcNow)
+        {
+            logger.LogWarning(
+                "Token expired for registration {Id}. Expired at: {Expiry}",
+                registration.Id,
+                registration.EmailVerificationTokenExpiry);
+
+            return Results.Problem(
+                title: "Verification Link Expired",
+                detail: "This verification link has expired. Please contact KQ.Alumni@kenya-airways.com for assistance.",
+                statusCode: StatusCodes.Status400BadRequest);
+        }
+
+        // Step 4: Check if already verified
+        if (registration.EmailVerified)
+        {
+            logger.LogInformation(
+                "Email already verified for registration {Id}. Redirecting to dashboard.",
+                registration.Id);
+
+            return Results.Redirect($"/dashboard?id={registration.Id}");
+        }
+
+        // Step 5: Mark as verified
+        registration.EmailVerified = true;
+        registration.EmailVerifiedAt = DateTime.UtcNow;
+        registration.RegistrationStatus = KQAlumni.Core.Enums.RegistrationStatus.Active.ToString();
+        registration.EmailVerificationToken = null; // One-time use
+        registration.EmailVerificationTokenExpiry = null;
+        registration.UpdatedAt = DateTime.UtcNow;
+
+        await context.SaveChangesAsync();
+
+        logger.LogInformation(
+            "Email verified successfully for registration {Id} ({StaffNumber})",
+            registration.Id,
+            registration.StaffNumber);
+
+        // Redirect to dashboard with verification success indicator
+        return Results.Redirect($"/dashboard?id={registration.Id}&verified=true");
+    }
+    catch (DbUpdateException dbEx)
+    {
+        logger.LogError(dbEx, "Database error during email verification with token: {Token}", token);
+        return Results.Problem(
+            title: "Database Error",
+            detail: "An error occurred while verifying your email. Please try again or contact support.",
+            statusCode: StatusCodes.Status500InternalServerError);
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "Unexpected error verifying email with token: {Token}", token);
+        return Results.Problem(
+            title: "Verification Error",
+            detail: "An unexpected error occurred while verifying your email. Please try again or contact support.",
+            statusCode: StatusCodes.Status500InternalServerError);
+    }
+})
+.WithName("VerifyEmail")
+.WithTags("Verification")
+.WithOpenApi(operation =>
+{
+    operation.Summary = "Verify email using token from approval email";
+    operation.Description = @"
+FLOW:
+1. Validates token format
+2. Retrieves registration record
+3. Checks token expiry
+4. Marks email as verified
+5. Updates registration status to Active
+6. Clears token for one-time use
+7. Redirects to dashboard";
+    return operation;
+})
+.Produces(StatusCodes.Status302Found)
+.ProducesProblem(StatusCodes.Status400BadRequest)
+.ProducesProblem(StatusCodes.Status500InternalServerError);
+
 app.MapControllers();
 
 // 10. HEALTH CHECK ENDPOINTS
