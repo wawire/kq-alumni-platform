@@ -88,17 +88,17 @@ if (redisEnabled && !string.IsNullOrEmpty(redisConnectionString))
             options.Configuration = redisConnectionString;
             options.InstanceName = builder.Configuration.GetValue<string>("Redis:InstanceName", "KQAlumni:");
         });
-        Console.WriteLine("✅ Redis distributed cache configured successfully.");
+        Console.WriteLine("[CACHE] Redis distributed cache configured successfully.");
     }
     catch (Exception ex)
     {
-        Console.WriteLine($"⚠️ Redis configuration failed, falling back to memory cache: {ex.Message}");
+        Console.WriteLine($"[CACHE] Redis configuration failed, falling back to memory cache: {ex.Message}");
         builder.Services.AddDistributedMemoryCache();
     }
 }
 else
 {
-    Console.WriteLine("ℹ️ Redis disabled, using in-memory cache.");
+    Console.WriteLine("[CACHE] Redis disabled, using in-memory cache.");
     builder.Services.AddDistributedMemoryCache();
 }
 
@@ -124,24 +124,23 @@ builder.Services.AddSwaggerGen(options =>
     // This resolves Swagger errors when old compiled DLLs still contain deleted controllers
     options.ResolveConflictingActions(apiDescriptions =>
     {
-        var descriptions = apiDescriptions.ToList();
-
-        // Prefer Minimal API endpoints over controller endpoints for /verify
-        var minimalApiEndpoint = descriptions.FirstOrDefault(d =>
-            d.RelativePath?.Contains("verify") == true &&
-            d.ActionDescriptor.DisplayName?.Contains("HTTP: GET") == true);
-
-        if (minimalApiEndpoint != null)
+        try
         {
-            return minimalApiEndpoint;
+            var descriptions = apiDescriptions.ToList();
+            if (!descriptions.Any()) return null;
+
+            // Prefer non-VerificationController actions (deleted controller)
+            var nonVerificationController = descriptions.FirstOrDefault(d =>
+                d?.ActionDescriptor?.DisplayName?.Contains("VerificationController", StringComparison.OrdinalIgnoreCase) != true);
+
+            // Return the first non-verification controller action, or just the first action
+            return nonVerificationController ?? descriptions.FirstOrDefault();
         }
-
-        // For other conflicts, prefer the first non-VerificationController action
-        var nonVerificationController = descriptions.FirstOrDefault(d =>
-            !d.ActionDescriptor.DisplayName?.Contains("VerificationController") == true);
-
-        // Fall back to first description if no preference found
-        return nonVerificationController ?? descriptions.First();
+        catch
+        {
+            // Defensive: return first action if anything fails
+            return apiDescriptions.FirstOrDefault();
+        }
     });
 
     // Exclude VerificationController from Swagger docs (deleted but may exist in cached assemblies)
@@ -207,7 +206,7 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
     ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 
 Console.WriteLine("═══════════════════════════════════════════════════════");
-Console.WriteLine("🔌 DATABASE CONNECTION TEST");
+Console.WriteLine("DATABASE CONNECTION TEST");
 Console.WriteLine("═══════════════════════════════════════════════════════");
 
 // Sanitize connection string for logging (hide sensitive data)
@@ -216,7 +215,7 @@ var sanitizedConnStr = System.Text.RegularExpressions.Regex.Replace(
     @"Password=[^;]+",
     "Password=***",
     System.Text.RegularExpressions.RegexOptions.IgnoreCase);
-Console.WriteLine($"📋 Connection String: {sanitizedConnStr}");
+Console.WriteLine($"Connection String: {sanitizedConnStr}");
 
 bool isDatabaseAvailable = false;
 string databaseName = "Unknown";
@@ -226,15 +225,15 @@ try
 {
     using (var testConn = new Microsoft.Data.SqlClient.SqlConnection(connectionString))
     {
-        Console.WriteLine("🔄 Opening database connection...");
+        Console.WriteLine("Opening database connection...");
         testConn.Open();
 
         serverName = testConn.DataSource;
         databaseName = testConn.Database;
 
-        Console.WriteLine($"📊 Server: {serverName}");
-        Console.WriteLine($"🗄️  Database: {databaseName}");
-        Console.WriteLine($"📝 Server Version: {testConn.ServerVersion}");
+        Console.WriteLine($"Server: {serverName}");
+        Console.WriteLine($"Database: {databaseName}");
+        Console.WriteLine($"Server Version: {testConn.ServerVersion}");
 
         using var cmd = testConn.CreateCommand();
         cmd.CommandText = "SELECT 1";
@@ -246,15 +245,15 @@ try
     System.Threading.Thread.Sleep(100);
 
     isDatabaseAvailable = true;
-    Console.WriteLine("✅ Database connection successful!");
+    Console.WriteLine("[SUCCESS] Database connection successful");
 }
 catch (Exception ex)
 {
-    Console.WriteLine($"❌ Database connection failed: {ex.Message}");
-    Console.WriteLine($"⚠️  Error Type: {ex.GetType().Name}");
+    Console.WriteLine($"[ERROR] Database connection failed: {ex.Message}");
+    Console.WriteLine($"Error Type: {ex.GetType().Name}");
     if (ex.InnerException != null)
     {
-        Console.WriteLine($"⚠️  Inner Error: {ex.InnerException.Message}");
+        Console.WriteLine($"Inner Error: {ex.InnerException.Message}");
     }
 }
 
@@ -262,15 +261,15 @@ Console.WriteLine("════════════════════�
 Console.WriteLine();
 
 Console.WriteLine("═══════════════════════════════════════════════════════");
-Console.WriteLine("⚙️  HANGFIRE CONFIGURATION");
+Console.WriteLine("HANGFIRE CONFIGURATION");
 Console.WriteLine("═══════════════════════════════════════════════════════");
 
 if (isDatabaseAvailable)
 {
-    Console.WriteLine("💾 Storage Type: SQL Server");
-    Console.WriteLine($"📊 Server: {serverName}");
-    Console.WriteLine($"🗄️  Database: {databaseName}");
-    Console.WriteLine("📝 Schema: Hangfire");
+    Console.WriteLine("Storage Type: SQL Server");
+    Console.WriteLine($"Server: {serverName}");
+    Console.WriteLine($"Database: {databaseName}");
+    Console.WriteLine("Schema: Hangfire");
 
     builder.Services.AddHangfire(config => config
         .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
@@ -288,13 +287,13 @@ if (isDatabaseAvailable)
         }));
 
     var workerCount = builder.Configuration.GetValue<int>("Hangfire:WorkerCount", 5);
-    Console.WriteLine($"👷 Worker Count: {workerCount}");
+    Console.WriteLine($"Worker Count: {workerCount}");
     builder.Services.AddHangfireServer(options => options.WorkerCount = workerCount);
-    Console.WriteLine("✅ Hangfire server configured successfully");
+    Console.WriteLine("[SUCCESS] Hangfire server configured");
 }
 else
 {
-    Console.WriteLine("❌ Hangfire disabled (database unavailable)");
+    Console.WriteLine("[WARNING] Hangfire disabled (database unavailable)");
     builder.Services.AddHangfire(config => config
         .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
         .UseSimpleAssemblyNameTypeSerializer()
@@ -490,7 +489,7 @@ if (app.Environment.IsDevelopment())
 if (app.Environment.IsDevelopment() && isDatabaseAvailable)
 {
     Console.WriteLine("═══════════════════════════════════════════════════════");
-    Console.WriteLine("📦 DATABASE MIGRATIONS");
+    Console.WriteLine("DATABASE MIGRATIONS");
     Console.WriteLine("═══════════════════════════════════════════════════════");
 
     using var scope = app.Services.CreateScope();
@@ -500,33 +499,33 @@ if (app.Environment.IsDevelopment() && isDatabaseAvailable)
     {
         if (db.Database.CanConnect())
         {
-            Console.WriteLine("🔄 Applying pending migrations...");
+            Console.WriteLine("Applying pending migrations...");
             var pendingMigrations = db.Database.GetPendingMigrations().ToList();
 
             if (pendingMigrations.Any())
             {
-                Console.WriteLine($"📋 Found {pendingMigrations.Count} pending migration(s):");
+                Console.WriteLine($"Found {pendingMigrations.Count} pending migration(s):");
                 foreach (var migration in pendingMigrations)
                 {
-                    Console.WriteLine($"   • {migration}");
+                    Console.WriteLine($"  - {migration}");
                 }
             }
             else
             {
-                Console.WriteLine("✅ Database is up to date - no pending migrations");
+                Console.WriteLine("Database is up to date - no pending migrations");
             }
 
             db.Database.Migrate();
 
             var appliedMigrations = db.Database.GetAppliedMigrations().ToList();
-            Console.WriteLine($"✅ Total applied migrations: {appliedMigrations.Count}");
-            app.Logger.LogInformation("✅ Database migrations applied successfully.");
+            Console.WriteLine($"Total applied migrations: {appliedMigrations.Count}");
+            app.Logger.LogInformation("Database migrations applied successfully");
         }
     }
     catch (Exception ex)
     {
-        Console.WriteLine($"❌ Migration failed: {ex.Message}");
-        app.Logger.LogError(ex, "❌ Failed to apply migrations");
+        Console.WriteLine($"[ERROR] Migration failed: {ex.Message}");
+        app.Logger.LogError(ex, "Failed to apply migrations");
     }
 
     Console.WriteLine("═══════════════════════════════════════════════════════");
@@ -538,28 +537,28 @@ if (app.Environment.IsDevelopment() && isDatabaseAvailable)
 if (isDatabaseAvailable)
 {
     Console.WriteLine("═══════════════════════════════════════════════════════");
-    Console.WriteLine("⏰ BACKGROUND JOB SCHEDULING");
+    Console.WriteLine("BACKGROUND JOB SCHEDULING");
     Console.WriteLine("═══════════════════════════════════════════════════════");
 
     TimeZoneInfo tz;
     try
     {
         tz = TimeZoneInfo.FindSystemTimeZoneById(backgroundJobSettings.TimeZone);
-        Console.WriteLine($"🌍 Timezone: {backgroundJobSettings.TimeZone}");
+        Console.WriteLine($"Timezone: {backgroundJobSettings.TimeZone}");
     }
     catch
     {
-        app.Logger.LogWarning("⚠️ Timezone '{TimeZone}' not found. Using UTC.", backgroundJobSettings.TimeZone);
-        Console.WriteLine("⚠️  Timezone not found, using UTC");
+        app.Logger.LogWarning("Timezone '{TimeZone}' not found. Using UTC.", backgroundJobSettings.TimeZone);
+        Console.WriteLine("[WARNING] Timezone not found, using UTC");
         tz = TimeZoneInfo.Utc;
     }
 
     if (backgroundJobSettings.EnableSmartScheduling)
     {
-        Console.WriteLine("📊 Smart Scheduling: ENABLED");
-        Console.WriteLine($"   • Business Hours: {backgroundJobSettings.BusinessHoursSchedule}");
-        Console.WriteLine($"   • Off Hours: {backgroundJobSettings.OffHoursSchedule}");
-        Console.WriteLine($"   • Weekends: {backgroundJobSettings.WeekendSchedule}");
+        Console.WriteLine("Smart Scheduling: ENABLED");
+        Console.WriteLine($"  Business Hours: {backgroundJobSettings.BusinessHoursSchedule}");
+        Console.WriteLine($"  Off Hours: {backgroundJobSettings.OffHoursSchedule}");
+        Console.WriteLine($"  Weekends: {backgroundJobSettings.WeekendSchedule}");
 
         RecurringJob.AddOrUpdate<ApprovalProcessingJob>(
             "business-hours", job => job.ProcessPendingRegistrations(),
@@ -573,20 +572,20 @@ if (isDatabaseAvailable)
             "weekends", job => job.ProcessPendingRegistrations(),
             backgroundJobSettings.WeekendSchedule, new RecurringJobOptions { TimeZone = tz });
 
-        app.Logger.LogInformation("✅ Hangfire jobs scheduled (Smart Scheduling)");
-        Console.WriteLine("✅ 3 recurring jobs scheduled successfully");
+        app.Logger.LogInformation("Hangfire jobs scheduled (Smart Scheduling)");
+        Console.WriteLine("[SUCCESS] 3 recurring jobs scheduled");
     }
     else
     {
-        Console.WriteLine("📊 Smart Scheduling: DISABLED");
-        Console.WriteLine("   • Default Schedule: Every 5 minutes (*/5 * * * *)");
+        Console.WriteLine("Smart Scheduling: DISABLED");
+        Console.WriteLine("  Default Schedule: Every 5 minutes (*/5 * * * *)");
 
         RecurringJob.AddOrUpdate<ApprovalProcessingJob>(
             "default", job => job.ProcessPendingRegistrations(),
             "*/5 * * * *", new RecurringJobOptions { TimeZone = tz });
 
-        app.Logger.LogInformation("✅ Hangfire jobs scheduled (Default Schedule)");
-        Console.WriteLine("✅ 1 recurring job scheduled successfully");
+        app.Logger.LogInformation("Hangfire jobs scheduled (Default Schedule)");
+        Console.WriteLine("[SUCCESS] 1 recurring job scheduled");
     }
 
     Console.WriteLine("═══════════════════════════════════════════════════════");
@@ -601,87 +600,78 @@ RateLimitingMiddleware.StartCleanupTask(window);
 // 14. DISPLAY ALL ENDPOINTS
 
 Console.WriteLine("═══════════════════════════════════════════════════════");
-Console.WriteLine("🌐 APPLICATION URLS & ENDPOINTS");
+Console.WriteLine("APPLICATION URLS & ENDPOINTS");
 Console.WriteLine("═══════════════════════════════════════════════════════");
 
 var baseUrl = builder.Configuration["AppSettings:BaseUrl"] ?? "http://localhost:5000";
-var urls = builder.Configuration["urls"] ?? builder.Configuration["ASPNETCORE_URLS"] ?? baseUrl;
-Console.WriteLine($"📍 Listening on: {urls}");
-Console.WriteLine($"🌐 Environment: {app.Environment.EnvironmentName}");
+var urlsConfig = builder.Configuration["urls"] ?? builder.Configuration["ASPNETCORE_URLS"] ?? baseUrl;
+var urlList = urlsConfig.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+Console.WriteLine("Listening on:");
+foreach (var url in urlList)
+{
+    Console.WriteLine($"  - {url}");
+}
+Console.WriteLine($"Environment: {app.Environment.EnvironmentName}");
 Console.WriteLine();
 
-Console.WriteLine("📚 DOCUMENTATION & MANAGEMENT");
+Console.WriteLine("DOCUMENTATION & MANAGEMENT");
 if (app.Environment.IsDevelopment() || app.Environment.EnvironmentName == "UAT")
 {
-    Console.WriteLine($"   • Swagger UI: {urls}/swagger");
-    Console.WriteLine($"   • OpenAPI JSON: {urls}/swagger/v1/swagger.json");
+    Console.WriteLine($"  Swagger UI:    {urlList[0]}/swagger");
+    Console.WriteLine($"  OpenAPI JSON:  {urlList[0]}/swagger/v1/swagger.json");
 }
 else
 {
-    Console.WriteLine("   • Swagger: Disabled (Production)");
+    Console.WriteLine("  Swagger: Disabled (Production)");
 }
 
 if (isDatabaseAvailable && builder.Configuration.GetValue<bool>("Hangfire:DashboardEnabled", true))
 {
     var dashboardPath = builder.Configuration.GetValue<string>("Hangfire:DashboardPath", "/hangfire");
-    Console.WriteLine($"   • Hangfire Dashboard: {urls}{dashboardPath}");
+    Console.WriteLine($"  Hangfire:      {urlList[0]}{dashboardPath}");
 }
 
 Console.WriteLine();
-Console.WriteLine("🏥 HEALTH CHECK ENDPOINTS");
-Console.WriteLine($"   • Full Health Check: {urls}/health");
-Console.WriteLine($"   • Readiness Probe: {urls}/health/ready");
-Console.WriteLine($"   • Liveness Probe: {urls}/health/live");
+Console.WriteLine("HEALTH CHECK ENDPOINTS");
+Console.WriteLine($"  GET  {urlList[0]}/health         (Full health check)");
+Console.WriteLine($"  GET  {urlList[0]}/health/ready   (Readiness probe)");
+Console.WriteLine($"  GET  {urlList[0]}/health/live    (Liveness probe)");
 
 if (app.Environment.IsDevelopment())
 {
-    Console.WriteLine($"   • Test Endpoint: {urls}/api/test");
+    Console.WriteLine($"  GET  {urlList[0]}/api/test       (Test endpoint)");
 }
 
 Console.WriteLine();
-Console.WriteLine("🔐 AUTHENTICATION ENDPOINTS");
-Console.WriteLine($"   • POST   {urls}/api/auth/login");
-Console.WriteLine($"   • POST   {urls}/api/auth/refresh");
-Console.WriteLine($"   • POST   {urls}/api/auth/logout");
-
+Console.WriteLine("API ENDPOINTS");
+Console.WriteLine("  Authentication:");
+Console.WriteLine($"    POST   /api/v1/admin/login");
 Console.WriteLine();
-Console.WriteLine("📝 REGISTRATION ENDPOINTS");
-Console.WriteLine($"   • POST   {urls}/api/registration/submit");
-Console.WriteLine($"   • GET    {urls}/api/registration");
-Console.WriteLine($"   • GET    {urls}/api/registration/{{id}}");
-Console.WriteLine($"   • PUT    {urls}/api/registration/{{id}}/approve");
-Console.WriteLine($"   • PUT    {urls}/api/registration/{{id}}/reject");
-Console.WriteLine($"   • GET    {urls}/api/registration/stats");
-Console.WriteLine($"   • POST   {urls}/api/registration/bulk-approve");
-
+Console.WriteLine("  Registrations:");
+Console.WriteLine($"    POST   /api/v1/registrations");
+Console.WriteLine($"    GET    /api/v1/registrations/status?email={{email}}");
+Console.WriteLine($"    GET    /api/v1/registrations/{{id}}");
+Console.WriteLine($"    GET    /api/v1/registrations/check/staff-number/{{staffNumber}}");
+Console.WriteLine($"    GET    /api/v1/registrations/check/email/{{email}}");
+Console.WriteLine($"    GET    /api/v1/registrations/verify/{{token}}");
 Console.WriteLine();
-Console.WriteLine("👥 USER MANAGEMENT ENDPOINTS");
-Console.WriteLine($"   • POST   {urls}/api/users");
-Console.WriteLine($"   • GET    {urls}/api/users");
-Console.WriteLine($"   • GET    {urls}/api/users/{{id}}");
-Console.WriteLine($"   • PUT    {urls}/api/users/{{id}}");
-Console.WriteLine($"   • DELETE {urls}/api/users/{{id}}");
-Console.WriteLine($"   • PUT    {urls}/api/users/{{id}}/role");
-
-Console.WriteLine();
-Console.WriteLine("📊 REPORTING ENDPOINTS");
-Console.WriteLine($"   • GET    {urls}/api/reports/registrations");
-Console.WriteLine($"   • GET    {urls}/api/reports/dashboard");
-Console.WriteLine($"   • GET    {urls}/api/reports/export");
-
-Console.WriteLine();
-Console.WriteLine("🔔 EMAIL & NOTIFICATION ENDPOINTS");
-Console.WriteLine($"   • GET    {urls}/api/email/logs");
-Console.WriteLine($"   • POST   {urls}/api/email/test");
+Console.WriteLine("  Admin Registrations:");
+Console.WriteLine($"    GET    /api/v1/admin/registrations");
+Console.WriteLine($"    GET    /api/v1/admin/registrations/{{id}}");
+Console.WriteLine($"    PUT    /api/v1/admin/registrations/{{id}}/approve");
+Console.WriteLine($"    PUT    /api/v1/admin/registrations/{{id}}/reject");
+Console.WriteLine($"    GET    /api/v1/admin/statistics");
+Console.WriteLine($"    GET    /api/v1/admin/audit-logs?registrationId={{id}}");
 
 Console.WriteLine("═══════════════════════════════════════════════════════");
 Console.WriteLine();
 
-app.Logger.LogInformation("🚀 KQ Alumni API Starting...");
-app.Logger.LogInformation("🌐 Environment: {Env}", app.Environment.EnvironmentName);
-app.Logger.LogInformation("📍 Base URL: {BaseUrl}", baseUrl);
+app.Logger.LogInformation("KQ Alumni API Starting");
+app.Logger.LogInformation("Environment: {Env}", app.Environment.EnvironmentName);
+app.Logger.LogInformation("Primary URL: {BaseUrl}", urlList[0]);
 
-Console.WriteLine("✅ Application is ready to accept requests");
+Console.WriteLine("Application is ready to accept requests");
 Console.WriteLine("Press Ctrl+C to shut down");
 Console.WriteLine();
 
