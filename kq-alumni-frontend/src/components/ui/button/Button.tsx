@@ -33,7 +33,7 @@ const buttonVariants = cva(
       variant: {
         // KQ Red primary button
         primary:
-          'bg-kq-red text-white hover:bg-kq-red-dark focus:ring-kq-red shadow-lg hover:shadow-xl transform hover:scale-[1.02]',
+          'bg-kq-red text-white hover:bg-kq-red-dark hover:text-white focus:ring-kq-red shadow-lg hover:shadow-xl transform hover:scale-[1.02] active:bg-kq-red-dark active:text-white',
 
         // Secondary gray button
         secondary:
