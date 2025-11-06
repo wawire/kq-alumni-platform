@@ -135,14 +135,30 @@ public class AdminRegistrationService : IAdminRegistrationService
         {
             if (!registration.ApprovalEmailSent)
             {
+                // CRITICAL FIX: Generate verification token if it doesn't exist
+                if (string.IsNullOrEmpty(registration.EmailVerificationToken))
+                {
+                    registration.EmailVerificationToken = Guid.NewGuid().ToString("N");
+                    registration.EmailVerificationTokenExpiry = DateTime.UtcNow.AddDays(30);
+                    await _context.SaveChangesAsync(cancellationToken);
+
+                    _logger.LogInformation(
+                        "Generated verification token for manual approval of registration {RegistrationId}",
+                        registrationId);
+                }
+
                 await _emailService.SendApprovalEmailAsync(
                     registration.Email,
                     registration.FullName,
-                    registration.EmailVerificationToken ?? string.Empty);
+                    registration.EmailVerificationToken!);
 
                 registration.ApprovalEmailSent = true;
                 registration.ApprovalEmailSentAt = DateTime.UtcNow;
                 await _context.SaveChangesAsync(cancellationToken);
+
+                _logger.LogInformation(
+                    "Approval email sent successfully for registration {RegistrationId}",
+                    registrationId);
             }
         }
         catch (Exception ex)
