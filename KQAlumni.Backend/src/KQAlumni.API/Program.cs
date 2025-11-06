@@ -3,6 +3,7 @@ using FluentValidation.AspNetCore;
 using Hangfire;
 using Hangfire.SqlServer;
 using Hangfire.Dashboard;
+using KQAlumni.API.Filters;
 using KQAlumni.API.Middleware;
 using KQAlumni.Core.Configuration;
 using KQAlumni.Core.Validators;
@@ -118,6 +119,33 @@ builder.Services.AddSwaggerGen(options =>
             Email = "KQ.Alumni@kenya-airways.com"
         }
     });
+
+    // CRITICAL FIX: Handle conflicting actions from cached assemblies
+    // This resolves Swagger errors when old compiled DLLs still contain deleted controllers
+    options.ResolveConflictingActions(apiDescriptions =>
+    {
+        var descriptions = apiDescriptions.ToList();
+
+        // Prefer Minimal API endpoints over controller endpoints for /verify
+        var minimalApiEndpoint = descriptions.FirstOrDefault(d =>
+            d.RelativePath?.Contains("verify") == true &&
+            d.ActionDescriptor.DisplayName?.Contains("HTTP: GET") == true);
+
+        if (minimalApiEndpoint != null)
+        {
+            return minimalApiEndpoint;
+        }
+
+        // For other conflicts, prefer the first non-VerificationController action
+        var nonVerificationController = descriptions.FirstOrDefault(d =>
+            !d.ActionDescriptor.DisplayName?.Contains("VerificationController") == true);
+
+        // Fall back to first description if no preference found
+        return nonVerificationController ?? descriptions.First();
+    });
+
+    // Exclude VerificationController from Swagger docs (deleted but may exist in cached assemblies)
+    options.DocumentFilter<ExcludeVerificationControllerFilter>();
 
     // JWT Security Definition
     options.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
