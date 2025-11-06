@@ -27,7 +27,7 @@ const getEnv = (key: string, required = false, fallback?: string): string => {
  */
 export const env = {
   // API Configuration
-  apiUrl: getEnv('NEXT_PUBLIC_API_URL', true, 'http://localhost:5295'),
+  apiUrl: getEnv('NEXT_PUBLIC_API_URL', true, 'http://localhost:56147'),
   apiTimeout: parseInt(getEnv('NEXT_PUBLIC_API_TIMEOUT', false, '30000')),
 
   // Environment Metadata
