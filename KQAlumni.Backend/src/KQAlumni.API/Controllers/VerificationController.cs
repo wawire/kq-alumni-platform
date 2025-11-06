@@ -51,7 +51,7 @@ public class VerificationController : ControllerBase
   /// <response code="302">Email verified successfully, redirects to dashboard</response>
   /// <response code="400">Invalid or expired token</response>
   /// <response code="500">Internal server error during verification</response>
-  [HttpGet("email/{token}")]
+  [HttpGet("{token}")]
   [ProducesResponseType(StatusCodes.Status302Found)]
   [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
   [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]

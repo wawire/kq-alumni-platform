@@ -15,7 +15,7 @@ export const API_TIMEOUT = env.apiTimeout;
  */
 export const API_ENDPOINTS = {
   REGISTER: '/api/v1/registrations',
-  VERIFY_EMAIL: (token: string) => `/api/v1/verify/${token}`,
+  VERIFY_EMAIL: (token: string) => `/api/v1/verification/${token}`,
   GET_REGISTRATION: (id: string) => `/api/v1/registrations/${id}`,
   GET_REGISTRATION_STATUS: (id: string) => `/api/v1/registrations/${id}/status`,
   CHECK_STAFF_NUMBER: (staffNumber: string) =>

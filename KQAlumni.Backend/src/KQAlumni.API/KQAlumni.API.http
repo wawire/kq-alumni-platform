@@ -39,7 +39,7 @@ Content-Type: application/json
 }
 
 ### Alumni Registration - Verify Email
-GET {{baseUrl}}/api/alumni/verify?token=verification-token-here
+GET {{baseUrl}}/api/v1/verification/verification-token-here
 Accept: application/json
 
 ### Admin - Login
