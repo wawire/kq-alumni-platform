@@ -41,10 +41,11 @@ export const MAIN_NAV_LINKS: NavLink[] = [
  * Quick access links displayed in the header top bar
  */
 export const QUICK_LINKS: QuickLink[] = [
-  {
-    href: '/login',
-    label: 'Member Portal',
-  },
+  // Temporarily hidden - page not yet implemented
+  // {
+  //   href: '/login',
+  //   label: 'Member Portal',
+  // },
   {
     href: 'mailto:KQ.Alumni@kenya-airways.com',
     label: 'KQ.Alumni@kenya-airways.com',
@@ -56,10 +57,11 @@ export const QUICK_LINKS: QuickLink[] = [
  * Mobile-specific quick links (simplified for mobile menu)
  */
 export const MOBILE_QUICK_LINKS: NavLink[] = [
-  {
-    href: '/login',
-    label: 'Member Portal',
-  },
+  // Temporarily hidden - page not yet implemented
+  // {
+  //   href: '/login',
+  //   label: 'Member Portal',
+  // },
   // Temporarily hidden - page not yet implemented
   // {
   //   href: '/events',

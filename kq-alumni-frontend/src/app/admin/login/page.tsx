@@ -7,7 +7,8 @@
 
 import { useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Shield, AlertCircle } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -71,8 +72,15 @@ export default function AdminLoginPage() {
       <div className="w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-kq-red rounded-tl-sm rounded-tr-2xl rounded-br-sm rounded-bl-2xl mb-4">
-            <Shield className="w-8 h-8 text-white" />
+          <div className="inline-flex items-center justify-center w-24 h-24 bg-white rounded-tl-sm rounded-tr-2xl rounded-br-sm rounded-bl-2xl mb-4 p-3">
+            <Image
+              src="/assets/logos/logo-kq.svg"
+              alt="Kenya Airways"
+              width={80}
+              height={80}
+              priority
+              className="w-full h-full object-contain"
+            />
           </div>
           <h1 className="text-3xl font-cabrito font-bold text-white mb-2">
             Admin Login

@@ -74,7 +74,7 @@ export default function RegistrationForm() {
     submitMutation.mutate(finalData, {
       onSuccess: (response) => {
         toast.dismiss("registration-loading");
-        toast.success("Registration successful! 🎉", {
+        toast.success("Registration successful!", {
           description: "Welcome to the KQ Alumni family!",
           duration: 4000,
         });

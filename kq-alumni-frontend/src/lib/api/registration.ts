@@ -15,7 +15,7 @@ const logger = {
   error: (...args: unknown[]) => isDev && console.error("[API]", ...args),
 };
 
-logger.info("🔧 API Configuration:", { baseURL: API_BASE_URL });
+logger.info("[CONFIG] API Configuration:", { baseURL: API_BASE_URL });
 
 // ======================================================
 // ERROR MESSAGES
@@ -74,7 +74,7 @@ const apiClient: AxiosInstance = axios.create({
 // ======================================================
 apiClient.interceptors.request.use(
   (config) => {
-    logger.info("🚀 API Request:", {
+    logger.info("[REQUEST] API Request:", {
       method: config.method?.toUpperCase(),
       url: `${config.baseURL}${config.url}`,
       timestamp: new Date().toISOString(),
@@ -82,7 +82,7 @@ apiClient.interceptors.request.use(
     return config;
   },
   (err) => {
-    logger.error("❌ Request Interceptor Error:", err);
+    logger.error("[ERROR] Request Interceptor Error:", err);
     return Promise.reject(err);
   },
 );
@@ -92,7 +92,7 @@ apiClient.interceptors.request.use(
 // ======================================================
 apiClient.interceptors.response.use(
   (response) => {
-    logger.info("✅ API Response:", {
+    logger.info("[SUCCESS] API Response:", {
       status: response.status,
       url: response.config.url,
       timestamp: new Date().toISOString(),
@@ -100,7 +100,7 @@ apiClient.interceptors.response.use(
     return response;
   },
   (err: AxiosError<ValidationError>) => {
-    logger.error("❌ API Response Error:", {
+    logger.error("[ERROR] API Response Error:", {
       message: err.message,
       code: err.code,
       status: err.response?.status,
@@ -207,7 +207,7 @@ function parseValidationErrors(errors: Record<string, string[]>): string[] {
 // MAIN ERROR HANDLER
 // ======================================================
 export function handleApiError(err: unknown): string[] {
-  logger.error("🔍 Handling API Error:", err);
+  logger.error("[DEBUG] Handling API Error:", err);
 
   if (!axios.isAxiosError(err)) {
     return [ERROR_MESSAGES.UNKNOWN_ERROR];

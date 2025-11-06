@@ -32,7 +32,7 @@ public class EmailServiceWithTracking : IEmailService
         _dbContext = dbContext;
 
         _logger.LogInformation(
-            "📧 Email Service Initialized (With Tracking):\n" +
+            "[EMAIL] Email Service Initialized (With Tracking):\n" +
             "   Host: {Host}\n" +
             "   Port: {Port}\n" +
             "   From: {From}\n" +
@@ -132,7 +132,7 @@ public class EmailServiceWithTracking : IEmailService
         try
         {
             _logger.LogInformation(
-                "📧 [{EmailType}] Sending email to {Email}",
+                "[EMAIL] [{EmailType}] Sending email to {Email}",
                 emailType, toEmail);
 
             await SendEmailAsync(toEmail, subject, body, cancellationToken);
@@ -142,7 +142,7 @@ public class EmailServiceWithTracking : IEmailService
             emailLog.Status = _emailSettings.UseMockEmailService ? EmailStatus.MockMode : EmailStatus.Sent;
 
             _logger.LogInformation(
-                "✅ [{EmailType}] Email sent successfully to {Email} in {Duration}ms",
+                "[SUCCESS] [{EmailType}] Email sent successfully to {Email} in {Duration}ms",
                 emailType, toEmail, emailLog.DurationMs);
 
             // Save to database
@@ -158,7 +158,7 @@ public class EmailServiceWithTracking : IEmailService
             emailLog.ErrorMessage = $"{ex.GetType().Name}: {ex.Message}";
 
             _logger.LogError(ex,
-                "❌ [{EmailType}] Failed to send email to {Email}. " +
+                "[ERROR] [{EmailType}] Failed to send email to {Email}. " +
                 "Error: {ErrorMessage}. Duration: {Duration}ms",
                 emailType, toEmail, ex.Message, emailLog.DurationMs);
 
@@ -180,14 +180,14 @@ public class EmailServiceWithTracking : IEmailService
             await _dbContext.SaveChangesAsync();
 
             _logger.LogDebug(
-                "💾 Email delivery logged: {EmailId} | Status: {Status} | Type: {Type} | To: {To}",
+                "[DB] Email delivery logged: {EmailId} | Status: {Status} | Type: {Type} | To: {To}",
                 emailLog.Id, emailLog.Status, emailLog.EmailType, emailLog.ToEmail);
         }
         catch (Exception ex)
         {
             // Don't fail email sending if logging fails
             _logger.LogWarning(ex,
-                "⚠️ Failed to log email delivery to database. Email was still sent/attempted. " +
+                "[WARNING] Failed to log email delivery to database. Email was still sent/attempted. " +
                 "Error: {ErrorMessage}",
                 ex.Message);
         }
@@ -206,7 +206,7 @@ public class EmailServiceWithTracking : IEmailService
         if (_emailSettings.UseMockEmailService)
         {
             _logger.LogInformation(
-                "📧 [MOCK MODE] Email would be sent:\n" +
+                "[EMAIL] [MOCK MODE] Email would be sent:\n" +
                 "   To: {To}\n" +
                 "   From: {From}\n" +
                 "   Subject: {Subject}\n" +
@@ -222,7 +222,7 @@ public class EmailServiceWithTracking : IEmailService
         if (!_emailSettings.EnableEmailSending)
         {
             _logger.LogWarning(
-                "⚠️ Email sending is disabled (EnableEmailSending = false). " +
+                "[WARNING] Email sending is disabled (EnableEmailSending = false). " +
                 "Email to {To} with subject '{Subject}' was NOT sent.",
                 toEmail, subject);
 
@@ -238,7 +238,7 @@ public class EmailServiceWithTracking : IEmailService
             throw new InvalidOperationException("SMTP credentials are not configured");
 
         _logger.LogDebug(
-            "📤 Sending email:\n" +
+            "[SENDING] Sending email:\n" +
             "   To: {To}\n" +
             "   Subject: {Subject}\n" +
             "   Via: {SmtpServer}:{SmtpPort}",
@@ -263,7 +263,7 @@ public class EmailServiceWithTracking : IEmailService
 
         await client.SendMailAsync(mailMessage, cancellationToken);
 
-        _logger.LogDebug("📬 Email delivered successfully via SMTP");
+        _logger.LogDebug("[SMTP] Email delivered successfully via SMTP");
     }
 
     // Email template methods (same as original)
@@ -323,7 +323,7 @@ public class EmailServiceWithTracking : IEmailService
 <body>
     <div class=""email-container"">
         <div class=""header"">
-            <h1>✈️ Kenya Airways Alumni Network</h1>
+            <h1>Kenya Airways Alumni Network</h1>
             <p style=""margin: 10px 0 0 0; font-size: 16px;"">Registration Received</p>
         </div>
 
@@ -335,17 +335,17 @@ public class EmailServiceWithTracking : IEmailService
             <p>We have received your registration and it is currently being processed.</p>
 
             <div class=""info-box"">
-                <strong>📋 Registration ID:</strong> {registrationId}<br>
-                <strong>⏰ Status:</strong> Pending Verification<br>
-                <strong>📅 Submitted:</strong> {DateTime.UtcNow:yyyy-MM-dd HH:mm} UTC
+                <strong>Registration ID:</strong> {registrationId}<br>
+                <strong>Status:</strong> Pending Verification<br>
+                <strong>Submitted:</strong> {DateTime.UtcNow:yyyy-MM-dd HH:mm} UTC
             </div>
 
             <h3>What Happens Next?</h3>
             <ul>
-                <li>✅ Your registration details are being verified against our records</li>
-                <li>✅ You will receive an approval email within 24-48 hours</li>
-                <li>✅ The approval email will contain a verification link to activate your account</li>
-                <li>✅ Once verified, you'll have full access to alumni benefits</li>
+                <li>Your registration details are being verified against our records</li>
+                <li>You will receive an approval email within 24-48 hours</li>
+                <li>The approval email will contain a verification link to activate your account</li>
+                <li>Once verified, you'll have full access to alumni benefits</li>
             </ul>
 
             <p><strong>Important:</strong> Please check your spam/junk folder if you don't see our next email.</p>
@@ -442,7 +442,7 @@ public class EmailServiceWithTracking : IEmailService
 <body>
     <div class=""email-container"">
         <div class=""header"">
-            <h1>🎉 Welcome to KQ Alumni Network!</h1>
+            <h1>Welcome to KQ Alumni Network!</h1>
             <p style=""margin: 10px 0 0 0; font-size: 16px;"">Registration Approved</p>
         </div>
 
@@ -452,8 +452,8 @@ public class EmailServiceWithTracking : IEmailService
             <p>Congratulations! Your registration has been <strong>approved</strong>.</p>
 
             <div class=""success-box"">
-                <strong>✅ Status:</strong> Approved<br>
-                <strong>📧 Next Step:</strong> Verify your email address
+                <strong>[SUCCESS] Status:</strong> Approved<br>
+                <strong>Next Step:</strong> Verify your email address
             </div>
 
             <p>To activate your account and access all alumni benefits, please verify your email address by clicking the button below:</p>
@@ -467,15 +467,15 @@ public class EmailServiceWithTracking : IEmailService
                 <a href=""{verificationLink}"" style=""color: #DC143C; word-break: break-all;"">{verificationLink}</a>
             </p>
 
-            <p><strong>⏰ This verification link expires in 30 days.</strong></p>
+            <p><strong>[IMPORTANT] This verification link expires in 30 days.</strong></p>
 
             <h3>What You'll Get:</h3>
             <ul>
-                <li>✈️ Access to exclusive networking events and reunions</li>
-                <li>💼 Career growth and mentorship opportunities</li>
-                <li>🤝 Connect with fellow alumni worldwide</li>
-                <li>❤️ Opportunities to give back through volunteering</li>
-                <li>📰 Alumni newsletters and updates</li>
+                <li>Access to exclusive networking events and reunions</li>
+                <li>Career growth and mentorship opportunities</li>
+                <li>Connect with fellow alumni worldwide</li>
+                <li>Opportunities to give back through volunteering</li>
+                <li>Alumni newsletters and updates</li>
             </ul>
 
             <p style=""margin-top: 30px;"">
@@ -562,8 +562,8 @@ public class EmailServiceWithTracking : IEmailService
             <p>Thank you for your interest in joining the Kenya Airways Alumni Association.</p>
 
             <div class=""warning-box"">
-                <strong>⚠️ Registration Status:</strong> Unable to Verify<br>
-                <strong>📋 Staff Number:</strong> {staffNumber}
+                <strong>[WARNING] Registration Status:</strong> Unable to Verify<br>
+                <strong>Staff Number:</strong> {staffNumber}
             </div>
 
             <p>We were unable to verify your staff number against our employee records. This could be due to:</p>
@@ -578,8 +578,8 @@ public class EmailServiceWithTracking : IEmailService
             <p>Please contact our HR department to verify your employment record:</p>
 
             <p style=""background: #f9fafb; padding: 15px; border-radius: 4px;"">
-                <strong>📧 Email:</strong> <a href=""mailto:KQ.Alumni@kenya-airways.com"" style=""color: #DC143C;"">KQ.Alumni@kenya-airways.com</a><br>
-                <strong>📞 Phone:</strong> +254 20 661 6000
+                <strong>Email:</strong> <a href=""mailto:KQ.Alumni@kenya-airways.com"" style=""color: #DC143C;"">KQ.Alumni@kenya-airways.com</a><br>
+                <strong>Phone:</strong> +254 20 661 6000
             </p>
 
             <p>We apologize for any inconvenience and look forward to welcoming you to our alumni network.</p>

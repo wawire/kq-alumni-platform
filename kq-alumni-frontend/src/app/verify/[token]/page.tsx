@@ -25,7 +25,7 @@ export default function VerifyEmailPage() {
       try {
         const token = params.token as string;
 
-        // 📡 Request verification from API
+        // [API] Request verification from API
         const response = await axios.get<VerificationResponse>(
           `${API_BASE_URL}/api/v1/verify/${token}`,
         );
@@ -33,7 +33,7 @@ export default function VerifyEmailPage() {
         setStatus("success");
         setData(response.data);
 
-        // ⏳ Start countdown after successful verification
+        // [TIMER] Start countdown after successful verification
         let count = 5;
         timer = setInterval(() => {
           count -= 1;
@@ -76,7 +76,7 @@ export default function VerifyEmailPage() {
       void verifyEmail();
     }
 
-    // 🧹 Cleanup interval on unmount
+    // [CLEANUP] Cleanup interval on unmount
     return () => {
       if (timer) {
         clearInterval(timer);
@@ -112,7 +112,7 @@ export default function VerifyEmailPage() {
             </div>
 
             <h1 className="text-4xl font-cabrito font-bold text-gray-900 mb-4">
-              Email Verified Successfully! 🎉
+              Email Verified Successfully! 
             </h1>
 
             {data?.fullName && (
@@ -123,7 +123,7 @@ export default function VerifyEmailPage() {
 
             <div className="bg-green-50 border-l-4 border-green-400 p-6 rounded-lg mb-8 text-left">
               <h3 className="font-cabrito font-bold text-lg text-gray-900 mb-2">
-                ✅ Your Account is Now Active
+                Your Account is Now Active
               </h3>
               <ul className="space-y-2 text-gray-700">
                 <li className="flex items-start gap-2">

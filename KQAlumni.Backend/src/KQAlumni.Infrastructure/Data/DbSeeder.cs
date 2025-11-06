@@ -54,11 +54,11 @@ public static class DbSeeder
                 "SuperAdmin");
 
             logger.LogInformation(
-                "✅ Initial SuperAdmin user created successfully:\n" +
+                "[SUCCESS] Initial SuperAdmin user created successfully:\n" +
                 "   Username: {Username}\n" +
                 "   Email: {Email}\n" +
                 "   Password: {Password}\n" +
-                "   ⚠️  IMPORTANT: Change this password immediately after first login!",
+                "   [WARNING] IMPORTANT: Change this password immediately after first login!",
                 username,
                 email,
                 password);
@@ -108,7 +108,7 @@ public static class DbSeeder
                     adminData.Role);
 
                 logger.LogInformation(
-                    "✅ Admin user created: {Username} ({Role})",
+                    "[SUCCESS] Admin user created: {Username} ({Role})",
                     adminData.Username,
                     adminData.Role);
             }

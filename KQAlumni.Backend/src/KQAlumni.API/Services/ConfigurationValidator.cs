@@ -24,7 +24,7 @@ public class ConfigurationValidator : IHostedService
 
     public Task StartAsync(CancellationToken cancellationToken)
     {
-        _logger.LogInformation("🔍 Starting configuration validation...");
+        _logger.LogInformation("[VALIDATION] Starting configuration validation...");
 
         var errors = new List<string>();
 
@@ -49,7 +49,7 @@ public class ConfigurationValidator : IHostedService
         if (errors.Any())
         {
             _logger.LogCritical(
-                "❌ CONFIGURATION VALIDATION FAILED:\n" +
+                "[ERROR] CONFIGURATION VALIDATION FAILED:\n" +
                 "The application cannot start due to missing or invalid configuration.\n" +
                 "Please fix the following errors:\n\n{Errors}\n\n" +
                 "See ENVIRONMENT_SETUP.md for configuration instructions.",
@@ -60,7 +60,7 @@ public class ConfigurationValidator : IHostedService
             return Task.CompletedTask;
         }
 
-        _logger.LogInformation("✅ Configuration validation passed successfully");
+        _logger.LogInformation("[SUCCESS] Configuration validation passed successfully");
         LogConfigurationSummary();
 
         return Task.CompletedTask;
@@ -74,7 +74,7 @@ public class ConfigurationValidator : IHostedService
 
         if (string.IsNullOrWhiteSpace(connString))
         {
-            errors.Add("❌ ConnectionStrings:DefaultConnection is missing or empty");
+            errors.Add("[ERROR] ConnectionStrings:DefaultConnection is missing or empty");
             return;
         }
 
@@ -83,19 +83,19 @@ public class ConfigurationValidator : IHostedService
             connString.Contains("UPDATE_THIS_PASSWORD", StringComparison.OrdinalIgnoreCase) ||
             connString.Contains("YOUR_PASSWORD", StringComparison.OrdinalIgnoreCase))
         {
-            errors.Add("❌ Database connection string contains placeholder password. " +
+            errors.Add("[ERROR] Database connection string contains placeholder password. " +
                       "Update 'YOUR_SQL_PASSWORD_HERE' with actual password in appsettings.Production.json");
         }
 
         // Validate it contains required components
         if (!connString.Contains("Server=", StringComparison.OrdinalIgnoreCase))
         {
-            errors.Add("❌ Database connection string missing 'Server=' parameter");
+            errors.Add("[ERROR] Database connection string missing 'Server=' parameter");
         }
 
         if (!connString.Contains("Database=", StringComparison.OrdinalIgnoreCase))
         {
-            errors.Add("❌ Database connection string missing 'Database=' parameter");
+            errors.Add("[ERROR] Database connection string missing 'Database=' parameter");
         }
     }
 
@@ -107,7 +107,7 @@ public class ConfigurationValidator : IHostedService
 
         if (string.IsNullOrWhiteSpace(secretKey))
         {
-            errors.Add("❌ JwtSettings:SecretKey is missing");
+            errors.Add("[ERROR] JwtSettings:SecretKey is missing");
             return;
         }
 
@@ -118,7 +118,7 @@ public class ConfigurationValidator : IHostedService
             var env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production";
             if (env.Equals("Production", StringComparison.OrdinalIgnoreCase))
             {
-                errors.Add("⚠️ WARNING: JwtSettings:SecretKey appears to be a placeholder or development key. " +
+                errors.Add("[WARNING] WARNING: JwtSettings:SecretKey appears to be a placeholder or development key. " +
                           "Use a strong, unique secret key (64+ characters) for production");
             }
         }
@@ -126,18 +126,18 @@ public class ConfigurationValidator : IHostedService
         // Validate key strength
         if (secretKey.Length < 32)
         {
-            errors.Add($"❌ JwtSettings:SecretKey is too short ({secretKey.Length} characters). " +
+            errors.Add($"[ERROR] JwtSettings:SecretKey is too short ({secretKey.Length} characters). " +
                       "Must be at least 32 characters (recommended: 64+ characters)");
         }
 
         if (string.IsNullOrWhiteSpace(issuer))
         {
-            errors.Add("❌ JwtSettings:Issuer is missing");
+            errors.Add("[ERROR] JwtSettings:Issuer is missing");
         }
 
         if (string.IsNullOrWhiteSpace(audience))
         {
-            errors.Add("❌ JwtSettings:Audience is missing");
+            errors.Add("[ERROR] JwtSettings:Audience is missing");
         }
     }
 
@@ -151,27 +151,27 @@ public class ConfigurationValidator : IHostedService
 
         if (string.IsNullOrWhiteSpace(smtpServer))
         {
-            errors.Add("⚠️ Email:SmtpServer is missing (emails will not be sent)");
+            errors.Add("[WARNING] Email:SmtpServer is missing (emails will not be sent)");
         }
 
         if (string.IsNullOrWhiteSpace(username))
         {
-            errors.Add("⚠️ Email:Username is missing (emails will not be sent)");
+            errors.Add("[WARNING] Email:Username is missing (emails will not be sent)");
         }
 
         if (string.IsNullOrWhiteSpace(password))
         {
-            errors.Add("⚠️ Email:Password is missing (emails will not be sent)");
+            errors.Add("[WARNING] Email:Password is missing (emails will not be sent)");
         }
 
         if (string.IsNullOrWhiteSpace(from))
         {
-            errors.Add("⚠️ Email:From is missing (emails will not be sent)");
+            errors.Add("[WARNING] Email:From is missing (emails will not be sent)");
         }
 
         if (string.IsNullOrWhiteSpace(displayName))
         {
-            errors.Add("⚠️ Email:DisplayName is missing");
+            errors.Add("[WARNING] Email:DisplayName is missing");
         }
 
         // Check if email sending is disabled
@@ -180,12 +180,12 @@ public class ConfigurationValidator : IHostedService
 
         if (!enableSending)
         {
-            _logger.LogWarning("⚠️ Email sending is DISABLED (EnableEmailSending = false)");
+            _logger.LogWarning("[WARNING] Email sending is DISABLED (EnableEmailSending = false)");
         }
 
         if (useMock)
         {
-            _logger.LogWarning("⚠️ Using MOCK email service (UseMockEmailService = true). Emails will be logged but not sent.");
+            _logger.LogWarning("[WARNING] Using MOCK email service (UseMockEmailService = true). Emails will be logged but not sent.");
         }
     }
 
@@ -196,12 +196,12 @@ public class ConfigurationValidator : IHostedService
 
         if (string.IsNullOrWhiteSpace(baseUrl))
         {
-            errors.Add("⚠️ ErpApi:BaseUrl is missing (ERP validation will fail)");
+            errors.Add("[WARNING] ErpApi:BaseUrl is missing (ERP validation will fail)");
         }
 
         if (string.IsNullOrWhiteSpace(endpoint))
         {
-            errors.Add("⚠️ ErpApi:Endpoint is missing (ERP validation will fail)");
+            errors.Add("[WARNING] ErpApi:Endpoint is missing (ERP validation will fail)");
         }
 
         var mockMode = _configuration.GetValue<bool>("ErpApi:EnableMockMode");
@@ -210,7 +210,7 @@ public class ConfigurationValidator : IHostedService
         if (mockMode && env.Equals("Production", StringComparison.OrdinalIgnoreCase))
         {
             _logger.LogWarning(
-                "⚠️ WARNING: ERP Mock Mode is ENABLED in Production environment. " +
+                "[WARNING] WARNING: ERP Mock Mode is ENABLED in Production environment. " +
                 "Set ErpApi:EnableMockMode = false for real ERP validation");
         }
     }
@@ -221,7 +221,7 @@ public class ConfigurationValidator : IHostedService
 
         if (string.IsNullOrWhiteSpace(baseUrl))
         {
-            errors.Add("❌ AppSettings:BaseUrl is missing (email verification links will be broken)");
+            errors.Add("[ERROR] AppSettings:BaseUrl is missing (email verification links will be broken)");
             return;
         }
 
@@ -231,7 +231,7 @@ public class ConfigurationValidator : IHostedService
             baseUrl.Contains("localhost", StringComparison.OrdinalIgnoreCase))
         {
             errors.Add(
-                "❌ AppSettings:BaseUrl is set to localhost in Production environment. " +
+                "[ERROR] AppSettings:BaseUrl is set to localhost in Production environment. " +
                 "Email verification links will not work. " +
                 "Update to production URL (e.g., https://kqalumni-dev.kenya-airways.com)");
         }
@@ -239,12 +239,12 @@ public class ConfigurationValidator : IHostedService
         // Validate URL format
         if (!Uri.TryCreate(baseUrl, UriKind.Absolute, out var uri))
         {
-            errors.Add($"❌ AppSettings:BaseUrl is not a valid URL: {baseUrl}");
+            errors.Add($"[ERROR] AppSettings:BaseUrl is not a valid URL: {baseUrl}");
         }
         else if (uri.Scheme != "https" && !baseUrl.Contains("localhost"))
         {
             _logger.LogWarning(
-                "⚠️ AppSettings:BaseUrl is using HTTP instead of HTTPS: {BaseUrl}. " +
+                "[WARNING] AppSettings:BaseUrl is using HTTP instead of HTTPS: {BaseUrl}. " +
                 "Consider using HTTPS for production",
                 baseUrl);
         }
@@ -256,7 +256,7 @@ public class ConfigurationValidator : IHostedService
 
         if (allowedOrigins == null || allowedOrigins.Length == 0)
         {
-            errors.Add("⚠️ CorsSettings:AllowedOrigins is empty. Frontend will not be able to access the API");
+            errors.Add("[WARNING] CorsSettings:AllowedOrigins is empty. Frontend will not be able to access the API");
             return;
         }
 
@@ -269,7 +269,7 @@ public class ConfigurationValidator : IHostedService
             if (hasLocalhost)
             {
                 _logger.LogWarning(
-                    "⚠️ WARNING: CORS allows localhost in Production environment. " +
+                    "[WARNING] WARNING: CORS allows localhost in Production environment. " +
                     "This may be a security risk if not intentional");
             }
         }
@@ -312,9 +312,9 @@ public class ConfigurationValidator : IHostedService
             server,
             database,
             smtpServer,
-            emailEnabled ? "✅ Yes" : "❌ No",
-            emailMock ? "⚠️ Yes (Logging Only)" : "✅ No (Real Sending)",
-            erpMock ? "⚠️ Yes (Using Mock Data)" : "✅ No (Real API)"
+            emailEnabled ? "[SUCCESS] Yes" : "[ERROR] No",
+            emailMock ? "[WARNING] Yes (Logging Only)" : "[SUCCESS] No (Real Sending)",
+            erpMock ? "[WARNING] Yes (Using Mock Data)" : "[SUCCESS] No (Real API)"
         );
     }
 

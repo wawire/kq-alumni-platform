@@ -306,7 +306,7 @@ public class RegistrationService : IRegistrationService
       await _context.SaveChangesAsync(cancellationToken);
 
       _logger.LogInformation(
-          "✅ Email verified successfully for: {Email}",
+          "[SUCCESS] Email verified successfully for: {Email}",
           registration.Email);
 
       return new EmailVerificationResult

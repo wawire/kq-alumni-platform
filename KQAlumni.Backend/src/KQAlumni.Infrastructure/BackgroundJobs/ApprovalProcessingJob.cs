@@ -102,7 +102,7 @@ public class ApprovalProcessingJob
 
       var duration = (DateTime.UtcNow - startTime).TotalSeconds;
       _logger.LogInformation(
-          "✅ Completed approval processing job. Processed {Processed} registrations " +
+          "[SUCCESS] Completed approval processing job. Processed {Processed} registrations " +
           "({Approved} auto-approved, {Flagged} flagged for HR review, {Retried} retried) in {Duration:F2}s",
           processed,
           approved,
@@ -226,7 +226,7 @@ public class ApprovalProcessingJob
       ErpValidationResult erpResult)
   {
     _logger.LogInformation(
-        "✅ ERP validation successful for staff number {StaffNumber}. Status → Approved (Automatic)",
+        "[SUCCESS] ERP validation successful for staff number {StaffNumber}. Status → Approved (Automatic)",
         registration.StaffNumber);
 
     var previousStatus = registration.RegistrationStatus;
@@ -305,7 +305,7 @@ public class ApprovalProcessingJob
     var attemptCount = registration.ErpValidationAttempts ?? 0;
 
     _logger.LogWarning(
-        "⚠️ ERP validation failed for staff number {StaffNumber} (attempt {Attempt}/{MaxAttempts}): {Error}",
+        "[WARNING] ERP validation failed for staff number {StaffNumber} (attempt {Attempt}/{MaxAttempts}): {Error}",
         registration.StaffNumber,
         attemptCount,
         _jobSettings.MaxRetryAttempts,
@@ -315,7 +315,7 @@ public class ApprovalProcessingJob
     if (attemptCount >= _jobSettings.MaxRetryAttempts)
     {
       _logger.LogWarning(
-          "🚩 Max retry attempts reached for staff number {StaffNumber}. Flagging for HR manual review (HYBRID WORKFLOW)",
+          "[FLAG] Max retry attempts reached for staff number {StaffNumber}. Flagging for HR manual review (HYBRID WORKFLOW)",
           registration.StaffNumber);
 
       var previousStatus = registration.RegistrationStatus;

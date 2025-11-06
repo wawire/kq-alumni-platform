@@ -29,26 +29,18 @@ export default function SuccessScreen({ registrationId, email, fullName }: Props
         {/* Info Box */}
         <div className="bg-blue-50 border-l-4 border-blue-400 p-6 rounded-lg mb-8 text-left">
           <h3 className="font-cabrito font-bold text-lg text-gray-900 mb-2">What Happens Next?</h3>
-          <ul className="space-y-2 text-gray-700 font-roboto">
-            <li className="flex items-start gap-2">
-              <span className="text-blue-600 mt-1">✓</span>
-              <span>
-                A confirmation email has been sent to <strong>{email}</strong>
-              </span>
+          <ul className="space-y-2 text-gray-700 font-roboto list-disc list-inside">
+            <li>
+              A confirmation email has been sent to <strong>{email}</strong>
             </li>
-            <li className="flex items-start gap-2">
-              <span className="text-blue-600 mt-1">✓</span>
-              <span>Your registration is being verified against our records</span>
+            <li>
+              Your registration is being verified against our records
             </li>
-            <li className="flex items-start gap-2">
-              <span className="text-blue-600 mt-1">✓</span>
-              <span>
-                You&apos;ll receive a welcome email once approved (usually within 24-48 hours)
-              </span>
+            <li>
+              You&apos;ll receive a welcome email once approved (usually within 24-48 hours)
             </li>
-            <li className="flex items-start gap-2">
-              <span className="text-blue-600 mt-1">✓</span>
-              <span>Check your spam folder if you don&apos;t see our email</span>
+            <li>
+              Check your spam folder if you don&apos;t see our email
             </li>
           </ul>
         </div>
