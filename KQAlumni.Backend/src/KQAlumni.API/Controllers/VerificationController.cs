@@ -16,7 +16,7 @@ namespace KQAlumni.API.Controllers;
 /// - Handle verification expiry and retry logic
 /// </summary>
 [ApiController]
-[Route("api/v1")]
+[Route("api/v1/verification")]
 [Produces("application/json")]
 public class VerificationController : ControllerBase
 {
@@ -51,7 +51,7 @@ public class VerificationController : ControllerBase
   /// <response code="302">Email verified successfully, redirects to dashboard</response>
   /// <response code="400">Invalid or expired token</response>
   /// <response code="500">Internal server error during verification</response>
-  [HttpGet("verify/{token}")]
+  [HttpGet("email/{token}")]
   [ProducesResponseType(StatusCodes.Status302Found)]
   [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
   [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
@@ -169,7 +169,7 @@ public class VerificationController : ControllerBase
   /// <returns>Registration status with lifecycle information</returns>
   /// <response code="200">Registration status retrieved successfully</response>
   /// <response code="404">Registration not found</response>
-  [HttpGet("registrations/{id:guid}/status")]
+  [HttpGet("status/{id:guid}")]
   [ProducesResponseType(typeof(RegistrationStatusDetailResponse), StatusCodes.Status200OK)]
   [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
   public async Task<IActionResult> GetRegistrationStatus(Guid id)
