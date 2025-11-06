@@ -11,11 +11,11 @@ const getEnv = (key: string, required = false, fallback?: string): string => {
 
     // Server-only: stop the build/startup if critical env var is missing
     if (typeof window === 'undefined') {
-      throw new Error(`❌ ${message}`);
+      throw new Error(`[ERROR] ${message}`);
     }
 
     // Client: log warning but continue
-    console.warn(`⚠️  ${message}`);
+    console.warn(`[WARNING] ${message}`);
     return fallback ?? '';
   }
 
@@ -23,7 +23,7 @@ const getEnv = (key: string, required = false, fallback?: string): string => {
 };
 
 /**
- * ✅ Centralized, type-safe environment definition
+ * Centralized, type-safe environment definition
  */
 export const env = {
   // API Configuration
@@ -50,12 +50,12 @@ export const env = {
 
 export type Environment = typeof env;
 
-// 🖥️ Log summary on server only (one-time)
+// Log summary on server only (one-time)
 if (typeof window === 'undefined') {
   /* eslint-disable no-console */
-  console.log('🖥️ Environment initialized:');
-  console.log(`  🌐 API URL: ${env.apiUrl}`);
-  console.log(`  ⏱️ Timeout: ${env.apiTimeout}ms`);
-  console.log(`  🧭 Env: ${env.environment}`);
+  console.log('[ENV] Environment initialized:');
+  console.log(`  API URL: ${env.apiUrl}`);
+  console.log(`  Timeout: ${env.apiTimeout}ms`);
+  console.log(`  Environment: ${env.environment}`);
   /* eslint-enable no-console */
 }
