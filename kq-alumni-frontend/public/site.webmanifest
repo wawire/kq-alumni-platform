@@ -1,0 +1,22 @@
+{
+  "name": "KQ Alumni Association",
+  "short_name": "KQ Alumni",
+  "description": "Kenya Airways Alumni Association - Connecting former employees worldwide",
+  "icons": [
+    {
+      "src": "/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "theme_color": "#DC143C",
+  "background_color": "#FFFFFF",
+  "display": "standalone",
+  "start_url": "/",
+  "orientation": "portrait"
+}
