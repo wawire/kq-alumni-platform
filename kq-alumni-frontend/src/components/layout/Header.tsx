@@ -131,7 +131,8 @@ export default function Header() {
               </Link>
             ))}
 
-            <button
+            {/* Search button temporarily hidden - functionality not yet implemented */}
+            {/* <button
               className="text-gray-800 hover:text-kq-red transition-colors"
               aria-label="Search"
               onClick={() => {
@@ -143,7 +144,7 @@ export default function Header() {
               }}
             >
               <Search size={22} className="stroke-current" aria-hidden="true" />
-            </button>
+            </button> */}
           </nav>
         </div>
       </div>

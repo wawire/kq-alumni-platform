@@ -27,7 +27,7 @@ public class EmailService : IEmailService
         _emailSettings = emailSettings.Value;
 
         _logger.LogInformation(
-            "📧 Email Service Initialized:\n" +
+            "[EMAIL] Email Service Initialized:\n" +
             "   Host: {Host}\n" +
             "   Port: {Port}\n" +
             "   From: {From}\n" +
@@ -50,7 +50,7 @@ public class EmailService : IEmailService
         try
         {
             _logger.LogInformation(
-                "📧 [EMAIL 1/3] Sending CONFIRMATION email to {Email}",
+                "[EMAIL] [EMAIL 1/3] Sending CONFIRMATION email to {Email}",
                 email);
 
             var subject = "Registration Received - KQ Alumni Network";
@@ -59,7 +59,7 @@ public class EmailService : IEmailService
             await SendEmailAsync(email, subject, body, cancellationToken);
 
             _logger.LogInformation(
-                "✅ [EMAIL 1/3] Confirmation email sent successfully to {Email}",
+                "[SUCCESS] [EMAIL 1/3] Confirmation email sent successfully to {Email}",
                 email);
 
             return true;
@@ -67,7 +67,7 @@ public class EmailService : IEmailService
         catch (Exception ex)
         {
             _logger.LogError(ex,
-                "❌ [EMAIL 1/3] Failed to send confirmation email to {Email}. " +
+                "[ERROR] [EMAIL 1/3] Failed to send confirmation email to {Email}. " +
                 "Error: {ErrorMessage}",
                 email, ex.Message);
             return false;
@@ -86,7 +86,7 @@ public class EmailService : IEmailService
         try
         {
             _logger.LogInformation(
-                "📧 [EMAIL 2/3] Sending APPROVAL email to {Email}",
+                "[EMAIL] [EMAIL 2/3] Sending APPROVAL email to {Email}",
                 email);
 
             var subject = "Welcome to KQ Alumni Network - Verify Your Email";
@@ -95,7 +95,7 @@ public class EmailService : IEmailService
             await SendEmailAsync(email, subject, body, cancellationToken);
 
             _logger.LogInformation(
-                "✅ [EMAIL 2/3] Approval email sent successfully to {Email}",
+                "[SUCCESS] [EMAIL 2/3] Approval email sent successfully to {Email}",
                 email);
 
             return true;
@@ -103,7 +103,7 @@ public class EmailService : IEmailService
         catch (Exception ex)
         {
             _logger.LogError(ex,
-                "❌ [EMAIL 2/3] Failed to send approval email to {Email}. " +
+                "[ERROR] [EMAIL 2/3] Failed to send approval email to {Email}. " +
                 "Error: {ErrorMessage}",
                 email, ex.Message);
             return false;
@@ -122,7 +122,7 @@ public class EmailService : IEmailService
         try
         {
             _logger.LogInformation(
-                "📧 [EMAIL 3/3] Sending REJECTION email to {Email}",
+                "[EMAIL] [EMAIL 3/3] Sending REJECTION email to {Email}",
                 email);
 
             var subject = "KQ Alumni Registration - Unable to Verify";
@@ -131,7 +131,7 @@ public class EmailService : IEmailService
             await SendEmailAsync(email, subject, body, cancellationToken);
 
             _logger.LogInformation(
-                "✅ [EMAIL 3/3] Rejection email sent successfully to {Email}",
+                "[SUCCESS] [EMAIL 3/3] Rejection email sent successfully to {Email}",
                 email);
 
             return true;
@@ -139,7 +139,7 @@ public class EmailService : IEmailService
         catch (Exception ex)
         {
             _logger.LogError(ex,
-                "❌ [EMAIL 3/3] Failed to send rejection email to {Email}. " +
+                "[ERROR] [EMAIL 3/3] Failed to send rejection email to {Email}. " +
                 "Error: {ErrorMessage}",
                 email, ex.Message);
             return false;
@@ -159,7 +159,7 @@ public class EmailService : IEmailService
         if (_emailSettings.UseMockEmailService)
         {
             _logger.LogInformation(
-                "📧 [MOCK MODE] Email would be sent:\n" +
+                "[EMAIL] [MOCK MODE] Email would be sent:\n" +
                 "   To: {To}\n" +
                 "   From: {From}\n" +
                 "   Subject: {Subject}\n" +
@@ -175,7 +175,7 @@ public class EmailService : IEmailService
         if (!_emailSettings.EnableEmailSending)
         {
             _logger.LogWarning(
-                "⚠️ Email sending is disabled (EnableEmailSending = false). " +
+                "[WARNING] Email sending is disabled (EnableEmailSending = false). " +
                 "Email to {To} with subject '{Subject}' was NOT sent.",
                 toEmail, subject);
 
@@ -191,7 +191,7 @@ public class EmailService : IEmailService
             throw new InvalidOperationException("SMTP credentials are not configured");
 
         _logger.LogDebug(
-            "📤 Sending email:\n" +
+            "[SENDING] Sending email:\n" +
             "   To: {To}\n" +
             "   Subject: {Subject}\n" +
             "   Via: {SmtpServer}:{SmtpPort}",
@@ -216,7 +216,7 @@ public class EmailService : IEmailService
 
         await client.SendMailAsync(mailMessage, cancellationToken);
 
-        _logger.LogDebug("📬 Email delivered successfully");
+        _logger.LogDebug("[SMTP] Email delivered successfully");
     }
 
     // ... (keep all the email template methods from before)

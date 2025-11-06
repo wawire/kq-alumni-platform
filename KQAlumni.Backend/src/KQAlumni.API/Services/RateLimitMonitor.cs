@@ -19,7 +19,7 @@ public class RateLimitMonitor : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        _logger.LogInformation("📊 Rate Limit Monitor started. Reporting every {Interval} minutes",
+        _logger.LogInformation("[MONITOR] Rate Limit Monitor started. Reporting every {Interval} minutes",
             _reportingInterval.TotalMinutes);
 
         while (!stoppingToken.IsCancellationRequested)
@@ -32,7 +32,7 @@ public class RateLimitMonitor : BackgroundService
             }
         }
 
-        _logger.LogInformation("📊 Rate Limit Monitor stopped");
+        _logger.LogInformation("[MONITOR] Rate Limit Monitor stopped");
     }
 
     /// <summary>
@@ -96,7 +96,7 @@ public class RateLimitMonitor : BackgroundService
     {
         if (_stats.IsEmpty)
         {
-            _logger.LogInformation("📊 Rate Limiting Stats: No activity in the last {Interval} minutes",
+            _logger.LogInformation("[STATS] Rate Limiting Stats: No activity in the last {Interval} minutes",
                 _reportingInterval.TotalMinutes);
             return;
         }
@@ -135,7 +135,7 @@ public class RateLimitMonitor : BackgroundService
         if (topOffenders.Any())
         {
             _logger.LogWarning(
-                "⚠️ Top 10 Rate Limited IP Addresses:\n{TopOffenders}",
+                "[WARNING] Top 10 Rate Limited IP Addresses:\n{TopOffenders}",
                 string.Join("\n", topOffenders.Select((s, i) =>
                     $"   {i + 1,2}. {s.IpAddress,-15} | {s.Endpoint,-30} | Hits: {s.HitCount,4} | Last: {s.LastHit:HH:mm:ss}")));
         }
@@ -151,7 +151,7 @@ public class RateLimitMonitor : BackgroundService
 
         if (keysToRemove.Any())
         {
-            _logger.LogDebug("🧹 Cleaned up {Count} old rate limit stats", keysToRemove.Count);
+            _logger.LogDebug("[CLEANUP] Cleaned up {Count} old rate limit stats", keysToRemove.Count);
         }
     }
 }

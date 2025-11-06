@@ -8,9 +8,9 @@ namespace KQAlumni.Infrastructure.Services;
 
 /// <summary>
 /// Service for validating alumni data against Oracle ERP system
-/// ⚠️ SECURITY CRITICAL: This service calls INTERNAL ERP API
-/// ⚠️ ERP API URL (10.2.131.147:7010) is NEVER exposed to frontend
-/// ⚠️ Backend must be deployed INSIDE KQ network to reach ERP
+/// [SECURITY CRITICAL] This service calls INTERNAL ERP API
+/// [WARNING] ERP API URL (10.2.131.147:7010) is NEVER exposed to frontend
+/// [WARNING] Backend must be deployed INSIDE KQ network to reach ERP
 /// </summary>
 public class ErpService : IErpService
 {
@@ -53,14 +53,14 @@ public class ErpService : IErpService
   {
     try
     {
-      // ⚠️ MOCK MODE: Use fake data for development (when ERP not accessible)
+      // [MOCK MODE] Use fake data for development (when ERP not accessible)
       if (_settings.EnableMockMode)
       {
-        _logger.LogWarning("⚠️ ERP Mock Mode Enabled - Using fake validation data");
+        _logger.LogWarning("[WARNING] ERP Mock Mode Enabled - Using fake validation data");
         return GenerateMockValidationResult(staffNumber);
       }
 
-      // ⚠️ PRODUCTION: Call real ERP API (INTERNAL NETWORK ONLY)
+      // [PRODUCTION] Call real ERP API (INTERNAL NETWORK ONLY)
       _logger.LogInformation("Validating staff number {StaffNumber} against ERP", staffNumber);
 
       var request = new { staffNumber };
@@ -130,18 +130,18 @@ public class ErpService : IErpService
       return result;
     }
 
-    // ⚠️ MOCK MODE: Skip name validation in development
+    // [MOCK MODE] Skip name validation in development
     if (result.IsMockData)
     {
       _logger.LogInformation(
-          "⚠️ MOCK MODE: Skipping name validation. Accepting '{ProvidedName}' for staff {StaffNumber}",
+          "[MOCK MODE] Skipping name validation. Accepting '{ProvidedName}' for staff {StaffNumber}",
           fullName, staffNumber);
 
       result.NameSimilarityScore = 100; // Accept any name in mock mode
       return result;
     }
 
-    // ⚠️ PRODUCTION MODE: Perform strict name matching
+    // [PRODUCTION MODE] Perform strict name matching
     result.NameSimilarityScore = CalculateNameSimilarity(fullName, result.StaffName);
 
     // 80% threshold for name match
@@ -170,8 +170,8 @@ public class ErpService : IErpService
 
   /// <summary>
   /// Generates mock validation result for development
-  /// ⚠️ ONLY USED IN DEVELOPMENT MODE
-  /// ⚠️ Accepts ANY name to simplify testing
+  /// [WARNING] ONLY USED IN DEVELOPMENT MODE
+  /// [WARNING] Accepts ANY name to simplify testing
   /// </summary>
   private ErpValidationResult GenerateMockValidationResult(string staffNumber)
   {
@@ -191,7 +191,7 @@ public class ErpService : IErpService
     var (mockName, mockDepartment) = GetMockStaffData(staffNumber);
 
     _logger.LogInformation(
-        "⚠️ MOCK ERP: Returning mock data for {StaffNumber} - Name: {MockName}, Dept: {MockDept}",
+        "[MOCK ERP] Returning mock data for {StaffNumber} - Name: {MockName}, Dept: {MockDept}",
         staffNumber, mockName, mockDepartment);
 
     return new ErpValidationResult

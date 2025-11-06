@@ -253,7 +253,7 @@ public class AdminController : ControllerBase
                 role: "SuperAdmin");
 
             _logger.LogWarning(
-                "⚠️ Initial SuperAdmin user created via seed endpoint:\n" +
+                "[WARNING] Initial SuperAdmin user created via seed endpoint:\n" +
                 "   Username: admin\n" +
                 "   Password: Admin@123456\n" +
                 "   CHANGE THIS PASSWORD IMMEDIATELY!");
@@ -264,7 +264,7 @@ public class AdminController : ControllerBase
                 username = "admin",
                 password = "Admin@123456",
                 email = "admin@kenya-airways.com",
-                warning = "⚠️ CHANGE THIS PASSWORD IMMEDIATELY AFTER FIRST LOGIN!",
+                warning = "[WARNING] CHANGE THIS PASSWORD IMMEDIATELY AFTER FIRST LOGIN!",
                 instructions = new[]
                 {
                     "1. Login at /api/v1/admin/login with these credentials",
