@@ -194,4 +194,51 @@ public class RegistrationsController : ControllerBase
       Email = email
     });
   }
+
+  /// <summary>
+  /// Verify email using token from approval email
+  /// </summary>
+  /// <param name="token">Email verification token</param>
+  /// <param name="cancellationToken">Cancellation token</param>
+  /// <returns>Redirect to dashboard on success</returns>
+  [HttpGet("verify/{token}")]
+  [ProducesResponseType(StatusCodes.Status302Found)]
+  [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+  [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
+  public async Task<ActionResult> VerifyEmail(
+      string token,
+      CancellationToken cancellationToken)
+  {
+    try
+    {
+      var result = await _registrationService.VerifyEmailAsync(token, cancellationToken);
+
+      if (!result.Success)
+      {
+        return BadRequest(new ErrorResponse
+        {
+          Type = "https://tools.ietf.org/html/rfc7231#section-6.5.1",
+          Title = result.ErrorCode == "TOKEN_EXPIRED" ? "Verification Link Expired" : "Invalid Verification Token",
+          Status = StatusCodes.Status400BadRequest,
+          Detail = result.ErrorMessage
+        });
+      }
+
+      _logger.LogInformation("Email verified successfully for: {Email}", result.Email);
+
+      // Redirect to frontend dashboard
+      return Redirect($"/dashboard?verified=true");
+    }
+    catch (Exception ex)
+    {
+      _logger.LogError(ex, "Error during email verification");
+      return StatusCode(500, new ErrorResponse
+      {
+        Type = "https://tools.ietf.org/html/rfc7231#section-6.6.1",
+        Title = "Verification Error",
+        Status = StatusCodes.Status500InternalServerError,
+        Detail = "An unexpected error occurred while verifying your email"
+      });
+    }
+  }
 }
