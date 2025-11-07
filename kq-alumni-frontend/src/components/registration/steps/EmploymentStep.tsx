@@ -15,31 +15,35 @@ const employmentSchema = z.object({
   currentEmployer: z
     .string()
     .max(200, "Employer name too long (max 200 characters)")
-    .optional(),
+    .optional()
+    .or(z.literal("")),
   currentJobTitle: z
     .string()
     .max(200, "Job title too long (max 200 characters)")
-    .optional(),
+    .optional()
+    .or(z.literal("")),
   industry: z
     .string()
     .max(100, "Industry name too long (max 100 characters)")
-    .optional(),
-  linkedInProfile: z
-    .string()
-    .max(500, "LinkedIn URL too long (max 500 characters)")
-    .regex(
-      /^$|^https?:\/\/(www\.)?linkedin\.com\/.*$/,
-      "Please provide a valid LinkedIn profile URL",
-    )
     .optional()
     .or(z.literal("")),
+  linkedInProfile: z
+    .string()
+    .optional()
+    .transform((val) => val?.trim() || undefined)
+    .refine(
+      (val) => !val || /^https?:\/\/(www\.)?linkedin\.com\/.*$/.test(val),
+      "Please provide a valid LinkedIn profile URL"
+    )
+    .optional(),
   qualificationsAttained: z
     .array(z.string())
     .min(1, "Please select at least one qualification"),
   professionalCertifications: z
     .string()
     .max(1000, "Text too long (max 1000 characters)")
-    .optional(),
+    .optional()
+    .or(z.literal("")),
 });
 
 type EmploymentFormData = z.infer<typeof employmentSchema>;
@@ -131,10 +135,11 @@ export default function EmploymentStep({ data, onNext, onBack }: Props) {
         <div className="mb-8">
           <FormField
             name="linkedInProfile"
-            label="LinkedIn Profile"
+            label="LinkedIn Profile (Optional)"
             type="url"
             placeholder="https://www.linkedin.com/in/yourprofile"
             variant="underline"
+            description="LinkedIn profile is optional. Leave blank if you don't have one."
           />
         </div>
 

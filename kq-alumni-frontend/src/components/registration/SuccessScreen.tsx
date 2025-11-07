@@ -1,5 +1,6 @@
-import { CheckCircleIcon } from '@heroicons/react/24/solid';
+import { CheckCircleIcon, PlusCircleIcon } from '@heroicons/react/24/solid';
 import Link from 'next/link';
+import { useRegistrationActions } from '@/store';
 
 interface Props {
   registrationId: string;
@@ -8,6 +9,13 @@ interface Props {
 }
 
 export default function SuccessScreen({ registrationId, email, fullName }: Props) {
+  const { clearRegistration } = useRegistrationActions();
+
+  const handleNewRegistration = () => {
+    clearRegistration();
+    // Reload the page to reset the form completely
+    window.location.href = '/register';
+  };
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-white flex items-center justify-center p-8">
       <div className="max-w-2xl w-full bg-white rounded-2xl shadow-2xl p-12 text-center">
@@ -61,6 +69,14 @@ export default function SuccessScreen({ registrationId, email, fullName }: Props
           >
             Return to Home
           </Link>
+
+          <button
+            onClick={handleNewRegistration}
+            className="bg-blue-600 hover:bg-blue-700 text-white font-cabrito font-bold text-lg px-8 py-4 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
+          >
+            <PlusCircleIcon className="w-6 h-6" />
+            New Registration
+          </button>
 
           <a
             href="mailto:KQ.Alumni@kenya-airways.com"

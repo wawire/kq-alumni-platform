@@ -19,6 +19,8 @@ export type FormStep = "personal" | "employment" | "engagement" | "success";
 
 export interface RegistrationFormData {
   staffNumber: string;
+  idNumber?: string;
+  passportNumber?: string;
   fullName: string;
   email: string;
   mobileCountryCode: string;
@@ -81,12 +83,15 @@ export default function RegistrationForm() {
 
         setRegistrationId(response.id);
         setStatus(RegistrationStatus.SUCCESS);
+        // Note: Form data is cleared when user clicks "New Registration" on success screen
       },
       onError: (error: Error) => {
         toast.dismiss("registration-loading");
 
+        const supportEmail = "KQ.Alumni@kenya-airways.com";
         toast.error(error.message || "Registration failed. Please try again.", {
-          duration: 6000,
+          duration: 10000,
+          description: `If the problem persists, please contact support at ${supportEmail}`,
           style: { fontWeight: "600" },
         });
       },

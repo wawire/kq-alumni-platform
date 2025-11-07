@@ -53,6 +53,26 @@ public class RegistrationRequestValidator : AbstractValidator<RegistrationReques
         .Must(BeUpperCase)
         .WithMessage("Staff number must be in UPPERCASE");
 
+    // ID Number (Optional - but provide validation if given)
+    When(x => !string.IsNullOrEmpty(x.IdNumber), () =>
+    {
+      RuleFor(x => x.IdNumber)
+              .MaximumLength(50)
+              .WithMessage("ID number too long (max 50 characters)")
+              .Matches(@"^[A-Z0-9\-]+$")
+              .WithMessage("ID number can only contain letters, numbers, and hyphens");
+    });
+
+    // Passport Number (Optional - but provide validation if given)
+    When(x => !string.IsNullOrEmpty(x.PassportNumber), () =>
+    {
+      RuleFor(x => x.PassportNumber)
+              .MaximumLength(50)
+              .WithMessage("Passport number too long (max 50 characters)")
+              .Matches(@"^[A-Z0-9\-]+$")
+              .WithMessage("Passport number can only contain letters, numbers, and hyphens");
+    });
+
     RuleFor(x => x.FullName)
         .NotEmpty()
         .WithMessage("Full name is required")

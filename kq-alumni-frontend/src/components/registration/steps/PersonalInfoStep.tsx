@@ -37,6 +37,32 @@ const personalInfoSchema = z.object({
       message: "Staff number must be uppercase",
     })
     .transform((val) => val.toUpperCase().trim()),
+  idNumber: z
+    .string()
+    .optional()
+    .transform((val) => val?.trim().toUpperCase() || undefined)
+    .refine(
+      (val) => !val || /^[A-Z0-9\-]+$/.test(val),
+      "ID number can only contain letters, numbers, and hyphens"
+    )
+    .refine(
+      (val) => !val || val.length <= 50,
+      "ID number too long (max 50 characters)"
+    )
+    .optional(),
+  passportNumber: z
+    .string()
+    .optional()
+    .transform((val) => val?.trim().toUpperCase() || undefined)
+    .refine(
+      (val) => !val || /^[A-Z0-9\-]+$/.test(val),
+      "Passport number can only contain letters, numbers, and hyphens"
+    )
+    .refine(
+      (val) => !val || val.length <= 50,
+      "Passport number too long (max 50 characters)"
+    )
+    .optional(),
   fullName: z
     .string()
     .min(2, "Full name must be at least 2 characters")
@@ -94,6 +120,8 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
     resolver: zodResolver(personalInfoSchema),
     defaultValues: {
       staffNumber: data.staffNumber || "",
+      idNumber: data.idNumber || "",
+      passportNumber: data.passportNumber || "",
       fullName: data.fullName || "",
       email: data.email || "",
       mobileCountryCode: data.mobileCountryCode || "+254",
@@ -259,6 +287,41 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
             onChange={(e) => {
               const uppercased = e.target.value.toUpperCase();
               setValue("staffNumber", uppercased);
+            }}
+            style={{ textTransform: "uppercase" }}
+            className="uppercase"
+          />
+        </div>
+
+        {/* ID Number & Passport Number */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          <FormField
+            name="idNumber"
+            label="National ID Number (Optional)"
+            type="text"
+            placeholder="e.g., 12345678"
+            maxLength={50}
+            variant="underline"
+            description="For validation purposes. Required if you don't remember your staff number."
+            onChange={(e) => {
+              const uppercased = e.target.value.toUpperCase();
+              setValue("idNumber", uppercased);
+            }}
+            style={{ textTransform: "uppercase" }}
+            className="uppercase"
+          />
+
+          <FormField
+            name="passportNumber"
+            label="Passport Number (Optional)"
+            type="text"
+            placeholder="e.g., A1234567"
+            maxLength={50}
+            variant="underline"
+            description="Alternative to ID number for validation."
+            onChange={(e) => {
+              const uppercased = e.target.value.toUpperCase();
+              setValue("passportNumber", uppercased);
             }}
             style={{ textTransform: "uppercase" }}
             className="uppercase"

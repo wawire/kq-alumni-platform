@@ -32,6 +32,8 @@ export enum RegistrationStatus {
 export interface RegistrationFormData {
   // Personal Info
   staffNumber?: string;
+  idNumber?: string;
+  passportNumber?: string;
   fullName?: string;
   email?: string;
   mobileCountryCode?: string;
