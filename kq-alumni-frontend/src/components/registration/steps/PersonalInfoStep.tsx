@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ArrowRightIcon, ExclamationCircleIcon, CheckCircleIcon } from "@heroicons/react/24/solid";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { City, Country, ICity, ICountry } from "country-state-city";
@@ -19,8 +19,8 @@ import { useDuplicateCheck } from "@/hooks/useDuplicateCheck";
 import type { RegistrationFormData } from "../RegistrationForm";
 
 // =====================================================
-// VALIDATION SCHEMA - SIMPLE ID/PASSPORT VALIDATION
-// Single field accepts either ID or Passport
+// VALIDATION SCHEMA - CONDITIONAL VALIDATION
+// Full Name only required after ID verification
 // =====================================================
 const personalInfoSchema = z.object({
   staffNumber: z
@@ -37,13 +37,8 @@ const personalInfoSchema = z.object({
     .transform((val) => val?.trim().toUpperCase() || undefined),
   fullName: z
     .string()
-    .min(2, "Full name must be at least 2 characters")
-    .max(200, "Full name cannot exceed 200 characters")
-    .regex(
-      /^[a-zA-Z\s\-']+$/,
-      "Only letters, spaces, hyphens, and apostrophes allowed",
-    )
-    .transform((val) => val.trim()),
+    .optional()
+    .transform((val) => val?.trim() || undefined),
   email: z
     .string()
     .min(1, "Email address is required")
@@ -80,6 +75,18 @@ interface CityOption {
 }
 
 // =====================================================
+// VERIFICATION STATE TYPES
+// =====================================================
+type VerificationStatus = 'idle' | 'verifying' | 'verified' | 'failed' | 'already_registered';
+
+interface ErpVerificationData {
+  staffNumber?: string;
+  fullName?: string;
+  department?: string;
+  exitDate?: string;
+}
+
+// =====================================================
 // MAIN COMPONENT
 // =====================================================
 export default function PersonalInfoStep({ data, onNext }: Props) {
@@ -87,6 +94,11 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
     data.currentCountryCode || "KE",
   );
   const [phoneValue, setPhoneValue] = useState<string>(data.mobileNumber || "");
+
+  // ID Verification State
+  const [verificationStatus, setVerificationStatus] = useState<VerificationStatus>('idle');
+  const [erpData, setErpData] = useState<ErpVerificationData | null>(null);
+  const [verificationError, setVerificationError] = useState<string>("");
 
   const methods = useForm<PersonalInfoFormData>({
     resolver: zodResolver(personalInfoSchema),
@@ -111,10 +123,12 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
     watch,
   } = methods;
 
-  // Watch fields for duplicate checking
+  // Watch fields for duplicate checking and verification
+  const idNumberValue = watch("idNumber");
   const emailValue = watch("email");
 
   // Debounce values to avoid too many API calls
+  const debouncedIdNumber = useDebounce(idNumberValue, 1000); // 1 second delay for ID verification
   const debouncedEmail = useDebounce(emailValue, 800);
 
   // Duplicate checking hooks
@@ -128,6 +142,78 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
       emailCheck.reset();
     }
   }, [debouncedEmail]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // =====================================================
+  // ID VERIFICATION LOGIC
+  // =====================================================
+  const verifyIdWithERP = async (idOrPassport: string) => {
+    if (!idOrPassport || idOrPassport.length < 5) {
+      setVerificationStatus('idle');
+      setErpData(null);
+      setVerificationError("");
+      return;
+    }
+
+    try {
+      setVerificationStatus('verifying');
+      setVerificationError("");
+
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5166';
+      const response = await fetch(`${apiUrl}/api/v1/registrations/verify-id/${encodeURIComponent(idOrPassport)}`);
+
+      if (!response.ok) {
+        throw new Error('Verification failed');
+      }
+
+      const result = await response.json();
+
+      if (result.isAlreadyRegistered) {
+        setVerificationStatus('already_registered');
+        setVerificationError(result.message || 'This ID/Passport is already registered');
+        setErpData(null);
+        return;
+      }
+
+      if (result.isVerified) {
+        setVerificationStatus('verified');
+        setErpData({
+          staffNumber: result.staffNumber,
+          fullName: result.fullName,
+          department: result.department,
+          exitDate: result.exitDate,
+        });
+
+        // Auto-populate fields from ERP
+        if (result.fullName) {
+          setValue("fullName", result.fullName);
+        }
+        if (result.staffNumber) {
+          setValue("staffNumber", result.staffNumber);
+        }
+
+        setVerificationError("");
+      } else {
+        setVerificationStatus('failed');
+        setVerificationError(result.message || 'ID/Passport not found in our records');
+        setErpData(null);
+      }
+    } catch (error) {
+      setVerificationStatus('failed');
+      setVerificationError('Unable to verify ID/Passport. Please try again.');
+      setErpData(null);
+    }
+  };
+
+  // Trigger verification when debounced ID changes
+  useEffect(() => {
+    if (debouncedIdNumber) {
+      verifyIdWithERP(debouncedIdNumber);
+    } else {
+      setVerificationStatus('idle');
+      setErpData(null);
+      setVerificationError("");
+    }
+  }, [debouncedIdNumber]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const countryOptions = useMemo((): CountryOption[] => {
     const allCountries = Country.getAllCountries();
@@ -187,11 +273,22 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
   };
 
   const onSubmit = (formData: PersonalInfoFormData): void => {
-    // Don't submit if duplicates found
+    // Don't submit if duplicates found or ID not verified
     if (emailCheck.isDuplicate) {
       return;
     }
-    onNext(formData);
+
+    if (verificationStatus !== 'verified') {
+      setVerificationError('Please wait for ID verification to complete');
+      return;
+    }
+
+    // Include ERP data in submission
+    onNext({
+      ...formData,
+      staffNumber: erpData?.staffNumber || formData.staffNumber,
+      fullName: erpData?.fullName || formData.fullName,
+    });
   };
 
   // Helper to get the duplicate check icon
@@ -212,6 +309,20 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
     return null;
   };
 
+  // Helper to get verification status icon
+  const getVerificationIcon = () => {
+    if (verificationStatus === 'verifying') {
+      return <div className="animate-spin h-5 w-5 border-2 border-gray-300 border-t-kq-red rounded-full" />;
+    }
+    if (verificationStatus === 'verified') {
+      return <CheckCircleIcon className="h-5 w-5 text-green-600" />;
+    }
+    if (verificationStatus === 'failed' || verificationStatus === 'already_registered') {
+      return <ExclamationCircleIcon className="h-5 w-5 text-red-600" />;
+    }
+    return null;
+  };
+
   return (
     <FormProvider {...methods}>
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
@@ -220,19 +331,7 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
           Personal Information
         </h2>
 
-        {/* Full Name */}
-        <div className="mb-8">
-          <FormField
-            name="fullName"
-            label="Full Name"
-            type="text"
-            placeholder="As per company records"
-            required
-            variant="underline"
-          />
-        </div>
-
-        {/* ID Number / Passport Number - Single Field */}
+        {/* ID Number / Passport Number - FIRST */}
         <div className="mb-8">
           <FormField
             name="idNumber"
@@ -247,104 +346,142 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
             }}
             style={{ textTransform: "uppercase" }}
             className="uppercase"
+            rightIcon={getVerificationIcon()}
+            description={verificationError || undefined}
           />
+          {verificationStatus === 'verifying' && (
+            <p className="mt-2 text-sm text-gray-600">Verifying ID/Passport...</p>
+          )}
+          {verificationStatus === 'verified' && erpData && (
+            <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-lg">
+              <p className="text-sm text-green-800 font-medium">✓ Verified</p>
+              {erpData.department && (
+                <p className="text-xs text-green-700 mt-1">Department: {erpData.department}</p>
+              )}
+            </div>
+          )}
         </div>
 
-        <h3 className="text-2xl font-cabrito font-bold text-kq-dark mt-12 mb-8">
-          Contact Information
-        </h3>
+        {/* Full Name - SECOND (Only visible after verification) */}
+        {verificationStatus === 'verified' && erpData?.fullName && (
+          <div className="mb-8">
+            <FormField
+              name="fullName"
+              label="Full Name"
+              type="text"
+              placeholder="As per company records"
+              variant="underline"
+              disabled
+              className="bg-gray-50"
+            />
+            <p className="mt-2 text-sm text-gray-600">
+              Name from company records (read-only)
+            </p>
+          </div>
+        )}
 
-        {/* Email */}
-        <div className="mb-8">
-          <FormField
-            name="email"
-            label="Email Address"
-            type="email"
-            placeholder="your.email@example.com"
-            required
-            variant="underline"
-            description={
-              emailCheck.isDuplicate
-                ? emailCheck.error || "This email is already registered"
-                : undefined
-            }
-            rightIcon={getDuplicateIcon(emailCheck)}
-          />
-        </div>
+        {/* Staff Number - HIDDEN (will be auto-filled by ERP after validation) */}
 
-        {/* Mobile Number */}
-        <div className="mb-8">
-          <label className="block text-sm font-medium text-gray-700 mb-3">
-            Mobile Number
-          </label>
-          <PhoneInput
-            country={"ke"}
-            value={phoneValue}
-            onChange={handlePhoneChange}
-            inputStyle={{
-              width: "100%",
-              border: 0,
-              borderBottom: "2px solid #d1d5db",
-              borderRadius: 0,
-              padding: "12px 4px 12px 48px",
-              fontSize: "16px",
-              backgroundColor: "transparent",
-              color: "#111827",
-            }}
-            buttonStyle={{
-              border: 0,
-              borderBottom: "2px solid #d1d5db",
-              borderRadius: 0,
-              backgroundColor: "transparent",
-            }}
-            dropdownStyle={{
-              borderRadius: "8px",
-              boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
-            }}
-            containerClass="phone-input-container"
-            enableSearch
-            searchStyle={{
-              width: "90%",
-              padding: "8px",
-              border: "1px solid #d1d5db",
-              borderRadius: "4px",
-            }}
-            searchPlaceholder="Search country"
-          />
-        </div>
+        {/* Only show rest of form if ID is verified */}
+        {verificationStatus === 'verified' && (
+          <>
+            <h3 className="text-2xl font-cabrito font-bold text-kq-dark mt-12 mb-8">
+              Contact Information
+            </h3>
 
-        {/* Country & City */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-          <FormSelect<CountryOption>
-            name="currentCountryCode"
-            label="Country"
-            options={countryOptions}
-            placeholder="Select country"
-            required
-            isSearchable
-            onChange={(option) => handleCountryChange(option)}
-            formatOptionLabel={(option: CountryOption) => (
-              <div className="flex items-center gap-2">
-                <span className="text-xl">{option.flag}</span>
-                <span>{option.label}</span>
-              </div>
-            )}
-          />
+            {/* Email */}
+            <div className="mb-8">
+              <FormField
+                name="email"
+                label="Email Address"
+                type="email"
+                placeholder="your.email@example.com"
+                required
+                variant="underline"
+                description={
+                  emailCheck.isDuplicate
+                    ? emailCheck.error || "This email is already registered"
+                    : undefined
+                }
+                rightIcon={getDuplicateIcon(emailCheck)}
+              />
+            </div>
 
-          <FormSelect<CityOption>
-            name="currentCity"
-            label="City"
-            options={cityOptions}
-            placeholder={
-              selectedCountryCode ? "Select city" : "Select country first"
-            }
-            required
-            isSearchable
-            isClearable
-            isDisabled={!selectedCountryCode || cityOptions.length === 0}
-            noOptionsMessage={() => "No cities available"}
-          />
-        </div>
+            {/* Mobile Number */}
+            <div className="mb-8">
+              <label className="block text-sm font-medium text-gray-700 mb-3">
+                Mobile Number
+              </label>
+              <PhoneInput
+                country={"ke"}
+                value={phoneValue}
+                onChange={handlePhoneChange}
+                inputStyle={{
+                  width: "100%",
+                  border: 0,
+                  borderBottom: "2px solid #d1d5db",
+                  borderRadius: 0,
+                  padding: "12px 4px 12px 48px",
+                  fontSize: "16px",
+                  backgroundColor: "transparent",
+                  color: "#111827",
+                }}
+                buttonStyle={{
+                  border: 0,
+                  borderBottom: "2px solid #d1d5db",
+                  borderRadius: 0,
+                  backgroundColor: "transparent",
+                }}
+                dropdownStyle={{
+                  borderRadius: "8px",
+                  boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+                }}
+                containerClass="phone-input-container"
+                enableSearch
+                searchStyle={{
+                  width: "90%",
+                  padding: "8px",
+                  border: "1px solid #d1d5db",
+                  borderRadius: "4px",
+                }}
+                searchPlaceholder="Search country"
+              />
+            </div>
+
+            {/* Country & City */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+              <FormSelect<CountryOption>
+                name="currentCountryCode"
+                label="Country"
+                options={countryOptions}
+                placeholder="Select country"
+                required
+                isSearchable
+                onChange={(option) => handleCountryChange(option)}
+                formatOptionLabel={(option: CountryOption) => (
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl">{option.flag}</span>
+                    <span>{option.label}</span>
+                  </div>
+                )}
+              />
+
+              <FormSelect<CityOption>
+                name="currentCity"
+                label="City"
+                options={cityOptions}
+                placeholder={
+                  selectedCountryCode ? "Select city" : "Select country first"
+                }
+                required
+                isSearchable
+                isClearable
+                isDisabled={!selectedCountryCode || cityOptions.length === 0}
+                noOptionsMessage={() => "No cities available"}
+              />
+            </div>
+          </>
+        )}
       </div>
 
       <div className="pt-8">
@@ -354,8 +491,13 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
           size="lg"
           fullWidth
           rightIcon={<ArrowRightIcon className="w-5 h-5" />}
+          disabled={verificationStatus !== 'verified'}
         >
-          Next Step
+          {verificationStatus === 'idle' && 'Enter ID to Continue'}
+          {verificationStatus === 'verifying' && 'Verifying...'}
+          {verificationStatus === 'failed' && 'Verification Failed'}
+          {verificationStatus === 'already_registered' && 'Already Registered'}
+          {verificationStatus === 'verified' && 'Next Step'}
         </Button>
       </div>
     </form>

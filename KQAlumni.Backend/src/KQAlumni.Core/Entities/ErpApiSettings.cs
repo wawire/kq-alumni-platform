@@ -20,6 +20,11 @@ public class ErpApiSettings
   public string Endpoint { get; set; } = string.Empty;
 
   /// <summary>
+  /// Endpoint path for ID/Passport validation (optional, defaults to Endpoint if not set)
+  /// </summary>
+  public string? IdPassportEndpoint { get; set; }
+
+  /// <summary>
   /// Full URL (computed property)
   /// </summary>
   public string FullUrl => $"{BaseUrl.TrimEnd('/')}/{Endpoint.TrimStart('/')}";

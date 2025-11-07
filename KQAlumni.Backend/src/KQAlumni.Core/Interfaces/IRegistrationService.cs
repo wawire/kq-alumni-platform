@@ -90,4 +90,14 @@ public interface IRegistrationService
     Task<AlumniRegistration?> GetRegistrationByEmailAsync(
         string email,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Verify ID or Passport number in real-time against ERP
+    /// </summary>
+    /// <param name="idOrPassport">National ID or Passport number</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Verification result with staff details if found</returns>
+    Task<IdVerificationResponse> VerifyIdOrPassportAsync(
+        string idOrPassport,
+        CancellationToken cancellationToken = default);
 }

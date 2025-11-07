@@ -54,20 +54,23 @@ public class RegistrationService : IRegistrationService
       // DUPLICATE CHECKS
 
 
-      // Check: Staff Number
-      var existingByStaffNumber = await IsStaffNumberRegisteredAsync(
-          request.StaffNumber,
-          cancellationToken);
-
-      if (existingByStaffNumber)
+      // Check: Staff Number (only if provided)
+      if (!string.IsNullOrWhiteSpace(request.StaffNumber))
       {
-        _logger.LogWarning(
-            "Staff number {StaffNumber} already registered",
-            request.StaffNumber);
+        var existingByStaffNumber = await IsStaffNumberRegisteredAsync(
+            request.StaffNumber,
+            cancellationToken);
 
-        throw new InvalidOperationException(
-            "This staff number is already registered. " +
-            "Contact KQ.Alumni@kenya-airways.com to update your profile.");
+        if (existingByStaffNumber)
+        {
+          _logger.LogWarning(
+              "Staff number {StaffNumber} already registered",
+              request.StaffNumber);
+
+          throw new InvalidOperationException(
+              "This staff number is already registered. " +
+              "Contact KQ.Alumni@kenya-airways.com to update your profile.");
+        }
       }
 
       // Check: Email
@@ -419,5 +422,77 @@ public class RegistrationService : IRegistrationService
   {
     return await _context.AlumniRegistrations
         .FirstOrDefaultAsync(r => r.Id == id, cancellationToken);
+  }
+
+  /// <summary>
+  /// Verify ID or Passport number in real-time against ERP
+  /// Returns staff number and details if found
+  /// Also checks if this ID/Passport is already registered
+  /// </summary>
+  public async Task<IdVerificationResponse> VerifyIdOrPassportAsync(
+      string idOrPassport,
+      CancellationToken cancellationToken = default)
+  {
+    try
+    {
+      _logger.LogInformation("Verifying ID/Passport: {IdOrPassport}", idOrPassport);
+
+      // Step 1: Check if this ID/Passport is already registered
+      var existingRegistration = await _context.AlumniRegistrations
+          .FirstOrDefaultAsync(r => r.IdNumber == idOrPassport, cancellationToken);
+
+      if (existingRegistration != null)
+      {
+        _logger.LogWarning("ID/Passport {IdOrPassport} is already registered", idOrPassport);
+        return new IdVerificationResponse
+        {
+          IsVerified = false,
+          IsAlreadyRegistered = true,
+          Message = "This ID/Passport is already registered. If you believe this is an error, please contact support."
+        };
+      }
+
+      // Step 2: Verify against ERP
+      var erpResult = await _erpService.ValidateIdOrPassportAsync(idOrPassport, cancellationToken);
+
+      if (!erpResult.IsValid)
+      {
+        _logger.LogWarning("ID/Passport {IdOrPassport} not found in ERP: {Error}",
+            idOrPassport, erpResult.ErrorMessage);
+
+        return new IdVerificationResponse
+        {
+          IsVerified = false,
+          IsAlreadyRegistered = false,
+          Message = erpResult.ErrorMessage ?? "ID/Passport not found in our records. Please verify and contact HR if issue persists."
+        };
+      }
+
+      // Step 3: Return successful verification with ERP details
+      _logger.LogInformation(
+          "ID/Passport {IdOrPassport} verified successfully. Staff: {StaffNumber}, Name: {Name}",
+          idOrPassport, erpResult.StaffNumber, erpResult.StaffName);
+
+      return new IdVerificationResponse
+      {
+        IsVerified = true,
+        IsAlreadyRegistered = false,
+        StaffNumber = erpResult.StaffNumber,
+        FullName = erpResult.StaffName,
+        Department = erpResult.Department,
+        ExitDate = erpResult.ExitDate,
+        Message = "Verification successful"
+      };
+    }
+    catch (Exception ex)
+    {
+      _logger.LogError(ex, "Error verifying ID/Passport {IdOrPassport}", idOrPassport);
+      return new IdVerificationResponse
+      {
+        IsVerified = false,
+        IsAlreadyRegistered = false,
+        Message = "An error occurred during verification. Please try again."
+      };
+    }
   }
 }

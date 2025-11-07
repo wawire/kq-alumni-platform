@@ -4,6 +4,7 @@ using KQAlumni.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace KQAlumni.Infrastructure.Data.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251104000000_AddEmailLogging")]
+    partial class AddEmailLogging
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -306,16 +309,8 @@ namespace KQAlumni.Infrastructure.Data.Migrations
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
 
-                    b.Property<string>("IdNumber")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("varchar(50)");
-
-                    b.Property<string>("PassportNumber")
-                        .HasMaxLength(50)
-                        .HasColumnType("varchar(50)");
-
                     b.Property<string>("StaffNumber")
+                        .IsRequired()
                         .HasMaxLength(7)
                         .HasColumnType("varchar(7)");
 
@@ -341,9 +336,6 @@ namespace KQAlumni.Infrastructure.Data.Migrations
                     b.HasIndex("ErpValidated")
                         .HasDatabaseName("IX_AlumniRegistrations_ErpValidated");
 
-                    b.HasIndex("IdNumber")
-                        .HasDatabaseName("IX_AlumniRegistrations_IdNumber");
-
                     b.HasIndex("LinkedInProfile")
                         .IsUnique()
                         .HasDatabaseName("UQ_AlumniRegistrations_LinkedIn")
@@ -354,8 +346,7 @@ namespace KQAlumni.Infrastructure.Data.Migrations
 
                     b.HasIndex("StaffNumber")
                         .IsUnique()
-                        .HasDatabaseName("UQ_AlumniRegistrations_StaffNumber")
-                        .HasFilter("[StaffNumber] IS NOT NULL");
+                        .HasDatabaseName("UQ_AlumniRegistrations_StaffNumber");
 
                     b.HasIndex("ErpValidated", "RegistrationStatus")
                         .HasDatabaseName("IX_AlumniRegistrations_Validated_Status");
@@ -464,6 +455,92 @@ namespace KQAlumni.Infrastructure.Data.Migrations
                     b.ToTable("AuditLogs");
                 });
 
+            modelBuilder.Entity("KQAlumni.Core.Entities.EmailLog", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier")
+                        .HasDefaultValueSql("NEWID()");
+
+                    b.Property<int?>("DurationMs")
+                        .HasColumnType("int");
+
+                    b.Property<string>("EmailType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("ErrorMessage")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<string>("Metadata")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<Guid?>("RegistrationId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("RetryCount")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
+                    b.Property<DateTime>("SentAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETUTCDATE()");
+
+                    b.Property<string>("SmtpServer")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Subject")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("ToEmail")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EmailType")
+                        .HasDatabaseName("IX_EmailLogs_EmailType");
+
+                    b.HasIndex("RegistrationId")
+                        .HasDatabaseName("IX_EmailLogs_RegistrationId");
+
+                    b.HasIndex("SentAt")
+                        .HasDatabaseName("IX_EmailLogs_SentAt");
+
+                    b.HasIndex("Status")
+                        .HasDatabaseName("IX_EmailLogs_Status");
+
+                    b.HasIndex("ToEmail")
+                        .HasDatabaseName("IX_EmailLogs_ToEmail");
+
+                    b.HasIndex("EmailType", "Status")
+                        .HasDatabaseName("IX_EmailLogs_EmailType_Status");
+
+                    b.HasIndex("RegistrationId", "SentAt")
+                        .IsDescending(false, true)
+                        .HasDatabaseName("IX_EmailLogs_Registration_SentAt");
+
+                    b.HasIndex("Status", "SentAt")
+                        .IsDescending(false, true)
+                        .HasDatabaseName("IX_EmailLogs_Status_SentAt");
+
+                    b.ToTable("EmailLogs");
+                });
+
             modelBuilder.Entity("KQAlumni.Core.Entities.AuditLog", b =>
                 {
                     b.HasOne("KQAlumni.Core.Entities.AdminUser", "AdminUser")
@@ -482,6 +559,16 @@ namespace KQAlumni.Infrastructure.Data.Migrations
                     b.Navigation("Registration");
                 });
 
+            modelBuilder.Entity("KQAlumni.Core.Entities.EmailLog", b =>
+                {
+                    b.HasOne("KQAlumni.Core.Entities.AlumniRegistration", "Registration")
+                        .WithMany("EmailLogs")
+                        .HasForeignKey("RegistrationId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Registration");
+                });
+
             modelBuilder.Entity("KQAlumni.Core.Entities.AdminUser", b =>
                 {
                     b.Navigation("AuditLogs");
@@ -490,6 +577,8 @@ namespace KQAlumni.Infrastructure.Data.Migrations
             modelBuilder.Entity("KQAlumni.Core.Entities.AlumniRegistration", b =>
                 {
                     b.Navigation("AuditLogs");
+
+                    b.Navigation("EmailLogs");
                 });
 #pragma warning restore 612, 618
         }
