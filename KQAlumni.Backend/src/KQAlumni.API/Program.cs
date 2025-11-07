@@ -136,32 +136,6 @@ builder.Services.AddSwaggerGen(options =>
         }
     });
 
-    // CRITICAL FIX: Handle conflicting actions from cached assemblies
-    // This resolves Swagger errors when old compiled DLLs still contain deleted controllers
-    options.ResolveConflictingActions(apiDescriptions =>
-    {
-        try
-        {
-            var descriptions = apiDescriptions.ToList();
-            if (!descriptions.Any()) return null;
-
-            // Prefer non-VerificationController actions (deleted controller)
-            var nonVerificationController = descriptions.FirstOrDefault(d =>
-                d?.ActionDescriptor?.DisplayName?.Contains("VerificationController", StringComparison.OrdinalIgnoreCase) != true);
-
-            // Return the first non-verification controller action, or just the first action
-            return nonVerificationController ?? descriptions.FirstOrDefault();
-        }
-        catch
-        {
-            // Defensive: return first action if anything fails
-            return apiDescriptions.FirstOrDefault();
-        }
-    });
-
-    // Exclude VerificationController from Swagger docs (deleted but may exist in cached assemblies)
-    options.DocumentFilter<ExcludeVerificationControllerFilter>();
-
     // JWT Security Definition
     options.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
     {
