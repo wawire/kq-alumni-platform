@@ -311,7 +311,7 @@ public class ApprovalProcessingJob
   /// HYBRID WORKFLOW: Retries up to configured max attempts, then FLAGS for HR manual review (instead of auto-rejecting)
   /// This allows HR to investigate edge cases, data mismatches, or system issues
   /// </summary>
-  private async Task<ProcessingResult> HandleInvalidRegistration(
+  private Task<ProcessingResult> HandleInvalidRegistration(
       Core.Entities.AlumniRegistration registration,
       ErpValidationResult erpResult)
   {
@@ -361,7 +361,7 @@ public class ApprovalProcessingJob
           "Registration {Id} flagged for HR manual review. HR can now approve or reject via admin dashboard.",
           registration.Id);
 
-      return ProcessingResult.FlaggedForManualReview;
+      return Task.FromResult(ProcessingResult.FlaggedForManualReview);
     }
     else
     {
@@ -374,7 +374,7 @@ public class ApprovalProcessingJob
       // Keep status as Pending for retry
       registration.UpdatedAt = DateTime.UtcNow;
 
-      return ProcessingResult.Retry;
+      return Task.FromResult(ProcessingResult.Retry);
     }
   }
 

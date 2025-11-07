@@ -3,7 +3,6 @@ using FluentValidation.AspNetCore;
 using Hangfire;
 using Hangfire.SqlServer;
 using Hangfire.Dashboard;
-using KQAlumni.API.Filters;
 using KQAlumni.API.Middleware;
 using KQAlumni.Core.Configuration;
 using KQAlumni.Core.Validators;
