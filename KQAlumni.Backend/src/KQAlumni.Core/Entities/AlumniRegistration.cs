@@ -26,11 +26,11 @@ public class AlumniRegistration
   /// <summary>
   /// Staff number (7 characters): 00XXXXX (any alphanumeric after 00)
   /// Examples: 0007601, 00C5050, 00RG002, 00PW057
+  /// Optional during registration - will be auto-populated from ERP validation using ID/Passport
   /// </summary>
-  [Required]
   [StringLength(7, MinimumLength = 7)]
   [Column(TypeName = "varchar(7)")]
-  public string StaffNumber { get; set; } = string.Empty;
+  public string? StaffNumber { get; set; }
 
   /// <summary>
   /// National ID number for validation (Kenya: 8 digits, Others may vary)

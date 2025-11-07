@@ -50,7 +50,7 @@ export interface CreateAdminUserRequest {
 
 export interface AdminRegistration {
   id: string;
-  staffNumber: string;
+  staffNumber?: string;
   idNumber?: string;
   passportNumber?: string;
   fullName: string;
