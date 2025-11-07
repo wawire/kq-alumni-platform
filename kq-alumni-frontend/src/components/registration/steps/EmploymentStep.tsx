@@ -95,7 +95,7 @@ export default function EmploymentStep({ data, onNext, onBack }: Props) {
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
       <div>
         <h2 className="text-3xl font-cabrito font-bold text-kq-dark mb-8">
-          Employment Information
+          Employment Information & Education
         </h2>
 
         {/* Employer and Job Title */}
@@ -142,11 +142,6 @@ export default function EmploymentStep({ data, onNext, onBack }: Props) {
             description="LinkedIn profile is optional. Leave blank if you don't have one."
           />
         </div>
-
-        {/* Education */}
-        <h3 className="text-2xl font-cabrito font-bold text-kq-dark mt-12 mb-8">
-          Education & Professional Development
-        </h3>
 
         {/* Qualifications */}
         <div className="mb-8">
