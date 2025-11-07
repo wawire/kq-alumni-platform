@@ -555,12 +555,13 @@ dotnet ef database update --project ../KQAlumni.Infrastructure --verbose
 
 ### Adding Test Employees
 
-For development and testing, you can add mock employees to `appsettings.Development.json`:
+Mock employee data is stored in a separate file for easier management:
+
+**Location**: `KQAlumni.Backend/src/KQAlumni.API/MockData/mock-employees.json`
 
 ```json
 {
   "ErpApi": {
-    "EnableMockMode": true,
     "MockEmployees": [
       {
         "StaffNumber": "0012345",
@@ -572,6 +573,15 @@ For development and testing, you can add mock employees to `appsettings.Developm
         "ExitDate": "2024-01-15"
       }
     ]
+  }
+}
+```
+
+**Note**: This file is automatically loaded in Development environment. In `appsettings.Development.json`, you only need:
+```json
+{
+  "ErpApi": {
+    "EnableMockMode": true
   }
 }
 ```
@@ -661,6 +671,75 @@ export JwtSettings__SecretKey="production-jwt-secret-64-chars-minimum"
 2. Select Application Pool → Advanced Settings
 3. Add environment variables in "Environment Variables" section
 4. Restart the application pool
+
+### Configuration Validation
+
+The application performs **comprehensive validation on startup** to ensure all settings are correct before accepting requests.
+
+#### Automatic Validation Features:
+
+1. **DataAnnotations Validation**
+   - All configuration classes use `[Required]`, `[Range]`, `[EmailAddress]`, etc.
+   - Validates field types, lengths, and formats
+   - Fails fast if configuration is invalid
+
+2. **Custom Business Rules**
+   - ERP Mock Mode must be disabled in Production
+   - Email Mock Service must be disabled in Production
+   - JWT SecretKey must be at least 32 characters (64 recommended for production)
+   - Connection strings cannot contain placeholder values
+   - BaseUrl cannot be localhost in Production
+
+3. **Health Check Integration**
+   - Configuration health check runs automatically
+   - Available at `/health` endpoint
+   - Shows detailed validation errors and warnings
+
+#### Validation Examples:
+
+**Invalid Configuration** (app will not start):
+```json
+{
+  "JwtSettings": {
+    "SecretKey": "short",  // ❌ Too short (minimum 32 characters)
+    "Issuer": "",          // ❌ Required field missing
+    "ExpirationMinutes": 100000  // ❌ Out of range (max 43200)
+  }
+}
+```
+
+**Valid Configuration**:
+```json
+{
+  "JwtSettings": {
+    "SecretKey": "your-strong-secret-key-at-least-32-characters-long",  // ✅ Valid
+    "Issuer": "KQAlumniAPI",  // ✅ Present
+    "Audience": "KQAlumniAdmin",  // ✅ Present
+    "ExpirationMinutes": 480  // ✅ Within range
+  }
+}
+```
+
+#### Checking Configuration Health:
+
+```bash
+# Check all configuration
+curl http://localhost:5295/health
+
+# Response example:
+{
+  "status": "Healthy",
+  "checks": [
+    {
+      "name": "configuration",
+      "status": "Healthy",
+      "description": "All configuration settings are valid"
+    }
+  ]
+}
+```
+
+If configuration is invalid, the health check will return `Unhealthy` with detailed error messages.
 
 ### Configuration Files
 
