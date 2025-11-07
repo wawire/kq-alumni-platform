@@ -334,81 +334,30 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
           Enter your ID/Passport number to verify your details
         </p>
 
-        {/* ID Number / Passport Number - FIRST */}
-        <div className="mb-8">
-          <FormField
-            name="idNumber"
-            label="ID Number / Passport No"
-            type="text"
-            placeholder="e.g., 12345678 or A1234567"
-            required
-            variant="underline"
-            onChange={(e) => {
-              const cleaned = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
-              setValue("idNumber", cleaned);
-            }}
-            style={{ textTransform: "uppercase" }}
-            className="uppercase"
-            rightIcon={getVerificationIcon()}
-            description={verificationError || undefined}
-          />
-          {verificationStatus === 'verifying' && (
-            <p className="mt-2 text-sm text-blue-600 flex items-center gap-2">
-              <span className="inline-block animate-pulse">●</span>
-              Verifying your details with our records...
-            </p>
-          )}
-          {verificationStatus === 'verified' && erpData && (
-            <div className="mt-3 p-4 bg-green-50 border-l-4 border-green-500 rounded-r-lg">
-              <p className="text-sm text-green-800 font-semibold flex items-center gap-2">
-                <CheckCircleIcon className="w-5 h-5" />
-                Successfully Verified
-              </p>
-              {erpData.department && (
-                <p className="text-xs text-green-700 mt-1 ml-7">
-                  Department: {erpData.department}
-                </p>
-              )}
-            </div>
-          )}
-          {(verificationStatus === 'failed' || verificationStatus === 'already_registered') && (
-            <div className="mt-3 p-4 bg-red-50 border-l-4 border-red-500 rounded-r-lg">
-              <p className="text-sm text-red-800 font-semibold flex items-center gap-2">
-                <ExclamationCircleIcon className="w-5 h-5" />
-                {verificationStatus === 'already_registered' ? 'Already Registered' : 'Verification Failed'}
-              </p>
-              {verificationError && (
-                <p className="text-xs text-red-700 mt-1 ml-7">
-                  {verificationError}
-                </p>
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* Show all fields but disabled until verified */}
-        <div className={verificationStatus !== 'verified' ? 'opacity-40 pointer-events-none' : ''}>
-          {/* Email */}
-          <div className="mb-8">
+        {/* Row 1: ID Number / Passport & Full Name - Side by Side */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          {/* ID Number / Passport Number */}
+          <div>
             <FormField
-              name="email"
-              label="Email Address"
-              type="email"
-              placeholder="your.email@example.com"
+              name="idNumber"
+              label="ID Number / Passport No"
+              type="text"
+              placeholder="e.g., 12345678 or A1234567"
               required
               variant="underline"
-              disabled={verificationStatus !== 'verified'}
-              description={
-                emailCheck.isDuplicate
-                  ? emailCheck.error || "This email is already registered"
-                  : undefined
-              }
-              rightIcon={getDuplicateIcon(emailCheck)}
+              onChange={(e) => {
+                const cleaned = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+                setValue("idNumber", cleaned);
+              }}
+              style={{ textTransform: "uppercase" }}
+              className="uppercase"
+              rightIcon={getVerificationIcon()}
+              description={verificationError || undefined}
             />
           </div>
 
           {/* Full Name */}
-          <div className="mb-8">
+          <div>
             <FormField
               name="fullName"
               label="Full Name"
@@ -422,21 +371,81 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
               Auto-filled from company records
             </p>
           </div>
+        </div>
 
-          {/* Staff Number */}
-          <div className="mb-8">
-            <FormField
-              name="staffNumber"
-              label="Staff Number"
-              type="text"
-              placeholder="e.g., 0012345"
-              variant="underline"
-              disabled
-              className="bg-gray-50"
-            />
-            <p className="mt-2 text-xs text-gray-500">
-              Auto-filled from company records
+        {/* Verification Status Messages */}
+        <div className="mb-8">
+          {verificationStatus === 'verifying' && (
+            <p className="text-sm text-blue-600 flex items-center gap-2">
+              <span className="inline-block animate-pulse">●</span>
+              Verifying your details with our records...
             </p>
+          )}
+          {verificationStatus === 'verified' && erpData && (
+            <div className="p-4 bg-green-50 border-l-4 border-green-500 rounded-r-lg">
+              <p className="text-sm text-green-800 font-semibold flex items-center gap-2">
+                <CheckCircleIcon className="w-5 h-5" />
+                Successfully Verified
+              </p>
+              {erpData.department && (
+                <p className="text-xs text-green-700 mt-1 ml-7">
+                  Department: {erpData.department}
+                </p>
+              )}
+            </div>
+          )}
+          {(verificationStatus === 'failed' || verificationStatus === 'already_registered') && (
+            <div className="p-4 bg-red-50 border-l-4 border-red-500 rounded-r-lg">
+              <p className="text-sm text-red-800 font-semibold flex items-center gap-2">
+                <ExclamationCircleIcon className="w-5 h-5" />
+                {verificationStatus === 'already_registered' ? 'Already Registered' : 'Verification Failed'}
+              </p>
+              {verificationError && (
+                <p className="text-xs text-red-700 mt-1 ml-7">
+                  {verificationError}
+                </p>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Row 2: Staff Number & Email - Side by Side */}
+        <div className={verificationStatus !== 'verified' ? 'opacity-40 pointer-events-none' : ''}>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            {/* Staff Number */}
+            <div>
+              <FormField
+                name="staffNumber"
+                label="Staff Number"
+                type="text"
+                placeholder="e.g., 0012345"
+                variant="underline"
+                disabled
+                className="bg-gray-50"
+              />
+              <p className="mt-2 text-xs text-gray-500">
+                Auto-filled from company records
+              </p>
+            </div>
+
+            {/* Email */}
+            <div>
+              <FormField
+                name="email"
+                label="Email Address"
+                type="email"
+                placeholder="your.email@example.com"
+                required
+                variant="underline"
+                disabled={verificationStatus !== 'verified'}
+                description={
+                  emailCheck.isDuplicate
+                    ? emailCheck.error || "This email is already registered"
+                    : undefined
+                }
+                rightIcon={getDuplicateIcon(emailCheck)}
+              />
+            </div>
           </div>
 
           {/* Mobile Number */}
