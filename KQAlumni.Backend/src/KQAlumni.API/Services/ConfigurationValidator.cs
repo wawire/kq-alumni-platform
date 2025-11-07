@@ -143,38 +143,7 @@ public class ConfigurationValidator : IHostedService
 
     private void ValidateEmailSettings(List<string> errors)
     {
-        var smtpServer = _configuration["Email:SmtpServer"];
-        var username = _configuration["Email:Username"];
-        var password = _configuration["Email:Password"];
-        var from = _configuration["Email:From"];
-        var displayName = _configuration["Email:DisplayName"];
-
-        if (string.IsNullOrWhiteSpace(smtpServer))
-        {
-            errors.Add("[WARNING] Email:SmtpServer is missing (emails will not be sent)");
-        }
-
-        if (string.IsNullOrWhiteSpace(username))
-        {
-            errors.Add("[WARNING] Email:Username is missing (emails will not be sent)");
-        }
-
-        if (string.IsNullOrWhiteSpace(password))
-        {
-            errors.Add("[WARNING] Email:Password is missing (emails will not be sent)");
-        }
-
-        if (string.IsNullOrWhiteSpace(from))
-        {
-            errors.Add("[WARNING] Email:From is missing (emails will not be sent)");
-        }
-
-        if (string.IsNullOrWhiteSpace(displayName))
-        {
-            errors.Add("[WARNING] Email:DisplayName is missing");
-        }
-
-        // Check if email sending is disabled
+        // Check if email sending is disabled or mock mode is enabled first
         var enableSending = _configuration.GetValue<bool>("Email:EnableEmailSending");
         var useMock = _configuration.GetValue<bool>("Email:UseMockEmailService");
 
@@ -186,6 +155,45 @@ public class ConfigurationValidator : IHostedService
         if (useMock)
         {
             _logger.LogWarning("[WARNING] Using MOCK email service (UseMockEmailService = true). Emails will be logged but not sent.");
+        }
+
+        // Only validate email credentials if email sending is enabled AND not using mock mode
+        if (!enableSending || useMock)
+        {
+            _logger.LogInformation("[INFO] Skipping email credential validation (email disabled or mock mode enabled)");
+            return;
+        }
+
+        // Validate email credentials only when actually needed
+        var smtpServer = _configuration["Email:SmtpServer"];
+        var username = _configuration["Email:Username"];
+        var password = _configuration["Email:Password"];
+        var from = _configuration["Email:From"];
+        var displayName = _configuration["Email:DisplayName"];
+
+        if (string.IsNullOrWhiteSpace(smtpServer))
+        {
+            errors.Add("[ERROR] Email:SmtpServer is missing (required for email sending)");
+        }
+
+        if (string.IsNullOrWhiteSpace(username))
+        {
+            errors.Add("[ERROR] Email:Username is missing (required for email sending)");
+        }
+
+        if (string.IsNullOrWhiteSpace(password))
+        {
+            errors.Add("[ERROR] Email:Password is missing (required for email sending)");
+        }
+
+        if (string.IsNullOrWhiteSpace(from))
+        {
+            errors.Add("[ERROR] Email:From is missing (required for email sending)");
+        }
+
+        if (string.IsNullOrWhiteSpace(displayName))
+        {
+            errors.Add("[WARNING] Email:DisplayName is missing");
         }
     }
 
