@@ -362,33 +362,9 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
           )}
         </div>
 
-        {/* Full Name - SECOND (Only visible after verification) */}
-        {verificationStatus === 'verified' && erpData?.fullName && (
-          <div className="mb-8">
-            <FormField
-              name="fullName"
-              label="Full Name"
-              type="text"
-              placeholder="As per company records"
-              variant="underline"
-              disabled
-              className="bg-gray-50"
-            />
-            <p className="mt-2 text-sm text-gray-600">
-              Name from company records (read-only)
-            </p>
-          </div>
-        )}
-
-        {/* Staff Number - HIDDEN (will be auto-filled by ERP after validation) */}
-
         {/* Only show rest of form if ID is verified */}
         {verificationStatus === 'verified' && (
           <>
-            <h3 className="text-2xl font-cabrito font-bold text-kq-dark mt-12 mb-8">
-              Contact Information
-            </h3>
-
             {/* Email */}
             <div className="mb-8">
               <FormField
@@ -406,6 +382,42 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
                 rightIcon={getDuplicateIcon(emailCheck)}
               />
             </div>
+
+            {/* Full Name */}
+            <div className="mb-8">
+              <FormField
+                name="fullName"
+                label="Full Name"
+                type="text"
+                placeholder="As per company records"
+                variant="underline"
+                disabled
+                className="bg-gray-50"
+              />
+              <p className="mt-2 text-sm text-gray-600">
+                Name from company records (read-only)
+              </p>
+            </div>
+
+            {/* Staff Number */}
+            <div className="mb-8">
+              <FormField
+                name="staffNumber"
+                label="Staff Number"
+                type="text"
+                placeholder="e.g., 0012345"
+                variant="underline"
+                disabled
+                className="bg-gray-50"
+              />
+              <p className="mt-2 text-sm text-gray-600">
+                Staff number from company records (read-only)
+              </p>
+            </div>
+
+            <h3 className="text-2xl font-cabrito font-bold text-kq-dark mt-12 mb-8">
+              Contact Information
+            </h3>
 
             {/* Mobile Number */}
             <div className="mb-8">
