@@ -50,14 +50,18 @@ public static class ServiceCollectionExtensions
     });
 
     // ========================================
-    // Configuration Options
+    // Configuration Options with Validation
     // ========================================
 
-    services.Configure<ErpApiSettings>(
-        configuration.GetSection(ErpApiSettings.SectionName));
+    services.AddOptions<ErpApiSettings>()
+        .Bind(configuration.GetSection(ErpApiSettings.SectionName))
+        .ValidateDataAnnotations()
+        .ValidateOnStart();
 
-    services.Configure<EmailSettings>(
-        configuration.GetSection(EmailSettings.SectionName));
+    services.AddOptions<EmailSettings>()
+        .Bind(configuration.GetSection(EmailSettings.SectionName))
+        .ValidateDataAnnotations()
+        .ValidateOnStart();
 
     // ========================================
     // Business Services

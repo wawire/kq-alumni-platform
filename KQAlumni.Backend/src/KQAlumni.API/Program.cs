@@ -24,6 +24,22 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// LOAD MOCK DATA IN DEVELOPMENT
+if (builder.Environment.IsDevelopment())
+{
+    var mockDataPath = Path.Combine(builder.Environment.ContentRootPath, "MockData", "mock-employees.json");
+    if (File.Exists(mockDataPath))
+    {
+        builder.Configuration.AddJsonFile(mockDataPath, optional: true, reloadOnChange: true);
+        builder.Logging.AddConsole().SetMinimumLevel(LogLevel.Information);
+        Console.WriteLine($"[CONFIG] Loaded mock employee data from: {mockDataPath}");
+    }
+    else
+    {
+        Console.WriteLine($"[CONFIG] Mock employee data file not found at: {mockDataPath}");
+    }
+}
+
 // 1. CONFIGURE SERVICES
 
 builder.Services.AddControllers()
@@ -181,8 +197,13 @@ var backgroundJobSettings = builder.Configuration
 builder.Services.Configure<BackgroundJobSettings>(
     builder.Configuration.GetSection("BackgroundJobs:ApprovalProcessing"));
 
-builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
-var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>()
+// Configure JwtSettings with validation
+builder.Services.AddOptions<JwtSettings>()
+    .Bind(builder.Configuration.GetSection(JwtSettings.SectionName))
+    .ValidateDataAnnotations()
+    .ValidateOnStart();
+
+var jwtSettings = builder.Configuration.GetSection(JwtSettings.SectionName).Get<JwtSettings>()
     ?? throw new InvalidOperationException("JWT settings not configured");
 
 // 3. ADD INFRASTRUCTURE
@@ -347,6 +368,11 @@ builder.Services.AddAuthorization(options =>
 // 7. HEALTH CHECKS (Enhanced with detailed monitoring)
 
 builder.Services.AddHealthChecks()
+    // Configuration validation check (runs on startup)
+    .AddCheck<ConfigurationHealthCheck>("configuration",
+        failureStatus: HealthStatus.Unhealthy,
+        tags: new[] { "configuration", "critical", "startup" })
+
     // Database health check with connection testing
     .AddCheck<SqlServerHealthCheck>("database",
         failureStatus: HealthStatus.Unhealthy,
