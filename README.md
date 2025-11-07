@@ -535,28 +535,96 @@ dotnet ef database update --project ../KQAlumni.Infrastructure --verbose
 
 ---
 
-## Configuration Files
+## Configuration Management
 
-### Backend Configuration
+### .NET Configuration Standard
 
-**`appsettings.json`** (Base configuration - in git)
+This project follows **.NET best practices** for configuration and secrets management:
+
+**Configuration Hierarchy** (later sources override earlier ones):
+1. `appsettings.json` - Base configuration (committed to git)
+2. `appsettings.{Environment}.json` - Environment-specific overrides (committed to git)
+3. **User Secrets** - Development secrets (NEVER committed)
+4. **Environment Variables** - Production secrets (set on server)
+
+### Secrets Management
+
+**IMPORTANT**: Never commit sensitive data (passwords, API keys, connection strings with credentials) to git.
+
+#### Development (Local Machine)
+
+Use **.NET User Secrets** for sensitive configuration:
+
+```bash
+cd KQAlumni.Backend/src/KQAlumni.API
+
+# Set email password
+dotnet user-secrets set "Email:Password" "your-dev-email-password"
+
+# Set SQL password (if using SQL auth instead of Windows auth)
+dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Server=localhost;Database=KQAlumniDB;User Id=sa;Password=YourPassword"
+
+# Set JWT secret
+dotnet user-secrets set "JwtSettings:SecretKey" "your-strong-secret-key-at-least-32-characters"
+
+# Set ERP API key
+dotnet user-secrets set "ErpApi:ApiKey" "your-erp-api-key"
+
+# List all secrets
+dotnet user-secrets list
+```
+
+User secrets are stored in:
+- **Windows**: `%APPDATA%\Microsoft\UserSecrets\<user_secrets_id>\secrets.json`
+- **Linux/macOS**: `~/.microsoft/usersecrets/<user_secrets_id>/secrets.json`
+
+#### Production (Server)
+
+Use **Environment Variables** to override configuration:
+
+```bash
+# Windows (PowerShell)
+$env:Email__Password = "production-email-password"
+$env:ConnectionStrings__DefaultConnection = "Server=prodserver;Database=KQAlumniDB;User Id=produser;Password=prodpass"
+$env:JwtSettings__SecretKey = "production-jwt-secret-64-chars-minimum"
+
+# Linux (bash)
+export Email__Password="production-email-password"
+export ConnectionStrings__DefaultConnection="Server=prodserver;Database=KQAlumniDB;User Id=produser;Password=prodpass"
+export JwtSettings__SecretKey="production-jwt-secret-64-chars-minimum"
+```
+
+**IIS Configuration** (recommended for production):
+1. Open IIS Manager
+2. Select Application Pool → Advanced Settings
+3. Add environment variables in "Environment Variables" section
+4. Restart the application pool
+
+### Configuration Files
+
+#### Backend Configuration
+
+**`appsettings.json`** (Base - committed to git)
 - Default settings for all environments
-- Contains shared configuration
-- Overridden by environment-specific files
+- Contains non-sensitive shared configuration
+- No passwords or API keys
 
-**`appsettings.Development.json`** (Local dev - NOT in git)
-- Docker SQL Server connection
-- Mock modes enabled (Email, ERP)
-- Lower rate limits
-- Debug logging
+**`appsettings.Development.json`** (committed to git)
+- Development-specific settings (mock modes, debug logging)
+- Uses Windows Authentication for SQL (no password needed)
+- Email/ERP passwords loaded from User Secrets
 
-**`appsettings.Production.json`** (Production - NOT in git)
-- Production database connection
-- Real SMTP and ERP settings
-- Strict rate limits
-- Production base URL
+**`appsettings.Production.template.json`** (committed to git)
+- Template showing production structure
+- Placeholders like `USE_ENVIRONMENT_VARIABLE`
+- Copy to `appsettings.Production.json` and customize
 
-### Frontend Configuration
+**`appsettings.Production.json`** (NOT committed - .gitignore)
+- Production-specific settings
+- Secrets loaded from environment variables
+- Created manually on production server
+
+#### Frontend Configuration
 
 **`.env.example`** (Template - in git)
 - Template showing all available variables
@@ -565,11 +633,10 @@ dotnet ef database update --project ../KQAlumni.Infrastructure --verbose
 **`.env.local`** (Local dev - NOT in git)
 - Points to `http://localhost:5295`
 - Debug mode enabled
-- Created automatically
 
 **`.env.production`** (Production - in git)
 - Production API URL
-- Production settings
+- Non-sensitive production settings
 
 **`.env.production.local`** (Production override - NOT in git)
 - Override production settings if needed
