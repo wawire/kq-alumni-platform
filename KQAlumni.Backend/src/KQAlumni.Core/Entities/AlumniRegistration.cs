@@ -33,16 +33,17 @@ public class AlumniRegistration
   public string? StaffNumber { get; set; }
 
   /// <summary>
-  /// National ID number for validation (Kenya: 8 digits, Others may vary)
+  /// National ID number or Passport number (Required during registration)
   /// Used for ERP validation and verification
+  /// Can contain either Kenyan ID or international passport number
   /// </summary>
+  [Required]
   [StringLength(50)]
   [Column(TypeName = "varchar(50)")]
-  public string? IdNumber { get; set; }
+  public string IdNumber { get; set; } = string.Empty;
 
   /// <summary>
-  /// Passport number (alternative to ID number for validation)
-  /// Used for non-Kenyan alumni or those without national ID
+  /// Passport number (Optional - legacy field for compatibility)
   /// </summary>
   [StringLength(50)]
   [Column(TypeName = "varchar(50)")]

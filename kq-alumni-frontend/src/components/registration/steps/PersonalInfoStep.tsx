@@ -19,10 +19,8 @@ import { useDuplicateCheck } from "@/hooks/useDuplicateCheck";
 import type { RegistrationFormData } from "../RegistrationForm";
 
 // =====================================================
-// VALIDATION SCHEMA - INTERNATIONAL ID/PASSPORT STANDARDS
-// Kenyan ID: 8 digits
-// Passport: 6-15 alphanumeric characters (international standard)
-// At least one identification method required
+// VALIDATION SCHEMA - SIMPLE ID/PASSPORT VALIDATION
+// Single field accepts either ID or Passport
 // =====================================================
 const personalInfoSchema = z.object({
   staffNumber: z
@@ -31,30 +29,12 @@ const personalInfoSchema = z.object({
     .transform((val) => val?.trim().toUpperCase() || undefined),
   idNumber: z
     .string()
-    .optional()
-    .transform((val) => val?.trim().toUpperCase() || undefined)
-    .refine(
-      (val) => !val || /^[A-Z0-9]+$/.test(val),
-      "ID number can only contain letters and numbers (no spaces or special characters)"
-    )
-    .refine(
-      (val) => !val || (val.length >= 6 && val.length <= 20),
-      "ID number must be between 6-20 characters (Kenyan ID: 8 digits, others vary)"
-    )
-    .optional(),
+    .min(1, "ID Number or Passport Number is required")
+    .transform((val) => val?.trim().toUpperCase() || ""),
   passportNumber: z
     .string()
     .optional()
-    .transform((val) => val?.trim().toUpperCase() || undefined)
-    .refine(
-      (val) => !val || /^[A-Z0-9]+$/.test(val),
-      "Passport number can only contain letters and numbers (no spaces or special characters)"
-    )
-    .refine(
-      (val) => !val || (val.length >= 6 && val.length <= 15),
-      "Passport number must be between 6-15 characters (international standard)"
-    )
-    .optional(),
+    .transform((val) => val?.trim().toUpperCase() || undefined),
   fullName: z
     .string()
     .min(2, "Full name must be at least 2 characters")
@@ -76,13 +56,7 @@ const personalInfoSchema = z.object({
   currentCountryCode: z.string().min(1, "Country code is required"),
   currentCity: z.string().min(1, "City is required"),
   cityCustom: z.string().optional(),
-}).refine(
-  (data) => data.idNumber || data.passportNumber,
-  {
-    message: "Please provide either your National ID Number or Passport Number for validation",
-    path: ["idNumber"],
-  }
-);
+});
 
 type PersonalInfoFormData = z.infer<typeof personalInfoSchema>;
 
@@ -258,35 +232,18 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
           />
         </div>
 
-        {/* ID Number / Passport Number - Combined Label */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        {/* ID Number / Passport Number - Single Field */}
+        <div className="mb-8">
           <FormField
             name="idNumber"
-            label="National ID Number (Optional) / Passport Number (Optional)"
+            label="ID Number / Passport No:"
             type="text"
-            placeholder="e.g., 12345678 (Kenya ID) or A1234567 (Passport)"
-            maxLength={20}
+            placeholder="e.g., 12345678 or a1234567"
+            required
             variant="underline"
-            description="Provide at least one for verification. Kenyan ID: 8 digits, Passport: 6-15 alphanumeric."
             onChange={(e) => {
               const cleaned = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
               setValue("idNumber", cleaned);
-            }}
-            style={{ textTransform: "uppercase" }}
-            className="uppercase"
-          />
-
-          <FormField
-            name="passportNumber"
-            label="Or Passport Number (if ID not provided)"
-            type="text"
-            placeholder="e.g., A1234567"
-            maxLength={15}
-            variant="underline"
-            description="Alternative identification for international residents or if you prefer passport."
-            onChange={(e) => {
-              const cleaned = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
-              setValue("passportNumber", cleaned);
             }}
             style={{ textTransform: "uppercase" }}
             className="uppercase"
