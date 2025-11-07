@@ -70,9 +70,14 @@ public class ErpApiSettings
   public bool EnableMockMode { get; set; }
 
   /// <summary>
-  /// Mock staff numbers that will pass validation in mock mode
+  /// Mock staff numbers that will pass validation in mock mode (legacy support)
   /// </summary>
   public List<string> MockStaffNumbers { get; set; } = new();
+
+  /// <summary>
+  /// Mock employee data for comprehensive testing (includes ID, Passport, Email, etc.)
+  /// </summary>
+  public List<MockEmployee> MockEmployees { get; set; } = new();
 
   /// <summary>
   /// API Key for ERP authentication (production only)
@@ -83,4 +88,45 @@ public class ErpApiSettings
   /// Authentication scheme (ApiKey, Bearer, etc.)
   /// </summary>
   public string? AuthenticationScheme { get; set; }
+}
+
+/// <summary>
+/// Mock employee data for development and testing
+/// </summary>
+public class MockEmployee
+{
+  /// <summary>
+  /// Staff number (e.g., "0012345")
+  /// </summary>
+  public string StaffNumber { get; set; } = string.Empty;
+
+  /// <summary>
+  /// National ID number (e.g., "12345678")
+  /// </summary>
+  public string? IdNumber { get; set; }
+
+  /// <summary>
+  /// Passport number (e.g., "A1234567")
+  /// </summary>
+  public string? PassportNumber { get; set; }
+
+  /// <summary>
+  /// Full name of employee
+  /// </summary>
+  public string FullName { get; set; } = string.Empty;
+
+  /// <summary>
+  /// Email address
+  /// </summary>
+  public string? Email { get; set; }
+
+  /// <summary>
+  /// Department
+  /// </summary>
+  public string Department { get; set; } = string.Empty;
+
+  /// <summary>
+  /// Exit date (defaults to 6 months ago if not specified)
+  /// </summary>
+  public DateTime? ExitDate { get; set; }
 }

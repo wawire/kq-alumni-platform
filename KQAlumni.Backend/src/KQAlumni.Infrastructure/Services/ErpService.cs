@@ -239,11 +239,31 @@ public class ErpService : IErpService
   /// </summary>
   private ErpValidationResult GenerateMockValidationResult(string staffNumber)
   {
-    // Check if staff number is in mock whitelist
+    // First, check if employee exists in MockEmployees (new comprehensive mock data)
+    var mockEmployee = _settings.MockEmployees.FirstOrDefault(e => e.StaffNumber == staffNumber);
+    if (mockEmployee != null)
+    {
+      _logger.LogInformation(
+          "[MOCK ERP] Found employee in MockEmployees - Staff: {StaffNumber}, Name: {Name}, Email: {Email}",
+          mockEmployee.StaffNumber, mockEmployee.FullName, mockEmployee.Email);
+
+      return new ErpValidationResult
+      {
+        IsValid = true,
+        StaffNumber = mockEmployee.StaffNumber,
+        StaffName = mockEmployee.FullName,
+        Department = mockEmployee.Department,
+        ExitDate = mockEmployee.ExitDate ?? DateTime.UtcNow.AddMonths(-6),
+        NameSimilarityScore = 100,
+        IsMockData = true
+      };
+    }
+
+    // Fallback: Check legacy MockStaffNumbers list
     if (!_settings.MockStaffNumbers.Contains(staffNumber))
     {
       _logger.LogWarning(
-          "Staff number {StaffNumber} not in mock whitelist. Add to appsettings.Development.json MockStaffNumbers.",
+          "Staff number {StaffNumber} not found in MockEmployees or MockStaffNumbers. Add to appsettings.Development.json",
           staffNumber);
 
       return CreateErrorResult(
@@ -251,11 +271,11 @@ public class ErpService : IErpService
           isMockData: true);
     }
 
-    // Generate mock staff data based on staff number pattern
+    // Generate generic mock data based on staff number pattern (legacy support)
     var (mockName, mockDepartment) = GetMockStaffData(staffNumber);
 
     _logger.LogInformation(
-        "[MOCK ERP] Returning mock data for {StaffNumber} - Name: {MockName}, Dept: {MockDept}",
+        "[MOCK ERP] Using legacy mock data for {StaffNumber} - Name: {MockName}, Dept: {MockDept}",
         staffNumber, mockName, mockDepartment);
 
     return new ErpValidationResult
@@ -265,7 +285,7 @@ public class ErpService : IErpService
       StaffName = mockName,
       Department = mockDepartment,
       ExitDate = DateTime.UtcNow.AddMonths(-6),
-      NameSimilarityScore = 100, // Mock mode always accepts name
+      NameSimilarityScore = 100,
       IsMockData = true
     };
   }
@@ -276,39 +296,31 @@ public class ErpService : IErpService
   /// </summary>
   private ErpValidationResult GenerateMockValidationResultForId(string idOrPassport)
   {
-    // Map some test IDs to staff numbers for development
-    var mockIdToStaffMap = new Dictionary<string, string>
-    {
-      { "12345678", "0012345" },
-      { "87654321", "0087654" },
-      { "11111111", "00C5050" },
-      { "22222222", "00A1234" },
-      { "A1234567", "00H7890" },
-      { "B7654321", "00C9999" }
-    };
+    // Search MockEmployees by ID number or Passport number
+    var mockEmployee = _settings.MockEmployees.FirstOrDefault(e =>
+        (e.IdNumber != null && e.IdNumber.Equals(idOrPassport, StringComparison.OrdinalIgnoreCase)) ||
+        (e.PassportNumber != null && e.PassportNumber.Equals(idOrPassport, StringComparison.OrdinalIgnoreCase)));
 
-    if (mockIdToStaffMap.TryGetValue(idOrPassport, out var staffNumber))
+    if (mockEmployee != null)
     {
-      var (mockName, mockDepartment) = GetMockStaffData(staffNumber);
-
       _logger.LogInformation(
-          "[MOCK ERP] ID/Passport {IdOrPassport} mapped to {StaffNumber} - Name: {MockName}, Dept: {MockDept}",
-          idOrPassport, staffNumber, mockName, mockDepartment);
+          "[MOCK ERP] Found employee by ID/Passport {IdOrPassport} - Staff: {StaffNumber}, Name: {Name}, Email: {Email}",
+          idOrPassport, mockEmployee.StaffNumber, mockEmployee.FullName, mockEmployee.Email);
 
       return new ErpValidationResult
       {
         IsValid = true,
-        StaffNumber = staffNumber,
-        StaffName = mockName,
-        Department = mockDepartment,
-        ExitDate = DateTime.UtcNow.AddMonths(-6),
+        StaffNumber = mockEmployee.StaffNumber,
+        StaffName = mockEmployee.FullName,
+        Department = mockEmployee.Department,
+        ExitDate = mockEmployee.ExitDate ?? DateTime.UtcNow.AddMonths(-6),
         NameSimilarityScore = 100,
         IsMockData = true
       };
     }
 
     _logger.LogWarning(
-        "[MOCK ERP] ID/Passport {IdOrPassport} not in mock map. Add it for testing.",
+        "[MOCK ERP] ID/Passport {IdOrPassport} not found in MockEmployees. Add to appsettings.Development.json",
         idOrPassport);
 
     return CreateErrorResult(
