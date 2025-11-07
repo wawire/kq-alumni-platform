@@ -328,7 +328,7 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
       <div>
         <h2 className="text-3xl font-cabrito font-bold text-kq-dark mb-2">
-          Personal Information
+          Personal Information & Contact Information
         </h2>
         <p className="text-sm text-gray-600 mb-8">
           Enter your ID/Passport number to verify your details
@@ -438,10 +438,6 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
               Auto-filled from company records
             </p>
           </div>
-
-          <h3 className="text-2xl font-cabrito font-bold text-kq-dark mt-12 mb-8">
-            Contact Information
-          </h3>
 
           {/* Mobile Number */}
           <div className="mb-8">

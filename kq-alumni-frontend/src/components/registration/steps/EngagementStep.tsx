@@ -77,7 +77,7 @@ const EngagementStep: React.FC<Props> = ({
     <form onSubmit={handleSubmit(onSubmitForm)} className="space-y-8">
       <div>
         <h2 className="text-3xl font-cabrito font-bold text-kq-dark mb-8">
-          Alumni Engagement
+          Alumni Engagement & Consent
         </h2>
 
         {/* Engagement Areas */}
@@ -115,10 +115,6 @@ const EngagementStep: React.FC<Props> = ({
         </div>
 
         {/* Consent */}
-        <h3 className="text-2xl font-cabrito font-bold text-kq-dark mt-12 mb-8">
-          Consent & Verification
-        </h3>
-
         <div className="mb-8">
           <label className="flex items-start gap-4 cursor-pointer p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-all">
             <input
