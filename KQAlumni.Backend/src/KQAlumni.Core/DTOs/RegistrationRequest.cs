@@ -17,14 +17,13 @@ public class RegistrationRequest
   public string? StaffNumber { get; set; }
 
   /// <summary>
-  /// National ID number (required with passport - at least one must be provided)
-  /// Kenyan ID: 8 digits, International: 6-20 alphanumeric
+  /// National ID number or Passport number (Required)
+  /// Used for ERP validation and verification
   /// </summary>
-  public string? IdNumber { get; set; }
+  public string IdNumber { get; set; } = string.Empty;
 
   /// <summary>
-  /// Passport number (required with ID - at least one must be provided)
-  /// International standard: 6-15 alphanumeric characters
+  /// Passport number (Optional - legacy field, now combined with IdNumber)
   /// </summary>
   public string? PassportNumber { get; set; }
 

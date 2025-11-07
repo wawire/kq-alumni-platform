@@ -55,33 +55,12 @@ public class RegistrationRequestValidator : AbstractValidator<RegistrationReques
               .WithMessage("Staff number must be in UPPERCASE");
     });
 
-    // ID Number (Optional - but validate if provided)
-    // Kenyan ID: 8 digits, International: 6-20 alphanumeric
-    When(x => !string.IsNullOrEmpty(x.IdNumber), () =>
-    {
-      RuleFor(x => x.IdNumber)
-              .Length(6, 20)
-              .WithMessage("ID number must be between 6-20 characters (Kenyan ID: 8 digits, others vary)")
-              .Matches(@"^[A-Z0-9]+$")
-              .WithMessage("ID number can only contain letters and numbers (no spaces or special characters)");
-    });
-
-    // Passport Number (Optional - but validate if provided)
-    // International standard: 6-15 alphanumeric characters
-    When(x => !string.IsNullOrEmpty(x.PassportNumber), () =>
-    {
-      RuleFor(x => x.PassportNumber)
-              .Length(6, 15)
-              .WithMessage("Passport number must be between 6-15 characters (international standard)")
-              .Matches(@"^[A-Z0-9]+$")
-              .WithMessage("Passport number can only contain letters and numbers (no spaces or special characters)");
-    });
-
-    // Require at least one identification method
-    RuleFor(x => x)
-        .Must(x => !string.IsNullOrEmpty(x.IdNumber) || !string.IsNullOrEmpty(x.PassportNumber))
-        .WithMessage("Please provide either your National ID Number or Passport Number for validation")
-        .WithName("IdNumber");
+    // ID Number or Passport Number (Required - simple validation)
+    RuleFor(x => x.IdNumber)
+        .NotEmpty()
+        .WithMessage("ID Number or Passport Number is required")
+        .MaximumLength(50)
+        .WithMessage("ID/Passport number too long");
 
     RuleFor(x => x.FullName)
         .NotEmpty()
