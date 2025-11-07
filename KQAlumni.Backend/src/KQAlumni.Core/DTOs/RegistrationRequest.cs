@@ -16,6 +16,16 @@ public class RegistrationRequest
   public string StaffNumber { get; set; } = string.Empty;
 
   /// <summary>
+  /// National ID number (optional - used for validation)
+  /// </summary>
+  public string? IdNumber { get; set; }
+
+  /// <summary>
+  /// Passport number (optional - alternative to ID number)
+  /// </summary>
+  public string? PassportNumber { get; set; }
+
+  /// <summary>
   /// Full name as per company records
   /// </summary>
   public string FullName { get; set; } = string.Empty;

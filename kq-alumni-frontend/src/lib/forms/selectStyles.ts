@@ -42,6 +42,7 @@ export const createSelectStyles = <OptionType,>(
     padding: '8px 0',
     backgroundColor: 'transparent',
     minHeight: '48px',
+    cursor: 'pointer',
     '&:hover': {
       borderBottom: '2px solid #DC143C',
     },
@@ -77,14 +78,17 @@ export const createSelectStyles = <OptionType,>(
     borderRadius: '8px',
     boxShadow:
       '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
-    zIndex: 9999,
+    zIndex: 50,
     marginTop: '4px',
     backgroundColor: 'white',
+    maxHeight: '300px', // Prevent dropdown from taking full screen
   }),
 
   menuList: (base) => ({
     ...base,
     padding: '4px',
+    maxHeight: '300px', // Limit height for better UX
+    overflowY: 'auto', // Enable scrolling within the list
   }),
 
   option: (base, state) => ({
