@@ -141,6 +141,19 @@ public class ApprovalProcessingJob
         return ProcessingResult.Skipped;
       }
 
+      // Check if staff number is available (should be populated during ID verification)
+      if (string.IsNullOrWhiteSpace(registration.StaffNumber))
+      {
+        _logger.LogWarning(
+            "Registration {Id} has no staff number - marking for manual review",
+            registration.Id);
+
+        registration.RequiresManualReview = true;
+        registration.ManualReviewReason = "Staff number not available. May require re-verification.";
+        await _context.SaveChangesAsync(CancellationToken.None);
+        return ProcessingResult.FlaggedForManualReview;
+      }
+
       // Increment attempt counter
       registration.ErpValidationAttempts++;
       registration.LastErpValidationAttempt = DateTime.UtcNow;

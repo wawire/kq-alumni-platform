@@ -54,20 +54,23 @@ public class RegistrationService : IRegistrationService
       // DUPLICATE CHECKS
 
 
-      // Check: Staff Number
-      var existingByStaffNumber = await IsStaffNumberRegisteredAsync(
-          request.StaffNumber,
-          cancellationToken);
-
-      if (existingByStaffNumber)
+      // Check: Staff Number (only if provided)
+      if (!string.IsNullOrWhiteSpace(request.StaffNumber))
       {
-        _logger.LogWarning(
-            "Staff number {StaffNumber} already registered",
-            request.StaffNumber);
+        var existingByStaffNumber = await IsStaffNumberRegisteredAsync(
+            request.StaffNumber,
+            cancellationToken);
 
-        throw new InvalidOperationException(
-            "This staff number is already registered. " +
-            "Contact KQ.Alumni@kenya-airways.com to update your profile.");
+        if (existingByStaffNumber)
+        {
+          _logger.LogWarning(
+              "Staff number {StaffNumber} already registered",
+              request.StaffNumber);
+
+          throw new InvalidOperationException(
+              "This staff number is already registered. " +
+              "Contact KQ.Alumni@kenya-airways.com to update your profile.");
+        }
       }
 
       // Check: Email
