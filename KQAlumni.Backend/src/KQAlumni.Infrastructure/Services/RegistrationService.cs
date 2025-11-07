@@ -131,7 +131,7 @@ public class RegistrationService : IRegistrationService
         Id = Guid.NewGuid(),
 
         // Personal Information
-        StaffNumber = request.StaffNumber.ToUpper().Trim(),
+        StaffNumber = request.StaffNumber?.ToUpper().Trim(),
         FullName = request.FullName.Trim(),
 
         // Contact Information
