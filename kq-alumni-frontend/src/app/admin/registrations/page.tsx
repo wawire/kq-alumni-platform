@@ -256,7 +256,7 @@ function RegistrationsPageContent() {
                         />
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Staff Number
+                        Staff No / ID / Passport
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Full Name
@@ -299,7 +299,7 @@ function RegistrationsPageContent() {
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <span className="text-sm font-medium text-kq-dark">
-                              {registration.staffNumber}
+                              {registration.staffNumber || registration.idNumber || registration.passportNumber || 'N/A'}
                             </span>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">

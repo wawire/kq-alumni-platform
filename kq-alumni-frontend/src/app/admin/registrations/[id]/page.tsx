@@ -237,7 +237,14 @@ export default function RegistrationDetailPage({ params }: Props) {
                   <h2 className="text-2xl font-cabrito font-bold text-kq-dark">
                     {registration.fullName}
                   </h2>
-                  <p className="text-gray-600">Staff No: {registration.staffNumber}</p>
+                  {registration.staffNumber && (
+                    <p className="text-gray-600">Staff No: {registration.staffNumber}</p>
+                  )}
+                  {!registration.staffNumber && (registration.idNumber || registration.passportNumber) && (
+                    <p className="text-gray-600">
+                      {registration.idNumber ? `ID: ${registration.idNumber}` : `Passport: ${registration.passportNumber}`}
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -258,19 +265,11 @@ export default function RegistrationDetailPage({ params }: Props) {
                   </div>
                 </div>
 
-                <div className="flex items-start gap-3">
-                  <User className="w-5 h-5 text-gray-400 mt-0.5" />
-                  <div>
-                    <p className="text-sm text-gray-600">Staff Number</p>
-                    <p className="font-medium text-kq-dark">{registration.staffNumber}</p>
-                  </div>
-                </div>
-
                 {registration.idNumber && (
                   <div className="flex items-start gap-3">
                     <User className="w-5 h-5 text-gray-400 mt-0.5" />
                     <div>
-                      <p className="text-sm text-gray-600">ID Number</p>
+                      <p className="text-sm text-gray-600">National ID Number</p>
                       <p className="font-medium text-kq-dark">{registration.idNumber}</p>
                     </div>
                   </div>
@@ -282,6 +281,16 @@ export default function RegistrationDetailPage({ params }: Props) {
                     <div>
                       <p className="text-sm text-gray-600">Passport Number</p>
                       <p className="font-medium text-kq-dark">{registration.passportNumber}</p>
+                    </div>
+                  </div>
+                )}
+
+                {registration.staffNumber && (
+                  <div className="flex items-start gap-3">
+                    <User className="w-5 h-5 text-gray-400 mt-0.5" />
+                    <div>
+                      <p className="text-sm text-gray-600">Staff Number</p>
+                      <p className="font-medium text-kq-dark">{registration.staffNumber}</p>
                     </div>
                   </div>
                 )}

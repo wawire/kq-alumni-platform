@@ -12,16 +12,19 @@ public class RegistrationRequest
 
   /// <summary>
   /// Staff number (7 characters): 000XXXX | 00CXXXX | 00AXXXX | 00HXXXX
+  /// Optional - will be auto-populated from ERP using ID/Passport
   /// </summary>
-  public string StaffNumber { get; set; } = string.Empty;
+  public string? StaffNumber { get; set; }
 
   /// <summary>
-  /// National ID number (optional - used for validation)
+  /// National ID number (required with passport - at least one must be provided)
+  /// Kenyan ID: 8 digits, International: 6-20 alphanumeric
   /// </summary>
   public string? IdNumber { get; set; }
 
   /// <summary>
-  /// Passport number (optional - alternative to ID number)
+  /// Passport number (required with ID - at least one must be provided)
+  /// International standard: 6-15 alphanumeric characters
   /// </summary>
   public string? PassportNumber { get; set; }
 

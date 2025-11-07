@@ -19,35 +19,27 @@ import { useDuplicateCheck } from "@/hooks/useDuplicateCheck";
 import type { RegistrationFormData } from "../RegistrationForm";
 
 // =====================================================
-// VALIDATION SCHEMA - EXACT MATCH WITH BACKEND
-// Backend Pattern: ^00[0-9A-Z]{5}$
-// Format: 00 + 5 alphanumeric characters (0-9 or A-Z)
-// Examples: 0012345, 00C5050, 00RG002, 00EM004, 00H1234
+// VALIDATION SCHEMA - INTERNATIONAL ID/PASSPORT STANDARDS
+// Kenyan ID: 8 digits
+// Passport: 6-15 alphanumeric characters (international standard)
+// At least one identification method required
 // =====================================================
 const personalInfoSchema = z.object({
   staffNumber: z
     .string()
-    .min(1, "Staff number is required")
-    .length(7, "Staff number must be exactly 7 characters")
-    .regex(
-      /^00[0-9A-Z]{5}$/,
-      "Invalid staff number format. Must be 7 characters starting with '00' (e.g., 0012345, 00C5050, 00RG002)",
-    )
-    .refine((val) => val === val.toUpperCase(), {
-      message: "Staff number must be uppercase",
-    })
-    .transform((val) => val.toUpperCase().trim()),
+    .optional()
+    .transform((val) => val?.trim().toUpperCase() || undefined),
   idNumber: z
     .string()
     .optional()
     .transform((val) => val?.trim().toUpperCase() || undefined)
     .refine(
-      (val) => !val || /^[A-Z0-9\-]+$/.test(val),
-      "ID number can only contain letters, numbers, and hyphens"
+      (val) => !val || /^[A-Z0-9]+$/.test(val),
+      "ID number can only contain letters and numbers (no spaces or special characters)"
     )
     .refine(
-      (val) => !val || val.length <= 50,
-      "ID number too long (max 50 characters)"
+      (val) => !val || (val.length >= 6 && val.length <= 20),
+      "ID number must be between 6-20 characters (Kenyan ID: 8 digits, others vary)"
     )
     .optional(),
   passportNumber: z
@@ -55,12 +47,12 @@ const personalInfoSchema = z.object({
     .optional()
     .transform((val) => val?.trim().toUpperCase() || undefined)
     .refine(
-      (val) => !val || /^[A-Z0-9\-]+$/.test(val),
-      "Passport number can only contain letters, numbers, and hyphens"
+      (val) => !val || /^[A-Z0-9]+$/.test(val),
+      "Passport number can only contain letters and numbers (no spaces or special characters)"
     )
     .refine(
-      (val) => !val || val.length <= 50,
-      "Passport number too long (max 50 characters)"
+      (val) => !val || (val.length >= 6 && val.length <= 15),
+      "Passport number must be between 6-15 characters (international standard)"
     )
     .optional(),
   fullName: z
@@ -84,7 +76,13 @@ const personalInfoSchema = z.object({
   currentCountryCode: z.string().min(1, "Country code is required"),
   currentCity: z.string().min(1, "City is required"),
   cityCustom: z.string().optional(),
-});
+}).refine(
+  (data) => data.idNumber || data.passportNumber,
+  {
+    message: "Please provide either your National ID Number or Passport Number for validation",
+    path: ["idNumber"],
+  }
+);
 
 type PersonalInfoFormData = z.infer<typeof personalInfoSchema>;
 
@@ -141,15 +139,12 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
 
   // Watch fields for duplicate checking
   const emailValue = watch("email");
-  const staffNumberValue = watch("staffNumber");
 
   // Debounce values to avoid too many API calls
   const debouncedEmail = useDebounce(emailValue, 800);
-  const debouncedStaffNumber = useDebounce(staffNumberValue, 800);
 
   // Duplicate checking hooks
   const emailCheck = useDuplicateCheck("email");
-  const staffNumberCheck = useDuplicateCheck("staffNumber");
 
   // Trigger duplicate checks when debounced values change
   useMemo(() => {
@@ -159,14 +154,6 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
       emailCheck.reset();
     }
   }, [debouncedEmail]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  useMemo(() => {
-    if (debouncedStaffNumber && debouncedStaffNumber.length === 7) {
-      staffNumberCheck.checkValue(debouncedStaffNumber);
-    } else {
-      staffNumberCheck.reset();
-    }
-  }, [debouncedStaffNumber]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const countryOptions = useMemo((): CountryOption[] => {
     const allCountries = Country.getAllCountries();
@@ -227,7 +214,7 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
 
   const onSubmit = (formData: PersonalInfoFormData): void => {
     // Don't submit if duplicates found
-    if (emailCheck.isDuplicate || staffNumberCheck.isDuplicate) {
+    if (emailCheck.isDuplicate) {
       return;
     }
     onNext(formData);
@@ -245,7 +232,7 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
       return null;
     }
     // Only show checkmark if we actually checked and it's not a duplicate
-    if (watch("email") || watch("staffNumber")) {
+    if (watch("email")) {
       return <CheckCircleIcon className="h-5 w-5 text-green-600" />;
     }
     return null;
@@ -259,8 +246,8 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
           Personal Information
         </h2>
 
-        {/* Full Name & Staff Number */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        {/* Full Name */}
+        <div className="mb-8">
           <FormField
             name="fullName"
             label="Full Name"
@@ -269,43 +256,21 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
             required
             variant="underline"
           />
-
-          <FormField
-            name="staffNumber"
-            label="Staff Number"
-            type="text"
-            placeholder="e.g., 0012345 or 00C5050"
-            maxLength={7}
-            required
-            variant="underline"
-            description={
-              staffNumberCheck.isDuplicate
-                ? staffNumberCheck.error || "This staff number is already registered"
-                : "7 characters: 00 + any 5 alphanumeric characters"
-            }
-            rightIcon={getDuplicateIcon(staffNumberCheck)}
-            onChange={(e) => {
-              const uppercased = e.target.value.toUpperCase();
-              setValue("staffNumber", uppercased);
-            }}
-            style={{ textTransform: "uppercase" }}
-            className="uppercase"
-          />
         </div>
 
-        {/* ID Number & Passport Number */}
+        {/* ID Number / Passport Number - Combined Label */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           <FormField
             name="idNumber"
-            label="National ID Number (Optional)"
+            label="National ID Number (Optional) / Passport Number (Optional)"
             type="text"
-            placeholder="e.g., 12345678"
-            maxLength={50}
+            placeholder="e.g., 12345678 (Kenya ID) or A1234567 (Passport)"
+            maxLength={20}
             variant="underline"
-            description="For validation purposes. Required if you don't remember your staff number."
+            description="Provide at least one for verification. Kenyan ID: 8 digits, Passport: 6-15 alphanumeric."
             onChange={(e) => {
-              const uppercased = e.target.value.toUpperCase();
-              setValue("idNumber", uppercased);
+              const cleaned = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+              setValue("idNumber", cleaned);
             }}
             style={{ textTransform: "uppercase" }}
             className="uppercase"
@@ -313,15 +278,15 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
 
           <FormField
             name="passportNumber"
-            label="Passport Number (Optional)"
+            label="Or Passport Number (if ID not provided)"
             type="text"
             placeholder="e.g., A1234567"
-            maxLength={50}
+            maxLength={15}
             variant="underline"
-            description="Alternative to ID number for validation."
+            description="Alternative identification for international residents or if you prefer passport."
             onChange={(e) => {
-              const uppercased = e.target.value.toUpperCase();
-              setValue("passportNumber", uppercased);
+              const cleaned = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+              setValue("passportNumber", cleaned);
             }}
             style={{ textTransform: "uppercase" }}
             className="uppercase"
