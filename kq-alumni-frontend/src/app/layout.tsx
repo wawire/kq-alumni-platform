@@ -1,10 +1,11 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 
 import { ConditionalHeader } from '@/components/layout/ConditionalHeader';
 import { QueryProvider } from '@/components/providers';
 import '../styles/globals.css';
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://kqalumni.kenya-airways.com'),
   title: 'Kenya Airways Alumni Association',
   description: 'Connect, grow, and stay part of the Kenya Airways family',
 
@@ -26,9 +27,6 @@ export const metadata: Metadata = {
 
   // Web App Manifest
   manifest: '/site.webmanifest',
-
-  // Theme Colors
-  themeColor: '#DC143C',
 
   // Open Graph
   openGraph: {
@@ -61,6 +59,10 @@ export const metadata: Metadata = {
     'msapplication-TileColor': '#DC143C',
     'msapplication-config': '/browserconfig.xml',
   },
+};
+
+export const viewport: Viewport = {
+  themeColor: '#DC143C',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
