@@ -164,6 +164,70 @@ public class ErpService : IErpService
     return result;
   }
 
+  public async Task<ErpValidationResult> ValidateIdOrPassportAsync(
+      string idOrPassport,
+      CancellationToken cancellationToken = default)
+  {
+    try
+    {
+      // [MOCK MODE] Use fake data for development (when ERP not accessible)
+      if (_settings.EnableMockMode)
+      {
+        _logger.LogWarning("[WARNING] ERP Mock Mode Enabled - Using fake validation data for ID lookup");
+        return GenerateMockValidationResultForId(idOrPassport);
+      }
+
+      // [PRODUCTION] Call real ERP API (INTERNAL NETWORK ONLY)
+      _logger.LogInformation("Validating ID/Passport {IdOrPassport} against ERP", idOrPassport);
+
+      var request = new { idPassport = idOrPassport };
+      var response = await _httpClient.PostAsJsonAsync(
+          _settings.IdPassportEndpoint ?? _settings.Endpoint, // Use IdPassportEndpoint if available, fallback to default
+          request,
+          cancellationToken);
+
+      if (!response.IsSuccessStatusCode)
+      {
+        _logger.LogError("ERP API returned error: {StatusCode}", response.StatusCode);
+        return CreateErrorResult("Unable to validate ID/Passport. Please try again or contact HR.");
+      }
+
+      var erpData = await response.Content.ReadFromJsonAsync<ErpApiResponse>(cancellationToken);
+
+      if (erpData == null || !erpData.Found)
+      {
+        _logger.LogWarning("ID/Passport {IdOrPassport} not found in ERP", idOrPassport);
+        return CreateErrorResult("ID/Passport not found in our records. Please verify and contact HR if issue persists.");
+      }
+
+      return new ErpValidationResult
+      {
+        IsValid = true,
+        StaffNumber = erpData.StaffNumber,
+        StaffName = erpData.FullName,
+        Department = erpData.Department,
+        ExitDate = erpData.ExitDate,
+        NameSimilarityScore = 0,
+        IsMockData = false
+      };
+    }
+    catch (HttpRequestException ex)
+    {
+      _logger.LogError(ex, "HTTP error calling ERP API for ID/Passport {IdOrPassport}", idOrPassport);
+      return CreateErrorResult("Unable to connect to validation service. Please try again later.");
+    }
+    catch (TaskCanceledException ex)
+    {
+      _logger.LogError(ex, "ERP API timeout for ID/Passport {IdOrPassport}", idOrPassport);
+      return CreateErrorResult("Validation service timeout. Please try again.");
+    }
+    catch (Exception ex)
+    {
+      _logger.LogError(ex, "Unexpected error validating ID/Passport {IdOrPassport}", idOrPassport);
+      return CreateErrorResult("An unexpected error occurred. Please contact support.");
+    }
+  }
+
   // ========================================
   // PRIVATE HELPER METHODS
   // ========================================
@@ -197,12 +261,59 @@ public class ErpService : IErpService
     return new ErpValidationResult
     {
       IsValid = true,
+      StaffNumber = staffNumber,
       StaffName = mockName,
       Department = mockDepartment,
       ExitDate = DateTime.UtcNow.AddMonths(-6),
       NameSimilarityScore = 100, // Mock mode always accepts name
       IsMockData = true
     };
+  }
+
+  /// <summary>
+  /// Generates mock validation result for ID/Passport lookup in development
+  /// [WARNING] ONLY USED IN DEVELOPMENT MODE
+  /// </summary>
+  private ErpValidationResult GenerateMockValidationResultForId(string idOrPassport)
+  {
+    // Map some test IDs to staff numbers for development
+    var mockIdToStaffMap = new Dictionary<string, string>
+    {
+      { "12345678", "0012345" },
+      { "87654321", "0087654" },
+      { "11111111", "00C5050" },
+      { "22222222", "00A1234" },
+      { "A1234567", "00H7890" },
+      { "B7654321", "00C9999" }
+    };
+
+    if (mockIdToStaffMap.TryGetValue(idOrPassport, out var staffNumber))
+    {
+      var (mockName, mockDepartment) = GetMockStaffData(staffNumber);
+
+      _logger.LogInformation(
+          "[MOCK ERP] ID/Passport {IdOrPassport} mapped to {StaffNumber} - Name: {MockName}, Dept: {MockDept}",
+          idOrPassport, staffNumber, mockName, mockDepartment);
+
+      return new ErpValidationResult
+      {
+        IsValid = true,
+        StaffNumber = staffNumber,
+        StaffName = mockName,
+        Department = mockDepartment,
+        ExitDate = DateTime.UtcNow.AddMonths(-6),
+        NameSimilarityScore = 100,
+        IsMockData = true
+      };
+    }
+
+    _logger.LogWarning(
+        "[MOCK ERP] ID/Passport {IdOrPassport} not in mock map. Add it for testing.",
+        idOrPassport);
+
+    return CreateErrorResult(
+        $"ID/Passport {idOrPassport} not found in our records. Please verify and contact HR if this error persists.",
+        isMockData: true);
   }
 
   /// <summary>
@@ -363,9 +474,14 @@ public class ErpService : IErpService
 internal class ErpApiResponse
 {
   /// <summary>
-  /// Whether the staff number was found in ERP
+  /// Whether the staff number/ID was found in ERP
   /// </summary>
   public bool Found { get; set; }
+
+  /// <summary>
+  /// Staff number (populated when lookup is by ID/Passport)
+  /// </summary>
+  public string? StaffNumber { get; set; }
 
   /// <summary>
   /// Full name of the staff member from ERP records

@@ -23,6 +23,15 @@ public interface IErpService
   /// <param name="cancellationToken">Cancellation token</param>
   /// <returns>Validation result with similarity score</returns>
   Task<ErpValidationResult> ValidateStaffDetailsAsync(string staffNumber, string fullName, CancellationToken cancellationToken = default);
+
+  /// <summary>
+  /// Validates ID or Passport number against ERP leavers database
+  /// Returns staff number and details if found
+  /// </summary>
+  /// <param name="idOrPassport">National ID or Passport number</param>
+  /// <param name="cancellationToken">Cancellation token</param>
+  /// <returns>Validation result with staff details including staff number</returns>
+  Task<ErpValidationResult> ValidateIdOrPassportAsync(string idOrPassport, CancellationToken cancellationToken = default);
 }
 
 /// <summary>
@@ -34,6 +43,11 @@ public class ErpValidationResult
   /// Whether the staff number exists in ERP
   /// </summary>
   public bool IsValid { get; set; }
+
+  /// <summary>
+  /// Staff number from ERP records (populated when lookup is by ID/Passport)
+  /// </summary>
+  public string? StaffNumber { get; set; }
 
   /// <summary>
   /// Staff name from ERP records

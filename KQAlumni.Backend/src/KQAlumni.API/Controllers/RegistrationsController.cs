@@ -241,4 +241,51 @@ public class RegistrationsController : ControllerBase
       });
     }
   }
+
+  /// <summary>
+  /// Verify ID or Passport number in real-time during registration
+  /// Returns staff number and name if found in ERP
+  /// </summary>
+  /// <param name="idOrPassport">National ID or Passport number</param>
+  /// <param name="cancellationToken">Cancellation token</param>
+  /// <returns>Verification response with staff details</returns>
+  [HttpGet("verify-id/{idOrPassport}")]
+  [ProducesResponseType(typeof(Core.DTOs.IdVerificationResponse), StatusCodes.Status200OK)]
+  [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+  [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
+  public async Task<ActionResult<Core.DTOs.IdVerificationResponse>> VerifyIdOrPassport(
+      string idOrPassport,
+      CancellationToken cancellationToken)
+  {
+    try
+    {
+      if (string.IsNullOrWhiteSpace(idOrPassport))
+      {
+        return BadRequest(new ErrorResponse
+        {
+          Type = "https://tools.ietf.org/html/rfc7231#section-6.5.1",
+          Title = "Invalid Request",
+          Status = StatusCodes.Status400BadRequest,
+          Detail = "ID or Passport number is required"
+        });
+      }
+
+      var result = await _registrationService.VerifyIdOrPassportAsync(
+          idOrPassport.Trim().ToUpper(),
+          cancellationToken);
+
+      return Ok(result);
+    }
+    catch (Exception ex)
+    {
+      _logger.LogError(ex, "Error verifying ID/Passport: {IdOrPassport}", idOrPassport);
+      return StatusCode(500, new ErrorResponse
+      {
+        Type = "https://tools.ietf.org/html/rfc7231#section-6.6.1",
+        Title = "Verification Error",
+        Status = StatusCodes.Status500InternalServerError,
+        Detail = "An unexpected error occurred during verification. Please try again."
+      });
+    }
+  }
 }
