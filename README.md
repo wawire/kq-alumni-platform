@@ -143,13 +143,29 @@ npm run dev
 
 ### 5. Test Registration
 
-Use these test staff numbers (mock mode enabled in development):
-- `0012345` - Permanent staff
-- `00C5050` - Contract staff
-- `00A1234` - Intern
-- `00RG002` - Regional
-- `00EM004` - Engineering
-- `00H1234` - Any format
+Mock mode is enabled in development with comprehensive test data. You can test registration using any of the following:
+
+#### Test by Staff Number:
+- `0012345` - John Kamau (Flight Operations)
+- `00C5050` - Mary Wanjiku (Customer Service)
+- `00A1234` - Peter Omondi (IT Department)
+- `00H7890` - Sarah Akinyi (Cabin Crew)
+- `00C5583` - James Kipchoge (Engineering)
+- `00B9876` - Grace Nyambura (Human Resources)
+
+#### Test by ID Number:
+- `12345678` - Maps to Staff #0012345 (John Kamau)
+- `87654321` - Maps to Staff #00C5050 (Mary Wanjiku)
+- `11111111` - Maps to Staff #00A1234 (Peter Omondi)
+- `22222222` - Maps to Staff #00C5583 (James Kipchoge)
+- `33333333` - Maps to Staff #00B9876 (Grace Nyambura)
+
+#### Test by Passport Number:
+- `A1234567` - Maps to Staff #00A1234 (Peter Omondi)
+- `B7654321` - Maps to Staff #00H7890 (Sarah Akinyi)
+- `C9876543` - Maps to Staff #00B9876 (Grace Nyambura)
+
+**Note**: All mock employees have pre-configured names, emails, and departments in `appsettings.Development.json`
 
 ---
 
@@ -532,6 +548,52 @@ dotnet ef database update --project ../KQAlumni.Infrastructure --verbose
 3. Check Hangfire dashboard for stuck jobs: `/hangfire`
 4. Monitor SQL Server performance
 5. Check ERP API response times
+
+---
+
+## Mock Data Configuration
+
+### Adding Test Employees
+
+For development and testing, you can add mock employees to `appsettings.Development.json`:
+
+```json
+{
+  "ErpApi": {
+    "EnableMockMode": true,
+    "MockEmployees": [
+      {
+        "StaffNumber": "0012345",
+        "IdNumber": "12345678",
+        "PassportNumber": "A1234567",
+        "FullName": "John Kamau Mwangi",
+        "Email": "john.kamau@alumni.kenya-airways.com",
+        "Department": "Flight Operations",
+        "ExitDate": "2024-01-15"
+      }
+    ]
+  }
+}
+```
+
+### Mock Employee Fields:
+
+- **StaffNumber** (required): 7-character staff number (e.g., "0012345")
+- **IdNumber** (optional): National ID number for ID-based lookup
+- **PassportNumber** (optional): Passport number for passport-based lookup
+- **FullName** (required): Full name of the employee
+- **Email** (optional): Email address
+- **Department** (required): Department name
+- **ExitDate** (optional): Exit date in ISO format (defaults to 6 months ago)
+
+### Testing Registration Flows:
+
+1. **Test by Staff Number**: Use any `StaffNumber` from `MockEmployees`
+2. **Test by ID Number**: Use any `IdNumber` from `MockEmployees`
+3. **Test by Passport**: Use any `PassportNumber` from `MockEmployees`
+4. **Test not found**: Use values not in `MockEmployees` to test error handling
+
+**Production**: Set `EnableMockMode: false` and configure real ERP API endpoints.
 
 ---
 
