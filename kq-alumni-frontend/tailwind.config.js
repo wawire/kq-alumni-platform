@@ -20,6 +20,9 @@ module.exports = {
         cabrito: ['Cabrito Flare', 'serif'],
         roboto: ['Roboto Flex', 'sans-serif'],
       },
+      accentColor: {
+        'kq-red': '#ed1c24',
+      },
     },
   },
   plugins: [],
