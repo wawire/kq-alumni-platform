@@ -99,7 +99,7 @@ const EngagementStep: React.FC<Props> = ({
                   value={option.value}
                   checked={selectedEngagements.includes(option.value)}
                   onChange={() => handleEngagementToggle(option.value)}
-                  className="w-5 h-5 text-kq-red border-gray-300 rounded focus:ring-0 focus:ring-offset-0 cursor-pointer flex-shrink-0"
+                  className="w-5 h-5 accent-kq-red border-gray-300 rounded focus:ring-0 focus:ring-offset-0 cursor-pointer flex-shrink-0"
                 />
                 <span className="text-gray-900 text-sm leading-tight">
                   {option.label}
@@ -125,7 +125,7 @@ const EngagementStep: React.FC<Props> = ({
               type="checkbox"
               checked={consentChecked}
               onChange={handleConsentChange}
-              className="w-6 h-6 text-kq-red border-gray-300 rounded focus:ring-0 focus:ring-offset-0 cursor-pointer mt-1 flex-shrink-0"
+              className="w-6 h-6 accent-kq-red border-gray-300 rounded focus:ring-0 focus:ring-offset-0 cursor-pointer mt-1 flex-shrink-0"
             />
             <div className="flex-1">
               <span className="text-gray-900 leading-relaxed">

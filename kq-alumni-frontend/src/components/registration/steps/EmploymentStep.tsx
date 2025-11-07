@@ -164,7 +164,7 @@ export default function EmploymentStep({ data, onNext, onBack }: Props) {
                   value={qual.value}
                   checked={selectedQualifications.includes(qual.value)}
                   onChange={() => handleQualificationToggle(qual.value)}
-                  className="w-5 h-5 text-kq-red border-gray-300 rounded focus:ring-0 focus:ring-offset-0 cursor-pointer"
+                  className="w-5 h-5 accent-kq-red border-gray-300 rounded focus:ring-0 focus:ring-offset-0 cursor-pointer"
                 />
                 <span className="text-gray-900 text-sm">{qual.label}</span>
               </label>
