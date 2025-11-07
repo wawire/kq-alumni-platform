@@ -306,8 +306,16 @@ namespace KQAlumni.Infrastructure.Data.Migrations
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
 
-                    b.Property<string>("StaffNumber")
+                    b.Property<string>("IdNumber")
                         .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<string>("PassportNumber")
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<string>("StaffNumber")
                         .HasMaxLength(7)
                         .HasColumnType("varchar(7)");
 
@@ -333,6 +341,9 @@ namespace KQAlumni.Infrastructure.Data.Migrations
                     b.HasIndex("ErpValidated")
                         .HasDatabaseName("IX_AlumniRegistrations_ErpValidated");
 
+                    b.HasIndex("IdNumber")
+                        .HasDatabaseName("IX_AlumniRegistrations_IdNumber");
+
                     b.HasIndex("LinkedInProfile")
                         .IsUnique()
                         .HasDatabaseName("UQ_AlumniRegistrations_LinkedIn")
@@ -343,7 +354,8 @@ namespace KQAlumni.Infrastructure.Data.Migrations
 
                     b.HasIndex("StaffNumber")
                         .IsUnique()
-                        .HasDatabaseName("UQ_AlumniRegistrations_StaffNumber");
+                        .HasDatabaseName("UQ_AlumniRegistrations_StaffNumber")
+                        .HasFilter("[StaffNumber] IS NOT NULL");
 
                     b.HasIndex("ErpValidated", "RegistrationStatus")
                         .HasDatabaseName("IX_AlumniRegistrations_Validated_Status");
