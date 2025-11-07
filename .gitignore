@@ -5,7 +5,6 @@
 # Sensitive configuration files - DO NOT COMMIT
 CONFIG_DEV_SERVER.md
 appsettings.Production.json
-appsettings.Development.json
 **/Properties/launchSettings.json
 .env.production.local
 .env.development.local
