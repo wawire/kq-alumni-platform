@@ -559,13 +559,21 @@ if (app.Environment.IsDevelopment() && isDatabaseAvailable)
 
     try
     {
-        var templateService = scope.ServiceProvider.GetRequiredService<KQAlumni.Core.Interfaces.IEmailTemplateService>();
+        using var templateScope = app.Services.CreateScope();
+        var templateService = templateScope.ServiceProvider.GetRequiredService<KQAlumni.Core.Interfaces.IEmailTemplateService>();
+
+        Console.WriteLine("Starting email template seeding...");
         await templateService.SeedDefaultTemplatesAsync();
         Console.WriteLine("[SUCCESS] Email templates seeded successfully");
     }
     catch (Exception ex)
     {
         Console.WriteLine($"[ERROR] Email template seeding failed: {ex.Message}");
+        Console.WriteLine($"[ERROR] Stack trace: {ex.StackTrace}");
+        if (ex.InnerException != null)
+        {
+            Console.WriteLine($"[ERROR] Inner exception: {ex.InnerException.Message}");
+        }
         app.Logger.LogError(ex, "Failed to seed email templates");
     }
 
