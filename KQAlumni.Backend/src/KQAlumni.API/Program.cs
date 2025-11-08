@@ -551,6 +551,26 @@ if (app.Environment.IsDevelopment() && isDatabaseAvailable)
 
     Console.WriteLine("═══════════════════════════════════════════════════════");
     Console.WriteLine();
+
+    // SEED EMAIL TEMPLATES
+    Console.WriteLine("═══════════════════════════════════════════════════════");
+    Console.WriteLine("EMAIL TEMPLATE SEEDING");
+    Console.WriteLine("═══════════════════════════════════════════════════════");
+
+    try
+    {
+        var templateService = scope.ServiceProvider.GetRequiredService<KQAlumni.Core.Interfaces.IEmailTemplateService>();
+        await templateService.SeedDefaultTemplatesAsync();
+        Console.WriteLine("[SUCCESS] Email templates seeded successfully");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"[ERROR] Email template seeding failed: {ex.Message}");
+        app.Logger.LogError(ex, "Failed to seed email templates");
+    }
+
+    Console.WriteLine("═══════════════════════════════════════════════════════");
+    Console.WriteLine();
 }
 
 // 12. SCHEDULE HANGFIRE JOBS

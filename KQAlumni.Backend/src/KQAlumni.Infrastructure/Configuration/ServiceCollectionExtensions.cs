@@ -71,6 +71,7 @@ public static class ServiceCollectionExtensions
     services.AddScoped<ITokenService, TokenService>();
     services.AddScoped<IAuthService, AuthService>();
     services.AddScoped<IAdminRegistrationService, AdminRegistrationService>();
+    services.AddScoped<IEmailTemplateService, EmailTemplateService>();
 
     // ========================================
     // ERP Service with HttpClient + Polly Resilience
