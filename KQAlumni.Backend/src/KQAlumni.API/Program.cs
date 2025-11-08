@@ -487,9 +487,9 @@ if (app.Environment.IsDevelopment())
     }).WithTags("Test");
 }
 
-// 11. MIGRATIONS
+// 11. MIGRATIONS & SEEDING (Production-Ready - Works in ALL Environments)
 
-if (app.Environment.IsDevelopment() && isDatabaseAvailable)
+if (isDatabaseAvailable)
 {
     Console.WriteLine("═══════════════════════════════════════════════════════");
     Console.WriteLine("DATABASE MIGRATIONS");
@@ -547,6 +547,60 @@ if (app.Environment.IsDevelopment() && isDatabaseAvailable)
     {
         Console.WriteLine($"[ERROR] Admin seeding failed: {ex.Message}");
         app.Logger.LogError(ex, "Failed to seed admin users");
+    }
+
+    Console.WriteLine("═══════════════════════════════════════════════════════");
+    Console.WriteLine();
+
+    // VERIFY EMAIL TEMPLATES (Migration seeds them, this verifies)
+    Console.WriteLine("═══════════════════════════════════════════════════════");
+    Console.WriteLine("EMAIL TEMPLATE VERIFICATION");
+    Console.WriteLine("═══════════════════════════════════════════════════════");
+
+    try
+    {
+        using var templateScope = app.Services.CreateScope();
+        var templateService = templateScope.ServiceProvider.GetRequiredService<KQAlumni.Core.Interfaces.IEmailTemplateService>();
+
+        var existingTemplates = await templateService.GetAllTemplatesAsync();
+        Console.WriteLine($"Found {existingTemplates.Count} email template(s) in database");
+
+        if (existingTemplates.Count == 0)
+        {
+            Console.WriteLine("[WARNING] No templates found - attempting to seed...");
+            Console.WriteLine("NOTE: Templates should be seeded by migration automatically");
+            await templateService.SeedDefaultTemplatesAsync();
+
+            var recheck = await templateService.GetAllTemplatesAsync();
+            if (recheck.Count > 0)
+            {
+                Console.WriteLine($"[SUCCESS] Seeded {recheck.Count} email template(s)");
+            }
+            else
+            {
+                Console.WriteLine("[ERROR] Seeding failed - no templates created");
+            }
+        }
+        else
+        {
+            Console.WriteLine("[SUCCESS] Email templates verified:");
+            foreach (var template in existingTemplates.OrderBy(t => t.TemplateKey))
+            {
+                var status = template.IsActive ? "Active" : "Inactive";
+                var systemDefault = template.IsSystemDefault ? "[System]" : "";
+                Console.WriteLine($"  ✓ {template.TemplateKey}: {template.Name} ({status}) {systemDefault}");
+            }
+        }
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"[ERROR] Email template verification failed: {ex.Message}");
+        Console.WriteLine($"[ERROR] Stack trace: {ex.StackTrace}");
+        if (ex.InnerException != null)
+        {
+            Console.WriteLine($"[ERROR] Inner exception: {ex.InnerException.Message}");
+        }
+        app.Logger.LogError(ex, "Failed to verify email templates");
     }
 
     Console.WriteLine("═══════════════════════════════════════════════════════");

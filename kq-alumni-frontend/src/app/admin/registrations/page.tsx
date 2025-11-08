@@ -29,8 +29,9 @@ import { BulkActions } from '@/components/admin/BulkActions';
 import { RegistrationsFilters } from '@/components/admin/RegistrationsFilters';
 import { RegistrationPreviewModal } from '@/components/admin/RegistrationPreviewModal';
 import { Button } from '@/components/ui/button/Button';
-import { useAdminRegistrations, useApproveRegistration, useRejectRegistration } from '@/lib/api/services/adminService';
+import { useAdminRegistrations, useApproveRegistration, useRejectRegistration, useBulkApprove, useBulkReject } from '@/lib/api/services/adminService';
 import type { RegistrationStatus, RegistrationFilters, SortableColumn, SortOrder, AdminRegistration } from '@/types/admin';
+import { toast } from 'sonner';
 
 // ============================================
 // Sortable Header Component
@@ -164,6 +165,8 @@ function RegistrationsPageContent() {
   const { data, isLoading, error } = useAdminRegistrations(filters);
   const approveMutation = useApproveRegistration();
   const rejectMutation = useRejectRegistration();
+  const bulkApproveMutation = useBulkApprove();
+  const bulkRejectMutation = useBulkReject();
 
   const handlePageChange = (page: number) => {
     setFilters((prev) => ({ ...prev, pageNumber: page }));
@@ -207,14 +210,69 @@ function RegistrationsPageContent() {
   };
 
   const handleBulkApprove = async (ids: string[]) => {
-    for (const id of ids) {
-      await approveMutation.mutateAsync({ id, data: { notes: 'Bulk approved' } });
+    toast.loading(`Approving ${ids.length} registration(s)...`, { id: 'bulk-approve-toast' });
+
+    try {
+      const result = await bulkApproveMutation.mutateAsync({
+        registrationIds: ids,
+        notes: 'Bulk approved from registrations list',
+      });
+
+      // Show success message with details
+      if (result.successCount === ids.length) {
+        toast.success('All registrations approved successfully!', {
+          id: 'bulk-approve-toast',
+          description: `${result.successCount} registration(s) approved. Approval emails sent.`,
+          duration: 5000,
+        });
+      } else {
+        toast.warning('Bulk approval completed with some failures', {
+          id: 'bulk-approve-toast',
+          description: `${result.successCount} succeeded, ${result.failureCount} failed. Check individual results.`,
+          duration: 7000,
+        });
+      }
+    } catch (error) {
+      toast.error('Failed to approve registrations', {
+        id: 'bulk-approve-toast',
+        description: (error as Error)?.message || 'Please try again later.',
+        duration: 5000,
+      });
+      throw error; // Re-throw to let BulkActions component handle it
     }
   };
 
   const handleBulkReject = async (ids: string[], reason: string) => {
-    for (const id of ids) {
-      await rejectMutation.mutateAsync({ id, data: { reason } });
+    toast.loading(`Rejecting ${ids.length} registration(s)...`, { id: 'bulk-reject-toast' });
+
+    try {
+      const result = await bulkRejectMutation.mutateAsync({
+        registrationIds: ids,
+        reason,
+        notes: 'Bulk rejected from registrations list',
+      });
+
+      // Show success message with details
+      if (result.successCount === ids.length) {
+        toast.success('All registrations rejected successfully!', {
+          id: 'bulk-reject-toast',
+          description: `${result.successCount} registration(s) rejected. Rejection emails sent.`,
+          duration: 5000,
+        });
+      } else {
+        toast.warning('Bulk rejection completed with some failures', {
+          id: 'bulk-reject-toast',
+          description: `${result.successCount} succeeded, ${result.failureCount} failed. Check individual results.`,
+          duration: 7000,
+        });
+      }
+    } catch (error) {
+      toast.error('Failed to reject registrations', {
+        id: 'bulk-reject-toast',
+        description: (error as Error)?.message || 'Please try again later.',
+        duration: 5000,
+      });
+      throw error; // Re-throw to let BulkActions component handle it
     }
   };
 

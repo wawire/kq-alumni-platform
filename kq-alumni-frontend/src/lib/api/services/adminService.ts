@@ -206,6 +206,32 @@ export function useAdminRegistrations(filters?: RegistrationFilters) {
         params.append('pageSize', filters.pageSize.toString());
       }
 
+      // Advanced filters
+      if (filters?.department) {
+        params.append('department', filters.department);
+      }
+      if (filters?.exitDateFrom) {
+        params.append('exitDateFrom', filters.exitDateFrom);
+      }
+      if (filters?.exitDateTo) {
+        params.append('exitDateTo', filters.exitDateTo);
+      }
+      if (filters?.country) {
+        params.append('country', filters.country);
+      }
+      if (filters?.city) {
+        params.append('city', filters.city);
+      }
+      if (filters?.industry) {
+        params.append('industry', filters.industry);
+      }
+      if (filters?.erpValidated !== undefined) {
+        params.append('erpValidated', filters.erpValidated.toString());
+      }
+      if (filters?.registrationYear) {
+        params.append('registrationYear', filters.registrationYear.toString());
+      }
+
       const response = await adminApi.get<PaginatedRegistrations>(
         `/admin/registrations?${params.toString()}`
       );
@@ -319,6 +345,58 @@ export function useRejectRegistration() {
 }
 
 /**
+ * Bulk approve multiple registrations
+ */
+export function useBulkApprove() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (data: import('@/types/admin').BulkApproveRequest) => {
+      const response = await adminApi.post<import('@/types/admin').BulkOperationResponse>(
+        '/admin/registrations/bulk-approve',
+        data
+      );
+      return response.data;
+    },
+    onSuccess: () => {
+      // Invalidate all registration queries
+      queryClient.invalidateQueries({
+        queryKey: adminQueryKeys.registrations.all,
+      });
+      queryClient.invalidateQueries({
+        queryKey: adminQueryKeys.dashboard.stats(),
+      });
+    },
+  });
+}
+
+/**
+ * Bulk reject multiple registrations
+ */
+export function useBulkReject() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (data: import('@/types/admin').BulkRejectRequest) => {
+      const response = await adminApi.post<import('@/types/admin').BulkOperationResponse>(
+        '/admin/registrations/bulk-reject',
+        data
+      );
+      return response.data;
+    },
+    onSuccess: () => {
+      // Invalidate all registration queries
+      queryClient.invalidateQueries({
+        queryKey: adminQueryKeys.registrations.all,
+      });
+      queryClient.invalidateQueries({
+        queryKey: adminQueryKeys.dashboard.stats(),
+      });
+    },
+  });
+}
+
+/**
  * Get audit logs for a registration
  */
 export function useRegistrationAuditLogs(id: string) {
@@ -332,6 +410,50 @@ export function useRegistrationAuditLogs(id: string) {
     },
     enabled: Boolean(id),
     staleTime: 60 * 1000, // 1 minute
+  });
+}
+
+/**
+ * Resend verification email mutation
+ */
+export function useResendVerificationEmail() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const response = await adminApi.post<ActionResponse>(
+        `/admin/registrations/${id}/resend-verification`
+      );
+      return response.data;
+    },
+    onSuccess: (_, id) => {
+      // Invalidate audit logs to show new resend action
+      queryClient.invalidateQueries({
+        queryKey: adminQueryKeys.registrations.auditLogs(id),
+      });
+    },
+  });
+}
+
+/**
+ * Resend approval email mutation
+ */
+export function useResendApprovalEmail() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const response = await adminApi.post<ActionResponse>(
+        `/admin/registrations/${id}/resend-approval`
+      );
+      return response.data;
+    },
+    onSuccess: (_, id) => {
+      // Invalidate audit logs to show new resend action
+      queryClient.invalidateQueries({
+        queryKey: adminQueryKeys.registrations.auditLogs(id),
+      });
+    },
   });
 }
 

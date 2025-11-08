@@ -43,6 +43,14 @@ public class AdminRegistrationsController : ControllerBase
     /// <param name="sortOrder">Sort order (asc, desc)</param>
     /// <param name="pageNumber">Page number (1-based)</param>
     /// <param name="pageSize">Page size (max 100)</param>
+    /// <param name="department">Filter by department from ERP</param>
+    /// <param name="exitDateFrom">Filter by exit date from</param>
+    /// <param name="exitDateTo">Filter by exit date to</param>
+    /// <param name="country">Filter by current country</param>
+    /// <param name="city">Filter by current city</param>
+    /// <param name="industry">Filter by industry</param>
+    /// <param name="erpValidated">Filter by ERP validation status</param>
+    /// <param name="registrationYear">Filter by registration year</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Paginated list of registrations</returns>
     [HttpGet]
@@ -60,6 +68,14 @@ public class AdminRegistrationsController : ControllerBase
         [FromQuery] string? sortOrder = null,
         [FromQuery] int pageNumber = 1,
         [FromQuery] int pageSize = 50,
+        [FromQuery] string? department = null,
+        [FromQuery] string? exitDateFrom = null,
+        [FromQuery] string? exitDateTo = null,
+        [FromQuery] string? country = null,
+        [FromQuery] string? city = null,
+        [FromQuery] string? industry = null,
+        [FromQuery] bool? erpValidated = null,
+        [FromQuery] int? registrationYear = null,
         CancellationToken cancellationToken = default)
     {
         try
@@ -71,6 +87,8 @@ public class AdminRegistrationsController : ControllerBase
             // Parse dates if provided
             DateTime? parsedDateFrom = null;
             DateTime? parsedDateTo = null;
+            DateTime? parsedExitDateFrom = null;
+            DateTime? parsedExitDateTo = null;
 
             if (!string.IsNullOrEmpty(dateFrom) && DateTime.TryParse(dateFrom, out var from))
             {
@@ -80,6 +98,16 @@ public class AdminRegistrationsController : ControllerBase
             if (!string.IsNullOrEmpty(dateTo) && DateTime.TryParse(dateTo, out var to))
             {
                 parsedDateTo = to.AddDays(1).AddSeconds(-1); // Include full day
+            }
+
+            if (!string.IsNullOrEmpty(exitDateFrom) && DateTime.TryParse(exitDateFrom, out var exitFrom))
+            {
+                parsedExitDateFrom = exitFrom;
+            }
+
+            if (!string.IsNullOrEmpty(exitDateTo) && DateTime.TryParse(exitDateTo, out var exitTo))
+            {
+                parsedExitDateTo = exitTo.AddDays(1).AddSeconds(-1); // Include full day
             }
 
             var (registrations, totalCount) = await _adminRegistrationService.GetRegistrationsAsync(
@@ -93,6 +121,14 @@ public class AdminRegistrationsController : ControllerBase
                 sortOrder,
                 pageNumber,
                 pageSize,
+                department,
+                parsedExitDateFrom,
+                parsedExitDateTo,
+                country,
+                city,
+                industry,
+                erpValidated,
+                registrationYear,
                 cancellationToken);
 
             var response = new
@@ -348,4 +384,325 @@ public class AdminRegistrationsController : ControllerBase
             return StatusCode(500);
         }
     }
+
+    /// <summary>
+    /// Resend verification email for a registration
+    /// </summary>
+    /// <param name="id">Registration ID</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Success status</returns>
+    [HttpPost("{id}/resend-verification")]
+    [Authorize(Policy = "HRManager")] // Only HRManager and SuperAdmin can resend
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult> ResendVerificationEmail(
+        [FromRoute] Guid id,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var registration = await _registrationService.GetRegistrationByIdAsync(id, cancellationToken);
+
+            if (registration == null)
+            {
+                return NotFound(new ErrorResponse
+                {
+                    Type = "https://tools.ietf.org/html/rfc7231#section-6.5.4",
+                    Title = "Not found",
+                    Status = StatusCodes.Status404NotFound,
+                    Detail = $"Registration {id} not found"
+                });
+            }
+
+            // Only resend for approved registrations
+            if (registration.RegistrationStatus != "Approved")
+            {
+                return BadRequest(new ErrorResponse
+                {
+                    Type = "https://tools.ietf.org/html/rfc7231#section-6.5.1",
+                    Title = "Invalid request",
+                    Status = StatusCodes.Status400BadRequest,
+                    Detail = "Can only resend verification email for approved registrations"
+                });
+            }
+
+            // Resend the verification email
+            var emailSent = await _registrationService.ResendVerificationEmailAsync(id, cancellationToken);
+
+            if (!emailSent)
+            {
+                return StatusCode(500, new ErrorResponse
+                {
+                    Type = "https://tools.ietf.org/html/rfc7231#section-6.6.1",
+                    Title = "Email service error",
+                    Status = StatusCodes.Status500InternalServerError,
+                    Detail = "Failed to send verification email"
+                });
+            }
+
+            _logger.LogInformation(
+                "Verification email resent for registration {RegistrationId} by {AdminUsername}",
+                id, User.Identity?.Name);
+
+            return Ok(new { message = "Verification email sent successfully" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error resending verification email for registration {RegistrationId}", id);
+            return StatusCode(500);
+        }
+    }
+
+    /// <summary>
+    /// Resend approval notification email
+    /// </summary>
+    /// <param name="id">Registration ID</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Success status</returns>
+    [HttpPost("{id}/resend-approval")]
+    [Authorize(Policy = "HRManager")] // Only HRManager and SuperAdmin can resend
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult> ResendApprovalEmail(
+        [FromRoute] Guid id,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var registration = await _registrationService.GetRegistrationByIdAsync(id, cancellationToken);
+
+            if (registration == null)
+            {
+                return NotFound(new ErrorResponse
+                {
+                    Type = "https://tools.ietf.org/html/rfc7231#section-6.5.4",
+                    Title = "Not found",
+                    Status = StatusCodes.Status404NotFound,
+                    Detail = $"Registration {id} not found"
+                });
+            }
+
+            // Only resend for approved registrations
+            if (registration.RegistrationStatus != "Approved")
+            {
+                return BadRequest(new ErrorResponse
+                {
+                    Type = "https://tools.ietf.org/html/rfc7231#section-6.5.1",
+                    Title = "Invalid request",
+                    Status = StatusCodes.Status400BadRequest,
+                    Detail = "Can only resend approval notification for approved registrations"
+                });
+            }
+
+            // Resend the approval email
+            var emailSent = await _registrationService.ResendVerificationEmailAsync(id, cancellationToken);
+
+            if (!emailSent)
+            {
+                return StatusCode(500, new ErrorResponse
+                {
+                    Type = "https://tools.ietf.org/html/rfc7231#section-6.6.1",
+                    Title = "Email service error",
+                    Status = StatusCodes.Status500InternalServerError,
+                    Detail = "Failed to send approval notification"
+                });
+            }
+
+            _logger.LogInformation(
+                "Approval notification resent for registration {RegistrationId} by {AdminUsername}",
+                id, User.Identity?.Name);
+
+            return Ok(new { message = "Approval notification sent successfully" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error resending approval notification for registration {RegistrationId}", id);
+            return StatusCode(500);
+        }
+    }
+
+    /// <summary>
+    /// Bulk approve multiple registrations
+    /// </summary>
+    /// <param name="request">Bulk approval request with registration IDs</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Bulk operation results</returns>
+    [HttpPost("bulk-approve")]
+    [Authorize(Policy = "HRManager")] // Only HRManager and SuperAdmin
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult> BulkApprove(
+        [FromBody] BulkApproveRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            if (request.RegistrationIds == null || request.RegistrationIds.Count == 0)
+            {
+                return BadRequest(new ErrorResponse
+                {
+                    Type = "https://tools.ietf.org/html/rfc7231#section-6.5.1",
+                    Title = "Invalid request",
+                    Status = StatusCodes.Status400BadRequest,
+                    Detail = "At least one registration ID must be provided"
+                });
+            }
+
+            if (request.RegistrationIds.Count > 100)
+            {
+                return BadRequest(new ErrorResponse
+                {
+                    Type = "https://tools.ietf.org/html/rfc7231#section-6.5.1",
+                    Title = "Invalid request",
+                    Status = StatusCodes.Status400BadRequest,
+                    Detail = "Maximum 100 registrations can be approved at once"
+                });
+            }
+
+            // Get admin user info from claims
+            var adminUsername = User.Identity?.Name ?? "Unknown";
+            var adminUserIdClaim = User.FindFirst("userId")?.Value;
+            if (!int.TryParse(adminUserIdClaim, out var adminUserId))
+            {
+                adminUserId = 0;
+            }
+
+            var (successCount, failureCount, results) = await _adminRegistrationService.BulkApproveRegistrationsAsync(
+                request.RegistrationIds,
+                adminUserId,
+                adminUsername,
+                request.Notes,
+                cancellationToken);
+
+            _logger.LogInformation(
+                "Bulk approve completed by {AdminUsername}. Success: {SuccessCount}, Failed: {FailureCount}",
+                adminUsername, successCount, failureCount);
+
+            return Ok(new
+            {
+                message = $"Bulk approval completed: {successCount} succeeded, {failureCount} failed",
+                successCount,
+                failureCount,
+                results
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error during bulk approval");
+            return StatusCode(500);
+        }
+    }
+
+    /// <summary>
+    /// Bulk reject multiple registrations
+    /// </summary>
+    /// <param name="request">Bulk rejection request with registration IDs and reason</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Bulk operation results</returns>
+    [HttpPost("bulk-reject")]
+    [Authorize(Policy = "HRManager")] // Only HRManager and SuperAdmin
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult> BulkReject(
+        [FromBody] BulkRejectRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            if (request.RegistrationIds == null || request.RegistrationIds.Count == 0)
+            {
+                return BadRequest(new ErrorResponse
+                {
+                    Type = "https://tools.ietf.org/html/rfc7231#section-6.5.1",
+                    Title = "Invalid request",
+                    Status = StatusCodes.Status400BadRequest,
+                    Detail = "At least one registration ID must be provided"
+                });
+            }
+
+            if (request.RegistrationIds.Count > 100)
+            {
+                return BadRequest(new ErrorResponse
+                {
+                    Type = "https://tools.ietf.org/html/rfc7231#section-6.5.1",
+                    Title = "Invalid request",
+                    Status = StatusCodes.Status400BadRequest,
+                    Detail = "Maximum 100 registrations can be rejected at once"
+                });
+            }
+
+            if (string.IsNullOrWhiteSpace(request.Reason))
+            {
+                return BadRequest(new ErrorResponse
+                {
+                    Type = "https://tools.ietf.org/html/rfc7231#section-6.5.1",
+                    Title = "Invalid request",
+                    Status = StatusCodes.Status400BadRequest,
+                    Detail = "Rejection reason is required for bulk rejection"
+                });
+            }
+
+            // Get admin user info from claims
+            var adminUsername = User.Identity?.Name ?? "Unknown";
+            var adminUserIdClaim = User.FindFirst("userId")?.Value;
+            if (!int.TryParse(adminUserIdClaim, out var adminUserId))
+            {
+                adminUserId = 0;
+            }
+
+            var (successCount, failureCount, results) = await _adminRegistrationService.BulkRejectRegistrationsAsync(
+                request.RegistrationIds,
+                adminUserId,
+                adminUsername,
+                request.Reason,
+                request.Notes,
+                cancellationToken);
+
+            _logger.LogInformation(
+                "Bulk reject completed by {AdminUsername}. Success: {SuccessCount}, Failed: {FailureCount}",
+                adminUsername, successCount, failureCount);
+
+            return Ok(new
+            {
+                message = $"Bulk rejection completed: {successCount} succeeded, {failureCount} failed",
+                successCount,
+                failureCount,
+                results
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error during bulk rejection");
+            return StatusCode(500);
+        }
+    }
+}
+
+/// <summary>
+/// Bulk approve request DTO
+/// </summary>
+public class BulkApproveRequest
+{
+    public List<Guid> RegistrationIds { get; set; } = new();
+    public string? Notes { get; set; }
+}
+
+/// <summary>
+/// Bulk reject request DTO
+/// </summary>
+public class BulkRejectRequest
+{
+    public List<Guid> RegistrationIds { get; set; } = new();
+    public string Reason { get; set; } = string.Empty;
+    public string? Notes { get; set; }
 }

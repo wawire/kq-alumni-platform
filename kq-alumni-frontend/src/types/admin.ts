@@ -123,6 +123,15 @@ export interface RegistrationFilters {
   sortOrder?: SortOrder;
   pageNumber?: number;
   pageSize?: number;
+  // Advanced filters
+  department?: string;
+  exitDateFrom?: string;
+  exitDateTo?: string;
+  country?: string;
+  city?: string;
+  industry?: string;
+  erpValidated?: boolean;
+  registrationYear?: number;
 }
 
 // ============================================
@@ -175,6 +184,30 @@ export interface ApproveRegistrationRequest {
 export interface RejectRegistrationRequest {
   reason: string;
   notes?: string;
+}
+
+export interface BulkApproveRequest {
+  registrationIds: string[];
+  notes?: string;
+}
+
+export interface BulkRejectRequest {
+  registrationIds: string[];
+  reason: string;
+  notes?: string;
+}
+
+export interface BulkOperationResult {
+  registrationId: string;
+  success: boolean;
+  errorMessage?: string;
+}
+
+export interface BulkOperationResponse {
+  message: string;
+  successCount: number;
+  failureCount: number;
+  results: BulkOperationResult[];
 }
 
 // ============================================

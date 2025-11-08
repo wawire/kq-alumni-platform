@@ -37,6 +37,11 @@ public class AppDbContext : DbContext
         /// </summary>
         public DbSet<EmailLog> EmailLogs { get; set; } = null!;
 
+        /// <summary>
+        /// Email templates table (customizable email templates)
+        /// </summary>
+        public DbSet<EmailTemplate> EmailTemplates { get; set; } = null!;
+
         // ========================================
         // Model Configuration
         // ========================================
@@ -364,6 +369,41 @@ public class AppDbContext : DbContext
                         entity.Property(e => e.SentAt).HasDefaultValueSql("GETUTCDATE()");
                         entity.Property(e => e.RetryCount).HasDefaultValue(0);
                 });
+
+                // ========================================
+                // Configure EmailTemplate entity
+                // ========================================
+                modelBuilder.Entity<EmailTemplate>(entity =>
+                {
+                        entity.ToTable("EmailTemplates");
+
+                        entity.HasKey(e => e.Id);
+
+                        // TemplateKey must be unique
+                        entity.HasIndex(e => e.TemplateKey)
+                            .IsUnique()
+                            .HasDatabaseName("UQ_EmailTemplates_TemplateKey");
+
+                        // Index on IsActive for filtering active templates
+                        entity.HasIndex(e => e.IsActive)
+                            .HasDatabaseName("IX_EmailTemplates_IsActive");
+
+                        // Composite index: TemplateKey + IsActive for quick active template lookups
+                        entity.HasIndex(e => new { e.TemplateKey, e.IsActive })
+                            .HasDatabaseName("IX_EmailTemplates_TemplateKey_IsActive");
+
+                        // Required fields
+                        entity.Property(e => e.TemplateKey).IsRequired();
+                        entity.Property(e => e.Name).IsRequired();
+                        entity.Property(e => e.Subject).IsRequired();
+                        entity.Property(e => e.HtmlBody).IsRequired();
+
+                        // Default values
+                        entity.Property(e => e.IsActive).HasDefaultValue(true);
+                        entity.Property(e => e.IsSystemDefault).HasDefaultValue(false);
+                        entity.Property(e => e.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
+                        entity.Property(e => e.UpdatedAt).HasDefaultValueSql("GETUTCDATE()");
+                });
         }
 
         // ========================================
@@ -387,13 +427,28 @@ public class AppDbContext : DbContext
         /// </summary>
         private void UpdateTimestamps()
         {
-                var entries = ChangeTracker.Entries()
+                var alumniEntries = ChangeTracker.Entries()
                     .Where(e => e.Entity is AlumniRegistration &&
                                (e.State == EntityState.Added || e.State == EntityState.Modified));
 
-                foreach (var entry in entries)
+                foreach (var entry in alumniEntries)
                 {
                         var entity = (AlumniRegistration)entry.Entity;
+                        entity.UpdatedAt = DateTime.UtcNow;
+
+                        if (entry.State == EntityState.Added && entity.CreatedAt == default)
+                        {
+                                entity.CreatedAt = DateTime.UtcNow;
+                        }
+                }
+
+                var templateEntries = ChangeTracker.Entries()
+                    .Where(e => e.Entity is EmailTemplate &&
+                               (e.State == EntityState.Added || e.State == EntityState.Modified));
+
+                foreach (var entry in templateEntries)
+                {
+                        var entity = (EmailTemplate)entry.Entity;
                         entity.UpdatedAt = DateTime.UtcNow;
 
                         if (entry.State == EntityState.Added && entity.CreatedAt == default)
