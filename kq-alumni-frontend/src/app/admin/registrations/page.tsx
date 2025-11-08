@@ -224,24 +224,71 @@ function RegistrationsPageContent() {
     }
 
     const selectedRegistrations = data.data.filter((reg) => ids.includes(reg.id));
-    const csvContent = [
-      ['Staff Number', 'Full Name', 'Email', 'Status', 'Created Date'].join(','),
-      ...selectedRegistrations.map((reg) =>
-        [
-          reg.staffNumber,
-          `"${reg.fullName}"`,
-          reg.email,
-          reg.registrationStatus,
-          new Date(reg.createdAt).toLocaleDateString(),
-        ].join(',')
-      ),
-    ].join('\n');
 
-    const blob = new Blob([csvContent], { type: 'text/csv' });
+    // Excel-friendly CSV with comprehensive data
+    const headers = [
+      'Registration Number',
+      'Staff Number',
+      'Full Name',
+      'ID Number',
+      'Passport Number',
+      'Email',
+      'Mobile Number',
+      'LinkedIn Profile',
+      'Current Country',
+      'Current City',
+      'Qualifications',
+      'Engagement Preferences',
+      'Registration Status',
+      'Email Verified',
+      'Requires Manual Review',
+      'ERP Validated',
+      'ERP Staff Name',
+      'ERP Department',
+      'Rejection Reason',
+      'Created Date',
+      'Created Time',
+      'Last Updated',
+    ];
+
+    const rows = selectedRegistrations.map((reg) => {
+      const createdDate = new Date(reg.createdAt);
+      const updatedDate = new Date(reg.updatedAt);
+
+      return [
+        reg.registrationNumber || '',
+        reg.staffNumber || '',
+        `"${reg.fullName}"`,
+        reg.idNumber || '',
+        reg.passportNumber || '',
+        reg.email || '',
+        reg.mobileNumber ? `${reg.mobileCountryCode}${reg.mobileNumber}` : '',
+        reg.linkedInProfile || '',
+        reg.currentCountry || '',
+        reg.currentCity || '',
+        `"${reg.qualificationsAttained?.replace(/"/g, '""') || ''}"`,
+        `"${reg.engagementPreferences?.replace(/"/g, '""') || ''}"`,
+        reg.registrationStatus || '',
+        reg.emailVerified ? 'Yes' : 'No',
+        reg.requiresManualReview ? 'Yes' : 'No',
+        reg.erpValidated ? 'Yes' : 'No',
+        reg.erpStaffName || '',
+        reg.erpDepartment || '',
+        reg.rejectionReason ? `"${reg.rejectionReason.replace(/"/g, '""')}"` : '',
+        createdDate.toLocaleDateString(),
+        createdDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        updatedDate.toLocaleString(),
+      ].join(',');
+    });
+
+    // Add BOM for proper Excel UTF-8 encoding
+    const csvContent = '\uFEFF' + [headers.join(','), ...rows].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `registrations-${new Date().toISOString().split('T')[0]}.csv`;
+    a.download = `registrations-export-${new Date().toISOString().split('T')[0]}.csv`;
     a.click();
     window.URL.revokeObjectURL(url);
   };
