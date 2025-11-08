@@ -198,10 +198,10 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
 
         // Auto-populate fields from ERP
         if (result.fullName) {
-          setValue("fullName", result.fullName);
+          setValue("fullName", result.fullName, { shouldValidate: true });
         }
         if (result.staffNumber) {
-          setValue("staffNumber", result.staffNumber);
+          setValue("staffNumber", result.staffNumber, { shouldValidate: true });
         }
 
         setVerificationError("");
@@ -259,9 +259,9 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
     const country = Country.getCountryByCode(option.value);
     if (country) {
       setSelectedCountryCode(country.isoCode);
-      setValue("currentCountry", country.name);
-      setValue("currentCountryCode", country.isoCode);
-      setValue("currentCity", "");
+      setValue("currentCountry", country.name, { shouldValidate: true });
+      setValue("currentCountryCode", country.isoCode, { shouldValidate: true });
+      setValue("currentCity", "", { shouldValidate: true });
 
       // Note: Mobile country code is NOT updated here
       // Phone number country code is independent from current location
@@ -273,8 +273,8 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
     country: PhoneCountryData,
   ): void => {
     setPhoneValue(value);
-    setValue("mobileNumber", value);
-    setValue("mobileCountryCode", `+${country.dialCode}`);
+    setValue("mobileNumber", value, { shouldValidate: true });
+    setValue("mobileCountryCode", `+${country.dialCode}`, { shouldValidate: true });
 
     // Note: Current location is NOT updated here
     // You can live in Japan and have a Kenyan phone number
@@ -334,7 +334,7 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
               variant="underline"
               onChange={(e) => {
                 const cleaned = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
-                setValue("idNumber", cleaned);
+                setValue("idNumber", cleaned, { shouldValidate: true });
               }}
               style={{ textTransform: "uppercase" }}
               className="uppercase"
