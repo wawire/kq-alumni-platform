@@ -39,6 +39,8 @@ export interface RegistrationFormData {
   professionalCertifications?: string;
   engagementPreferences: string[];
   consentGiven: boolean;
+  requiresManualReview?: boolean; // Flag when ERP verification is unavailable
+  manualReviewReason?: string; // Reason for manual review
 }
 
 export default function RegistrationForm() {

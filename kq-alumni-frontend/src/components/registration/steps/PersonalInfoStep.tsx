@@ -102,6 +102,7 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
   const [verificationStatus, setVerificationStatus] = useState<VerificationStatus>('idle');
   const [erpData, setErpData] = useState<ErpVerificationData | null>(null);
   const [verificationError, setVerificationError] = useState<string>("");
+  const [allowManualMode, setAllowManualMode] = useState<boolean>(false); // Fallback mode when ERP is unavailable
 
   const methods = useForm<PersonalInfoFormData>({
     resolver: zodResolver(personalInfoSchema),
@@ -213,7 +214,7 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
       }
     } catch (error) {
       setVerificationStatus('failed');
-      setVerificationError('Unable to verify ID/Passport. Please try again.');
+      setVerificationError('Unable to verify ID/Passport. This may be due to a system issue. You can continue with manual review.');
       setErpData(null);
     }
   };
@@ -283,39 +284,30 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
   };
 
   const onSubmit = (formData: PersonalInfoFormData): void => {
-    // Don't submit if duplicates found or ID not verified
+    // Don't submit if duplicates found
     if (emailCheck.isDuplicate) {
       return;
     }
 
-    if (verificationStatus !== 'verified') {
-      setVerificationError('Please wait for ID verification to complete');
+    // Check verification status - allow manual mode as fallback
+    if (verificationStatus !== 'verified' && !allowManualMode) {
+      setVerificationError('Please wait for ID verification to complete or click "Continue with Manual Review"');
       return;
     }
 
-    // Include ERP data in submission
+    // Include ERP data in submission (if available) or flag for manual review
     onNext({
       ...formData,
       staffNumber: erpData?.staffNumber || formData.staffNumber,
       fullName: erpData?.fullName || formData.fullName,
+      requiresManualReview: allowManualMode, // Flag for backend to set RequiresManualReview
+      manualReviewReason: allowManualMode ? 'ERP verification unavailable - submitted via manual mode' : undefined,
     });
   };
 
   // Check if form has any validation errors
   const hasErrors = Object.keys(errors).length > 0;
-  const canProceed = verificationStatus === 'verified' && !emailCheck.isDuplicate && !hasErrors;
-
-  // Debug logging - check what's blocking the button
-  useEffect(() => {
-    console.log('=== CONTINUE BUTTON DEBUG ===');
-    console.log('canProceed:', canProceed);
-    console.log('verificationStatus:', verificationStatus);
-    console.log('emailCheck.isDuplicate:', emailCheck.isDuplicate);
-    console.log('hasErrors:', hasErrors);
-    console.log('errors:', errors);
-    console.log('Form values:', watch());
-    console.log('===========================');
-  }, [verificationStatus, emailCheck.isDuplicate, hasErrors, errors, canProceed]); // eslint-disable-line react-hooks/exhaustive-deps
+  const canProceed = (verificationStatus === 'verified' || allowManualMode) && !emailCheck.isDuplicate && !hasErrors;
 
   return (
     <FormProvider {...methods}>
@@ -371,10 +363,38 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
               </p>
             )}
             {!errors.idNumber && (verificationStatus === 'failed' || verificationStatus === 'already_registered') && verificationError && (
-              <p className="mt-2 text-sm text-red-600 flex items-center gap-2">
-                <ExclamationCircleIcon className="w-4 h-4" />
-                {verificationError}
-              </p>
+              <div className="mt-2">
+                <p className="text-sm text-red-600 flex items-center gap-2">
+                  <ExclamationCircleIcon className="w-4 h-4" />
+                  {verificationError}
+                </p>
+                {verificationStatus === 'failed' && !allowManualMode && (
+                  <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <p className="text-sm text-yellow-800 mb-2">
+                      <strong>Can't verify automatically?</strong> You can continue with manual review.
+                      Our HR team will verify your information manually.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAllowManualMode(true);
+                        setVerificationError('');
+                      }}
+                      className="text-sm font-medium text-yellow-700 hover:text-yellow-900 underline"
+                    >
+                      Continue with Manual Review
+                    </button>
+                  </div>
+                )}
+                {allowManualMode && (
+                  <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    <p className="text-sm text-blue-800">
+                      <CheckCircleIcon className="w-4 h-4 inline mr-1" />
+                      Manual review mode enabled. Please fill in your details below and our HR team will verify them.
+                    </p>
+                  </div>
+                )}
+              </div>
             )}
           </div>
 
@@ -385,15 +405,21 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
                 name="fullName"
                 label="Full Name"
                 type="text"
-                placeholder="As per company records"
+                placeholder={allowManualMode ? "Enter your full name" : "As per company records"}
                 variant="underline"
-                disabled
-                className="bg-gray-50"
+                disabled={!allowManualMode}
+                required
+                className={allowManualMode ? "" : "bg-gray-50"}
               />
               {verificationStatus === 'verified' && erpData?.fullName && (
                 <CheckCircleIcon className="w-5 h-5 text-green-600 flex-shrink-0 mt-7" />
               )}
             </div>
+            {errors.fullName && (
+              <p className="mt-2 text-sm text-kq-red">
+                {errors.fullName.message}
+              </p>
+            )}
           </div>
         </div>
 
@@ -406,15 +432,20 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
                 name="staffNumber"
                 label="Staff Number"
                 type="text"
-                placeholder="e.g., 0012345"
+                placeholder={allowManualMode ? "e.g., 0012345 (if known)" : "e.g., 0012345"}
                 variant="underline"
-                disabled
-                className="bg-gray-50"
+                disabled={!allowManualMode}
+                className={allowManualMode ? "" : "bg-gray-50"}
               />
               {verificationStatus === 'verified' && erpData?.staffNumber && (
                 <CheckCircleIcon className="w-5 h-5 text-green-600 flex-shrink-0 mt-7" />
               )}
             </div>
+            {allowManualMode && (
+              <p className="mt-1 text-xs text-gray-500">
+                Optional - Leave blank if you don't know your staff number
+              </p>
+            )}
           </div>
 
           {/* Email */}
@@ -530,11 +561,11 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
               Verifying ID...
             </span>
           )}
-          {verificationStatus === 'failed' && 'Verification Failed - Check ID Number'}
+          {verificationStatus === 'failed' && !allowManualMode && 'Enable Manual Review to Continue'}
           {verificationStatus === 'already_registered' && 'Already Registered'}
           {verificationStatus === 'verified' && emailCheck.isDuplicate && 'Email Already Used'}
-          {verificationStatus === 'verified' && !emailCheck.isDuplicate && hasErrors && 'Please Complete All Required Fields'}
-          {canProceed && 'Continue'}
+          {((verificationStatus === 'verified' || allowManualMode) && !emailCheck.isDuplicate && hasErrors) && 'Please Complete All Required Fields'}
+          {canProceed && (allowManualMode ? 'Continue with Manual Review' : 'Continue')}
         </Button>
         {verificationStatus === 'verified' && hasErrors && (
           <p className="mt-3 text-sm text-center text-gray-600">

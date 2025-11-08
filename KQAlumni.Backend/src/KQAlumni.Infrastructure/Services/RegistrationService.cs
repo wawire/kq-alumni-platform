@@ -171,6 +171,10 @@ public class RegistrationService : IRegistrationService
         ConsentGiven = request.ConsentGiven,
         ConsentGivenAt = DateTime.UtcNow,
 
+        // Manual Review Flags (NEW: ERP Fallback Mode)
+        RequiresManualReview = request.RequiresManualReview ?? false,
+        ManualReviewReason = request.ManualReviewReason,
+
         // Status (NEW WORKFLOW: Start as Pending)
         RegistrationStatus = RegistrationStatus.Pending.ToString(),
 
@@ -517,6 +521,95 @@ public class RegistrationService : IRegistrationService
         IsAlreadyRegistered = false,
         Message = "An error occurred during verification. Please try again."
       };
+    }
+  }
+
+  /// <summary>
+  /// Resend verification email to an approved registration
+  /// </summary>
+  public async Task<bool> ResendVerificationEmailAsync(
+      string email,
+      CancellationToken cancellationToken = default)
+  {
+    try
+    {
+      _logger.LogInformation("Resending verification email to {Email}", email);
+
+      // Find the registration by email
+      var registration = await GetRegistrationByEmailAsync(email, cancellationToken);
+
+      if (registration == null)
+      {
+        _logger.LogWarning("Registration not found for email {Email}", email);
+        throw new InvalidOperationException("Registration not found");
+      }
+
+      // Check if registration is approved
+      if (registration.RegistrationStatus != RegistrationStatus.Approved.ToString())
+      {
+        _logger.LogWarning(
+            "Cannot resend verification email - registration status is {Status}",
+            registration.RegistrationStatus);
+        throw new InvalidOperationException(
+            $"Cannot resend verification email. Registration status is {registration.RegistrationStatus}");
+      }
+
+      // Check if email is already verified
+      if (registration.EmailVerified)
+      {
+        _logger.LogWarning("Email {Email} is already verified", email);
+        throw new InvalidOperationException("Email is already verified");
+      }
+
+      // Check if token exists and is not expired
+      if (string.IsNullOrEmpty(registration.EmailVerificationToken) ||
+          !registration.EmailVerificationTokenExpiry.HasValue ||
+          registration.EmailVerificationTokenExpiry.Value < DateTime.UtcNow)
+      {
+        _logger.LogInformation("Token expired or missing, generating new token for {Email}", email);
+
+        // Generate new verification token (we can reuse the existing token generation approach)
+        // Since we don't have ITokenService injected, we'll generate a simple secure token
+        var newToken = Guid.NewGuid().ToString("N") + Guid.NewGuid().ToString("N"); // 64 characters
+
+        registration.EmailVerificationToken = newToken;
+        registration.EmailVerificationTokenExpiry = DateTime.UtcNow.AddDays(30);
+        registration.UpdatedAt = DateTime.UtcNow;
+        registration.UpdatedBy = "System (Resend Verification)";
+
+        await _context.SaveChangesAsync(cancellationToken);
+      }
+
+      // Send approval email with verification link
+      var emailSent = await _emailService.SendApprovalEmailAsync(
+          registration.FullName,
+          registration.Email,
+          registration.EmailVerificationToken,
+          cancellationToken);
+
+      if (emailSent)
+      {
+        registration.ApprovalEmailSent = true;
+        registration.ApprovalEmailSentAt = DateTime.UtcNow;
+        await _context.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation("Verification email resent successfully to {Email}", email);
+        return true;
+      }
+      else
+      {
+        _logger.LogWarning("Failed to resend verification email to {Email}", email);
+        return false;
+      }
+    }
+    catch (InvalidOperationException)
+    {
+      throw; // Re-throw business logic exceptions
+    }
+    catch (Exception ex)
+    {
+      _logger.LogError(ex, "Error resending verification email to {Email}", email);
+      throw new Exception("An error occurred while resending the verification email");
     }
   }
 

@@ -289,4 +289,76 @@ public class RegistrationsController : ControllerBase
       });
     }
   }
+
+  /// <summary>
+  /// Resend verification email for an approved registration
+  /// </summary>
+  /// <param name="request">Email address to resend verification to</param>
+  /// <param name="cancellationToken">Cancellation token</param>
+  /// <returns>Success or error response</returns>
+  [HttpPost("resend-verification")]
+  [ProducesResponseType(StatusCodes.Status200OK)]
+  [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+  [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
+  [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
+  public async Task<ActionResult> ResendVerificationEmail(
+      [FromBody] ResendVerificationRequest request,
+      CancellationToken cancellationToken)
+  {
+    try
+    {
+      if (string.IsNullOrWhiteSpace(request.Email))
+      {
+        return BadRequest(new ErrorResponse
+        {
+          Type = "https://tools.ietf.org/html/rfc7231#section-6.5.1",
+          Title = "Invalid Request",
+          Status = StatusCodes.Status400BadRequest,
+          Detail = "Email address is required"
+        });
+      }
+
+      var success = await _registrationService.ResendVerificationEmailAsync(
+          request.Email.Trim().ToLower(),
+          cancellationToken);
+
+      if (success)
+      {
+        _logger.LogInformation("Verification email resent successfully to {Email}", request.Email);
+        return Ok(new { message = "Verification email has been resent successfully. Please check your inbox." });
+      }
+      else
+      {
+        return StatusCode(500, new ErrorResponse
+        {
+          Type = "https://tools.ietf.org/html/rfc7231#section-6.6.1",
+          Title = "Email Send Failed",
+          Status = StatusCodes.Status500InternalServerError,
+          Detail = "Failed to send verification email. Please try again later."
+        });
+      }
+    }
+    catch (InvalidOperationException ex)
+    {
+      _logger.LogWarning(ex, "Cannot resend verification email: {Message}", ex.Message);
+      return BadRequest(new ErrorResponse
+      {
+        Type = "https://tools.ietf.org/html/rfc7231#section-6.5.1",
+        Title = "Cannot Resend Verification",
+        Status = StatusCodes.Status400BadRequest,
+        Detail = ex.Message
+      });
+    }
+    catch (Exception ex)
+    {
+      _logger.LogError(ex, "Error resending verification email");
+      return StatusCode(500, new ErrorResponse
+      {
+        Type = "https://tools.ietf.org/html/rfc7231#section-6.6.1",
+        Title = "Server Error",
+        Status = StatusCodes.Status500InternalServerError,
+        Detail = "An unexpected error occurred while resending the verification email"
+      });
+    }
+  }
 }
