@@ -1,8 +1,9 @@
 "use client";
 
 import React from "react";
-import { CheckCircleIcon, PencilIcon } from "@heroicons/react/24/outline";
+import { CheckCircleIcon, PencilIcon, ArrowLeftIcon } from "@heroicons/react/24/outline";
 import { RegistrationFormData } from "@/components/registration/RegistrationForm";
+import { Button } from "@/components/ui";
 import ProgressIndicator from "../ProgressIndicator";
 
 interface ReviewStepProps {
@@ -101,11 +102,11 @@ export default function ReviewStep({
       />
 
       {/* Consent Reminder */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-start gap-3">
-        <CheckCircleIcon className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-        <div className="text-sm text-blue-900">
+      <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 flex items-start gap-3">
+        <CheckCircleIcon className="w-5 h-5 text-gray-600 flex-shrink-0 mt-0.5" />
+        <div className="text-sm text-gray-900">
           <p className="font-medium mb-1">Data Protection Notice</p>
-          <p className="text-blue-700">
+          <p className="text-gray-700">
             Your information will be processed in accordance with the Data
             Protection Act and used exclusively for KQ Alumni Association purposes.
           </p>
@@ -114,48 +115,29 @@ export default function ReviewStep({
 
       {/* Action Buttons */}
       <div className="flex gap-4 pt-6">
-        <button
+        <Button
           type="button"
           onClick={() => onEdit(2)}
           disabled={isSubmitting}
-          className="flex-1 px-6 py-3 border-2 border-navy-800 text-navy-800 rounded-lg font-roboto font-medium hover:bg-navy-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          variant="secondary"
+          size="lg"
+          className="flex-1"
+          leftIcon={<ArrowLeftIcon className="w-5 h-5" />}
         >
           Back to Edit
-        </button>
-        <button
+        </Button>
+        <Button
           type="button"
           onClick={handleSubmit}
           disabled={isSubmitting || !data.consentGiven}
-          className="flex-1 px-6 py-3 bg-navy-800 text-white rounded-lg font-roboto font-medium hover:bg-navy-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          variant="primary"
+          size="lg"
+          className="flex-1"
+          isLoading={isSubmitting}
+          loadingText="Submitting..."
         >
-          {isSubmitting ? (
-            <>
-              <svg
-                className="animate-spin h-5 w-5 text-white"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
-                <circle
-                  className="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  strokeWidth="4"
-                />
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                />
-              </svg>
-              Submitting...
-            </>
-          ) : (
-            "Submit Registration"
-          )}
-        </button>
+          Submit Registration
+        </Button>
       </div>
     </div>
   );
