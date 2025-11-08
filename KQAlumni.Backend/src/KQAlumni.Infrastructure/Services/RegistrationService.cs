@@ -577,11 +577,11 @@ public class RegistrationService : IRegistrationService
     }
 
     // Use existing verification token or generate new one if missing
-    var token = registration.VerificationToken;
+    var token = registration.EmailVerificationToken;
     if (string.IsNullOrEmpty(token))
     {
       token = Guid.NewGuid().ToString("N");
-      registration.VerificationToken = token;
+      registration.EmailVerificationToken = token;
       await _context.SaveChangesAsync(cancellationToken);
     }
 
