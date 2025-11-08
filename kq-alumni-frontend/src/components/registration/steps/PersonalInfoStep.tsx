@@ -250,6 +250,11 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
       setValue("currentCountry", country.name);
       setValue("currentCountryCode", country.isoCode);
       setValue("currentCity", "");
+
+      // Also update mobile country code to match selected country
+      if (country.phonecode) {
+        setValue("mobileCountryCode", `+${country.phonecode}`);
+      }
     }
   };
 
@@ -270,6 +275,8 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
       setSelectedCountryCode(phoneCountry.isoCode);
       setValue("currentCountry", phoneCountry.name);
       setValue("currentCountryCode", phoneCountry.isoCode);
+      // Reset city when country changes via phone
+      setValue("currentCity", "");
     }
   };
 
@@ -328,18 +335,18 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
     <FormProvider {...methods}>
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
       <div>
-        {/* Header with Progress */}
-        <div className="flex items-start justify-between mb-6">
-          <div>
-            <h2 className="text-3xl font-cabrito font-bold text-kq-dark mb-2">
-              Personal Information & Contact Information
-            </h2>
-            <div className="flex items-center gap-2 text-sm text-gray-600">
-              <ClockIcon className="w-4 h-4" />
-              <span>About 5 minutes</span>
-            </div>
+        {/* Progress Indicator - Above Header */}
+        <ProgressIndicator currentStep={1} totalSteps={3} />
+
+        {/* Header */}
+        <div className="mb-6">
+          <h2 className="text-3xl font-cabrito font-bold text-kq-dark mb-2">
+            Personal Information & Contact Information
+          </h2>
+          <div className="flex items-center gap-2 text-sm text-gray-600">
+            <ClockIcon className="w-4 h-4" />
+            <span>About 5 minutes</span>
           </div>
-          <ProgressIndicator currentStep={1} totalSteps={3} />
         </div>
 
         {/* Row 1: ID Number / Passport & Full Name - Side by Side */}
