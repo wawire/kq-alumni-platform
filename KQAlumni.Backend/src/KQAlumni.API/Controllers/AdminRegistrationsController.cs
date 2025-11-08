@@ -348,4 +348,146 @@ public class AdminRegistrationsController : ControllerBase
             return StatusCode(500);
         }
     }
+
+    /// <summary>
+    /// Resend verification email for a registration
+    /// </summary>
+    /// <param name="id">Registration ID</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Success status</returns>
+    [HttpPost("{id}/resend-verification")]
+    [Authorize(Policy = "HRManager")] // Only HRManager and SuperAdmin can resend
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult> ResendVerificationEmail(
+        [FromRoute] Guid id,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var registration = await _registrationService.GetRegistrationByIdAsync(id, cancellationToken);
+
+            if (registration == null)
+            {
+                return NotFound(new ErrorResponse
+                {
+                    Type = "https://tools.ietf.org/html/rfc7231#section-6.5.4",
+                    Title = "Not found",
+                    Status = StatusCodes.Status404NotFound,
+                    Detail = $"Registration {id} not found"
+                });
+            }
+
+            // Only resend for approved registrations
+            if (registration.RegistrationStatus != "Approved")
+            {
+                return BadRequest(new ErrorResponse
+                {
+                    Type = "https://tools.ietf.org/html/rfc7231#section-6.5.1",
+                    Title = "Invalid request",
+                    Status = StatusCodes.Status400BadRequest,
+                    Detail = "Can only resend verification email for approved registrations"
+                });
+            }
+
+            // Resend the verification email
+            var emailSent = await _registrationService.ResendVerificationEmailAsync(id, cancellationToken);
+
+            if (!emailSent)
+            {
+                return StatusCode(500, new ErrorResponse
+                {
+                    Type = "https://tools.ietf.org/html/rfc7231#section-6.6.1",
+                    Title = "Email service error",
+                    Status = StatusCodes.Status500InternalServerError,
+                    Detail = "Failed to send verification email"
+                });
+            }
+
+            _logger.LogInformation(
+                "Verification email resent for registration {RegistrationId} by {AdminUsername}",
+                id, User.Identity?.Name);
+
+            return Ok(new { message = "Verification email sent successfully" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error resending verification email for registration {RegistrationId}", id);
+            return StatusCode(500);
+        }
+    }
+
+    /// <summary>
+    /// Resend approval notification email
+    /// </summary>
+    /// <param name="id">Registration ID</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Success status</returns>
+    [HttpPost("{id}/resend-approval")]
+    [Authorize(Policy = "HRManager")] // Only HRManager and SuperAdmin can resend
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult> ResendApprovalEmail(
+        [FromRoute] Guid id,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var registration = await _registrationService.GetRegistrationByIdAsync(id, cancellationToken);
+
+            if (registration == null)
+            {
+                return NotFound(new ErrorResponse
+                {
+                    Type = "https://tools.ietf.org/html/rfc7231#section-6.5.4",
+                    Title = "Not found",
+                    Status = StatusCodes.Status404NotFound,
+                    Detail = $"Registration {id} not found"
+                });
+            }
+
+            // Only resend for approved registrations
+            if (registration.RegistrationStatus != "Approved")
+            {
+                return BadRequest(new ErrorResponse
+                {
+                    Type = "https://tools.ietf.org/html/rfc7231#section-6.5.1",
+                    Title = "Invalid request",
+                    Status = StatusCodes.Status400BadRequest,
+                    Detail = "Can only resend approval notification for approved registrations"
+                });
+            }
+
+            // Resend the approval email
+            var emailSent = await _registrationService.ResendVerificationEmailAsync(id, cancellationToken);
+
+            if (!emailSent)
+            {
+                return StatusCode(500, new ErrorResponse
+                {
+                    Type = "https://tools.ietf.org/html/rfc7231#section-6.6.1",
+                    Title = "Email service error",
+                    Status = StatusCodes.Status500InternalServerError,
+                    Detail = "Failed to send approval notification"
+                });
+            }
+
+            _logger.LogInformation(
+                "Approval notification resent for registration {RegistrationId} by {AdminUsername}",
+                id, User.Identity?.Name);
+
+            return Ok(new { message = "Approval notification sent successfully" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error resending approval notification for registration {RegistrationId}", id);
+            return StatusCode(500);
+        }
+    }
 }

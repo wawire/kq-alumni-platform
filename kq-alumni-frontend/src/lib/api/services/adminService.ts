@@ -335,6 +335,50 @@ export function useRegistrationAuditLogs(id: string) {
   });
 }
 
+/**
+ * Resend verification email mutation
+ */
+export function useResendVerificationEmail() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const response = await adminApi.post<ActionResponse>(
+        `/admin/registrations/${id}/resend-verification`
+      );
+      return response.data;
+    },
+    onSuccess: (_, id) => {
+      // Invalidate audit logs to show new resend action
+      queryClient.invalidateQueries({
+        queryKey: adminQueryKeys.registrations.auditLogs(id),
+      });
+    },
+  });
+}
+
+/**
+ * Resend approval email mutation
+ */
+export function useResendApprovalEmail() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const response = await adminApi.post<ActionResponse>(
+        `/admin/registrations/${id}/resend-approval`
+      );
+      return response.data;
+    },
+    onSuccess: (_, id) => {
+      // Invalidate audit logs to show new resend action
+      queryClient.invalidateQueries({
+        queryKey: adminQueryKeys.registrations.auditLogs(id),
+      });
+    },
+  });
+}
+
 // ============================================
 // Dashboard Hooks
 // ============================================

@@ -18,6 +18,9 @@ import {
   XCircle,
   AlertCircle,
   User,
+  Clock,
+  MailOpen,
+  Send,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -32,6 +35,8 @@ import {
   useApproveRegistration,
   useRejectRegistration,
   useRegistrationAuditLogs,
+  useResendVerificationEmail,
+  useResendApprovalEmail,
 } from '@/lib/api/services/adminService';
 
 interface Props {
@@ -49,6 +54,8 @@ export default function RegistrationDetailPage({ params }: Props) {
   const { data: auditLogs } = useRegistrationAuditLogs(id);
   const approveMutation = useApproveRegistration();
   const rejectMutation = useRejectRegistration();
+  const resendVerificationMutation = useResendVerificationEmail();
+  const resendApprovalMutation = useResendApprovalEmail();
 
   const handleApproveClick = () => {
     setShowApproveModal(true);
@@ -115,6 +122,46 @@ export default function RegistrationDetailPage({ params }: Props) {
         },
       }
     );
+  };
+
+  const handleResendVerification = () => {
+    toast.loading('Resending verification email...', { id: 'resend-verification-toast' });
+    resendVerificationMutation.mutate(id, {
+      onSuccess: () => {
+        toast.success('Verification email sent!', {
+          id: 'resend-verification-toast',
+          description: 'The verification email has been resent to the applicant.',
+          duration: 4000,
+        });
+      },
+      onError: (error: Error) => {
+        toast.error('Failed to resend verification email', {
+          id: 'resend-verification-toast',
+          description: error?.message || 'Please try again later.',
+          duration: 5000,
+        });
+      },
+    });
+  };
+
+  const handleResendApproval = () => {
+    toast.loading('Resending approval notification...', { id: 'resend-approval-toast' });
+    resendApprovalMutation.mutate(id, {
+      onSuccess: () => {
+        toast.success('Approval notification sent!', {
+          id: 'resend-approval-toast',
+          description: 'The approval notification has been resent to the applicant.',
+          duration: 4000,
+        });
+      },
+      onError: (error: Error) => {
+        toast.error('Failed to resend approval notification', {
+          id: 'resend-approval-toast',
+          description: error?.message || 'Please try again later.',
+          duration: 5000,
+        });
+      },
+    });
   };
 
   if (isLoading) {
@@ -424,6 +471,71 @@ export default function RegistrationDetailPage({ params }: Props) {
                 )}
               </div>
             </div>
+
+            {/* Email Actions Card - Only show for approved registrations */}
+            {registration.registrationStatus === 'Approved' && (
+              <div className="bg-white rounded-lg border border-gray-200 p-6">
+                <h3 className="text-lg font-semibold text-kq-dark mb-4 flex items-center gap-2">
+                  <MailOpen className="w-5 h-5 text-kq-red" />
+                  Email Actions
+                </h3>
+
+                <div className="space-y-3">
+                  {/* Resend Verification Email */}
+                  <div className="border border-gray-200 rounded-lg p-4">
+                    <div className="flex items-start gap-3 mb-3">
+                      <Mail className="w-5 h-5 text-purple-600 mt-0.5" />
+                      <div className="flex-1">
+                        <p className="font-medium text-kq-dark">Verification Email</p>
+                        <p className="text-xs text-gray-600 mt-1">
+                          Resend the email with verification link
+                        </p>
+                      </div>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleResendVerification}
+                      disabled={resendVerificationMutation.isPending}
+                      rightIcon={<Send className="w-4 h-4" />}
+                      className="w-full"
+                    >
+                      {resendVerificationMutation.isPending ? 'Sending...' : 'Resend Verification'}
+                    </Button>
+                  </div>
+
+                  {/* Resend Approval Notification */}
+                  <div className="border border-gray-200 rounded-lg p-4">
+                    <div className="flex items-start gap-3 mb-3">
+                      <CheckCircle2 className="w-5 h-5 text-green-600 mt-0.5" />
+                      <div className="flex-1">
+                        <p className="font-medium text-kq-dark">Approval Notification</p>
+                        <p className="text-xs text-gray-600 mt-1">
+                          Resend the approval notification email
+                        </p>
+                      </div>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleResendApproval}
+                      disabled={resendApprovalMutation.isPending}
+                      rightIcon={<Send className="w-4 h-4" />}
+                      className="w-full"
+                    >
+                      {resendApprovalMutation.isPending ? 'Sending...' : 'Resend Approval'}
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="mt-4 pt-4 border-t border-gray-200">
+                  <p className="text-xs text-gray-500 flex items-start gap-2">
+                    <AlertCircle className="w-3 h-3 mt-0.5 flex-shrink-0" />
+                    <span>Emails can be resent if the applicant didn&apos;t receive them or the link expired.</span>
+                  </p>
+                </div>
+              </div>
+            )}
 
             {/* Audit Log Timeline */}
             <div className="bg-white rounded-lg border border-gray-200 p-6">

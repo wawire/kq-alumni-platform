@@ -110,4 +110,14 @@ public interface IRegistrationService
     Task<IdVerificationResponse> VerifyIdOrPassportAsync(
         string idOrPassport,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Resend verification email for an approved registration
+    /// </summary>
+    /// <param name="registrationId">Registration ID</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>True if email sent successfully</returns>
+    Task<bool> ResendVerificationEmailAsync(
+        Guid registrationId,
+        CancellationToken cancellationToken = default);
 }
