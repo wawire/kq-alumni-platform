@@ -48,7 +48,7 @@ export default function ReviewStep({
           { label: "Email", value: data.email },
           {
             label: "Mobile Number",
-            value: data.mobileNumber
+            value: data.mobileNumber && data.mobileCountryCode
               ? `${data.mobileCountryCode} ${data.mobileNumber}`
               : undefined,
           },
@@ -58,7 +58,7 @@ export default function ReviewStep({
           },
           {
             label: "Current Location",
-            value: data.currentCity && data.currentCountry
+            value: data.currentCountry && data.currentCity
               ? `${data.currentCity}, ${data.currentCountry}`
               : undefined,
           },
