@@ -144,7 +144,7 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
     } else {
       emailCheck.reset();
     }
-  }, [debouncedEmail, emailCheck]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [debouncedEmail]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Sync selectedCountryCode with form value
   useEffect(() => {
