@@ -132,26 +132,28 @@ public class RegistrationService : IRegistrationService
 
         // Personal Information
         StaffNumber = request.StaffNumber?.ToUpper().Trim(),
+        IdNumber = request.IdNumber.Trim(),
+        PassportNumber = string.IsNullOrWhiteSpace(request.PassportNumber) ? null : request.PassportNumber.Trim(),
         FullName = request.FullName.Trim(),
 
         // Contact Information
         Email = request.Email.ToLower().Trim(),
-        MobileCountryCode = request.MobileCountryCode?.Trim(),
-        MobileNumber = request.MobileNumber?.Trim(),
+        MobileCountryCode = string.IsNullOrWhiteSpace(request.MobileCountryCode) ? null : request.MobileCountryCode.Trim(),
+        MobileNumber = string.IsNullOrWhiteSpace(request.MobileNumber) ? null : request.MobileNumber.Trim(),
         CurrentCountry = request.CurrentCountry.Trim(),
         CurrentCountryCode = request.CurrentCountryCode.ToUpper().Trim(),
         CurrentCity = request.CurrentCity.Trim(),
-        CityCustom = request.CityCustom?.Trim(),
+        CityCustom = string.IsNullOrWhiteSpace(request.CityCustom) ? null : request.CityCustom.Trim(),
 
         // Employment Information
-        CurrentEmployer = request.CurrentEmployer?.Trim(),
-        CurrentJobTitle = request.CurrentJobTitle?.Trim(),
-        Industry = request.Industry?.Trim(),
-        LinkedInProfile = request.LinkedInProfile?.Trim(),
+        CurrentEmployer = string.IsNullOrWhiteSpace(request.CurrentEmployer) ? null : request.CurrentEmployer.Trim(),
+        CurrentJobTitle = string.IsNullOrWhiteSpace(request.CurrentJobTitle) ? null : request.CurrentJobTitle.Trim(),
+        Industry = string.IsNullOrWhiteSpace(request.Industry) ? null : request.Industry.Trim(),
+        LinkedInProfile = string.IsNullOrWhiteSpace(request.LinkedInProfile) ? null : request.LinkedInProfile.Trim(),
 
         // Education
         QualificationsAttained = JsonSerializer.Serialize(request.QualificationsAttained),
-        ProfessionalCertifications = request.ProfessionalCertifications?.Trim(),
+        ProfessionalCertifications = string.IsNullOrWhiteSpace(request.ProfessionalCertifications) ? null : request.ProfessionalCertifications.Trim(),
 
         // Engagement
         EngagementPreferences = JsonSerializer.Serialize(request.EngagementPreferences),
