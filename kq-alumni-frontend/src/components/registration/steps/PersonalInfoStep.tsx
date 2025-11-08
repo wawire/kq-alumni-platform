@@ -46,8 +46,8 @@ const personalInfoSchema = z.object({
     .email("Invalid email format")
     .max(255, "Email address too long")
     .transform((val) => val.toLowerCase().trim()),
-  mobileCountryCode: z.string().optional(),
-  mobileNumber: z.string().optional(),
+  mobileCountryCode: z.string().min(1, "Phone country code is required"),
+  mobileNumber: z.string().min(1, "Mobile number is required"),
   currentCountry: z.string().min(1, "Country is required"),
   currentCountryCode: z.string().min(1, "Country code is required"),
   currentCity: z.string().min(1, "City is required"),
