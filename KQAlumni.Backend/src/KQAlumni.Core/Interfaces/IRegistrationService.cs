@@ -20,6 +20,16 @@ public interface IRegistrationService
         CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Checks if ID number or passport number is already registered
+    /// </summary>
+    /// <param name="idNumber">National ID or Passport number to check</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>True if already registered</returns>
+    Task<bool> IsIdNumberRegisteredAsync(
+        string idNumber,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Checks if staff number is already registered
     /// </summary>
     /// <param name="staffNumber">Staff number to check</param>
