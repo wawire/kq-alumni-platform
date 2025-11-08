@@ -50,6 +50,141 @@ namespace KQAlumni.Infrastructure.Data.Migrations
                 name: "IX_EmailTemplates_TemplateKey_IsActive",
                 table: "EmailTemplates",
                 columns: new[] { "TemplateKey", "IsActive" });
+
+            // Seed default email templates
+            migrationBuilder.InsertData(
+                table: "EmailTemplates",
+                columns: new[] { "TemplateKey", "Name", "Description", "Subject", "HtmlBody", "AvailableVariables", "IsActive", "IsSystemDefault", "CreatedBy" },
+                values: new object[,]
+                {
+                    {
+                        "CONFIRMATION",
+                        "Registration Confirmation Email",
+                        "Sent immediately after user submits registration form",
+                        "Registration Received - KQ Alumni Network",
+                        @"<!DOCTYPE html>
+<html>
+<head>
+    <meta charset=""utf-8"">
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: #DC143C; color: white; padding: 30px; text-align: center; }
+        .content { padding: 30px; background: #f9f9f9; }
+        .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <div class=""container"">
+        <div class=""header"">
+            <h1>KQ ALUMNI NETWORK</h1>
+        </div>
+        <div class=""content"">
+            <h2>Dear {{alumniName}},</h2>
+            <p>Thank you for registering with the Kenya Airways Alumni Association.</p>
+            <p><strong>Registration Number:</strong> {{registrationNumber}}</p>
+            <p><strong>Status:</strong> Pending Verification</p>
+            <p><strong>Submitted:</strong> {{currentDate}}</p>
+            <p>You will receive notification within 24-48 hours.</p>
+        </div>
+        <div class=""footer"">
+            <p>Kenya Airways Alumni Association</p>
+        </div>
+    </div>
+</body>
+</html>",
+                        "{{alumniName}}, {{registrationId}}, {{registrationNumber}}, {{currentDate}}",
+                        true,
+                        true,
+                        "System"
+                    },
+                    {
+                        "APPROVAL",
+                        "Registration Approval Email",
+                        "Sent when registration is approved",
+                        "Welcome to KQ Alumni Network - Verify Your Email",
+                        @"<!DOCTYPE html>
+<html>
+<head>
+    <meta charset=""utf-8"">
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: #DC143C; color: white; padding: 30px; text-align: center; }
+        .content { padding: 30px; background: #f9f9f9; }
+        .button { display: inline-block; padding: 12px 24px; background: #DC143C; color: white; text-decoration: none; border-radius: 4px; }
+        .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <div class=""container"">
+        <div class=""header"">
+            <h1>WELCOME TO KQ ALUMNI!</h1>
+        </div>
+        <div class=""content"">
+            <h2>Dear {{alumniName}},</h2>
+            <p>Congratulations! Your registration has been approved.</p>
+            <p><strong>Registration Number:</strong> {{registrationNumber}}</p>
+            <p style=""text-align: center;"">
+                <a href=""{{verificationLink}}"" class=""button"">Verify Email Address</a>
+            </p>
+            <p>Welcome to the Kenya Airways Alumni Association family!</p>
+        </div>
+        <div class=""footer"">
+            <p>Kenya Airways Alumni Association</p>
+        </div>
+    </div>
+</body>
+</html>",
+                        "{{alumniName}}, {{registrationNumber}}, {{verificationLink}}",
+                        true,
+                        true,
+                        "System"
+                    },
+                    {
+                        "REJECTION",
+                        "Registration Rejection Email",
+                        "Sent when registration cannot be verified",
+                        "KQ Alumni Registration - Unable to Verify",
+                        @"<!DOCTYPE html>
+<html>
+<head>
+    <meta charset=""utf-8"">
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: #DC143C; color: white; padding: 30px; text-align: center; }
+        .content { padding: 30px; background: #f9f9f9; }
+        .reason { background: #fff3cd; border: 1px solid #ffc107; padding: 15px; margin: 20px 0; }
+        .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <div class=""container"">
+        <div class=""header"">
+            <h1>KQ ALUMNI</h1>
+        </div>
+        <div class=""content"">
+            <h2>Dear {{alumniName}},</h2>
+            <p>Thank you for your interest in joining the Kenya Airways Alumni Association.</p>
+            <p>Unfortunately, we were unable to verify your registration.</p>
+            <div class=""reason"">
+                <strong>Reason:</strong><br>{{rejectionReason}}
+            </div>
+            <p>For assistance, contact: KQ.Alumni@kenya-airways.com</p>
+        </div>
+        <div class=""footer"">
+            <p>Kenya Airways Alumni Association</p>
+        </div>
+    </div>
+</body>
+</html>",
+                        "{{alumniName}}, {{staffNumber}}, {{rejectionReason}}",
+                        true,
+                        true,
+                        "System"
+                    }
+                });
         }
 
         /// <inheritdoc />
