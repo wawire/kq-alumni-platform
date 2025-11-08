@@ -400,9 +400,6 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
                 <CheckCircleIcon className="w-5 h-5 text-green-600 flex-shrink-0 mt-7" />
               )}
             </div>
-            <p className="mt-2 text-xs text-gray-500">
-              Auto-filled from company records
-            </p>
           </div>
         </div>
 
@@ -424,9 +421,6 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
                 <CheckCircleIcon className="w-5 h-5 text-green-600 flex-shrink-0 mt-7" />
               )}
             </div>
-            <p className="mt-2 text-xs text-gray-500">
-              Auto-filled from company records
-            </p>
           </div>
 
           {/* Email */}
@@ -450,7 +444,7 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
 
         {/* Mobile Number */}
         <div className="mb-8">
-          <label className="block text-sm font-medium text-gray-700 mb-3">
+          <label className="block text-sm font-medium text-gray-700 mb-1.5">
             Mobile Number
           </label>
           <PhoneInput
