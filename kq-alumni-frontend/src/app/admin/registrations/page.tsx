@@ -27,9 +27,10 @@ import { useSearchParams } from 'next/navigation';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { BulkActions } from '@/components/admin/BulkActions';
 import { RegistrationsFilters } from '@/components/admin/RegistrationsFilters';
+import { RegistrationPreviewModal } from '@/components/admin/RegistrationPreviewModal';
 import { Button } from '@/components/ui/button/Button';
 import { useAdminRegistrations, useApproveRegistration, useRejectRegistration } from '@/lib/api/services/adminService';
-import type { RegistrationStatus, RegistrationFilters, SortableColumn, SortOrder } from '@/types/admin';
+import type { RegistrationStatus, RegistrationFilters, SortableColumn, SortOrder, AdminRegistration } from '@/types/admin';
 
 // ============================================
 // Sortable Header Component
@@ -158,6 +159,7 @@ function RegistrationsPageContent() {
     registrationName: string | null;
   }>({ type: null, registrationId: null, registrationName: null });
   const [rejectReason, setRejectReason] = useState('');
+  const [previewRegistration, setPreviewRegistration] = useState<AdminRegistration | null>(null);
 
   const { data, isLoading, error } = useAdminRegistrations(filters);
   const approveMutation = useApproveRegistration();
@@ -341,10 +343,11 @@ function RegistrationsPageContent() {
           </div>
         )}
 
-        {/* Registrations Table */}
+        {/* Registrations Table (Desktop) */}
         {data && !isLoading && (
           <>
-            <div className="bg-white rounded-tl-sm rounded-tr-2xl rounded-br-sm rounded-bl-2xl border border-gray-200 overflow-hidden">
+            {/* Desktop Table View - Hidden on mobile */}
+            <div className="hidden md:block bg-white rounded-tl-sm rounded-tr-2xl rounded-br-sm rounded-bl-2xl border border-gray-200 overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead className="bg-gray-50 border-b border-gray-200">
@@ -507,15 +510,14 @@ function RegistrationsPageContent() {
                                   </Button>
                                 </>
                               )}
-                              <Link href={`/admin/registrations/${registration.id}`}>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  leftIcon={<Eye className="w-4 h-4" />}
-                                >
-                                  View
-                                </Button>
-                              </Link>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setPreviewRegistration(registration)}
+                                leftIcon={<Eye className="w-4 h-4" />}
+                              >
+                                Quick View
+                              </Button>
                             </div>
                           </td>
                         </tr>
@@ -524,6 +526,136 @@ function RegistrationsPageContent() {
                   </tbody>
                 </table>
               </div>
+            </div>
+
+            {/* Mobile Card View - Visible on mobile only */}
+            <div className="md:hidden space-y-4">
+              {data.data.length === 0 ? (
+                <div className="bg-white rounded-lg border border-gray-200 p-8">
+                  <div className="flex flex-col items-center justify-center text-gray-500">
+                    <Search className="w-12 h-12 mb-3 opacity-50" />
+                    <p className="text-lg font-medium mb-1">
+                      {filters.searchQuery
+                        ? `No registrations found for "${filters.searchQuery}"`
+                        : 'No registrations found'}
+                    </p>
+                    <p className="text-sm">Try adjusting your filters</p>
+                  </div>
+                </div>
+              ) : (
+                data.data.map((registration) => (
+                  <div
+                    key={registration.id}
+                    className="bg-white rounded-lg border border-gray-200 p-4 space-y-3"
+                  >
+                    {/* Card Header: Checkbox + Registration Number + Status */}
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-start gap-3 flex-1">
+                        <input
+                          type="checkbox"
+                          checked={selectedIds.includes(registration.id)}
+                          onChange={(e) => handleSelectOne(registration.id, e.target.checked)}
+                          className="w-4 h-4 text-kq-red border-gray-300 rounded focus:ring-kq-red mt-1"
+                        />
+                        <div className="flex-1">
+                          <div className="text-sm font-bold text-kq-red">
+                            {registration.registrationNumber || 'N/A'}
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            {registration.staffNumber || 'No Staff #'}
+                          </div>
+                        </div>
+                      </div>
+                      <StatusBadge
+                        status={registration.registrationStatus}
+                        requiresManualReview={registration.requiresManualReview}
+                      />
+                    </div>
+
+                    {/* Alumni Details */}
+                    <div className="border-t border-gray-100 pt-3">
+                      <div className="text-sm font-medium text-gray-900 mb-1">
+                        {registration.fullName}
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        ID: {registration.idNumber || registration.passportNumber || 'N/A'}
+                      </div>
+                    </div>
+
+                    {/* Contact Information */}
+                    <div className="text-sm space-y-1">
+                      <div className="flex items-center gap-2">
+                        <Mail className="w-4 h-4 text-gray-400" />
+                        <span className="text-gray-900">{registration.email}</span>
+                      </div>
+                      {registration.mobileNumber && (
+                        <div className="text-xs text-gray-500 ml-6">
+                          {registration.mobileCountryCode} {registration.mobileNumber}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Registration Date */}
+                    <div className="flex items-center gap-2 text-xs text-gray-500">
+                      <Clock className="w-4 h-4" />
+                      <span>
+                        {new Date(registration.createdAt).toLocaleDateString()} at{' '}
+                        {new Date(registration.createdAt).toLocaleTimeString([], {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                      </span>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex flex-col gap-2 pt-3 border-t border-gray-100">
+                      {registration.registrationStatus === 'Pending' && (
+                        <div className="flex gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() =>
+                              setActionModal({
+                                type: 'approve',
+                                registrationId: registration.id,
+                                registrationName: registration.fullName,
+                              })
+                            }
+                            className="flex-1 text-green-600 hover:text-green-700 hover:bg-green-50"
+                            leftIcon={<Check className="w-4 h-4" />}
+                          >
+                            Approve
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() =>
+                              setActionModal({
+                                type: 'reject',
+                                registrationId: registration.id,
+                                registrationName: registration.fullName,
+                              })
+                            }
+                            className="flex-1 text-red-600 hover:text-red-700 hover:bg-red-50"
+                            leftIcon={<X className="w-4 h-4" />}
+                          >
+                            Reject
+                          </Button>
+                        </div>
+                      )}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setPreviewRegistration(registration)}
+                        leftIcon={<Eye className="w-4 h-4" />}
+                        className="w-full"
+                      >
+                        Quick View
+                      </Button>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
 
             {/* Pagination */}
@@ -644,6 +776,14 @@ function RegistrationsPageContent() {
               </div>
             </div>
           </div>
+        )}
+
+        {/* Registration Preview Modal */}
+        {previewRegistration && (
+          <RegistrationPreviewModal
+            registration={previewRegistration}
+            onClose={() => setPreviewRegistration(null)}
+          />
         )}
       </div>
     </AdminLayout>
