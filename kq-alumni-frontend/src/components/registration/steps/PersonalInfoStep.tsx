@@ -92,7 +92,7 @@ interface ErpVerificationData {
 // =====================================================
 export default function PersonalInfoStep({ data, onNext }: Props) {
   const [selectedCountryCode, setSelectedCountryCode] = useState<string>(
-    data.currentCountryCode || "KE",
+    data.currentCountryCode || "", // No default - user must select their location
   );
   const [phoneValue, setPhoneValue] = useState<string>(data.mobileNumber || "");
 
@@ -109,10 +109,10 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
       passportNumber: data.passportNumber || "",
       fullName: data.fullName || "",
       email: data.email || "",
-      mobileCountryCode: data.mobileCountryCode || "+254",
+      mobileCountryCode: data.mobileCountryCode || "+254", // Default Kenya phone code (most alumni)
       mobileNumber: data.mobileNumber || "",
-      currentCountry: data.currentCountry || "Kenya",
-      currentCountryCode: data.currentCountryCode || "KE",
+      currentCountry: data.currentCountry || "", // No default - user selects where they live
+      currentCountryCode: data.currentCountryCode || "", // No default - user selects where they live
       currentCity: data.currentCity || "",
       cityCustom: data.cityCustom || "",
     },
@@ -259,10 +259,8 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
       setValue("currentCountryCode", country.isoCode);
       setValue("currentCity", "");
 
-      // Also update mobile country code to match selected country
-      if (country.phonecode) {
-        setValue("mobileCountryCode", `+${country.phonecode}`);
-      }
+      // Note: Mobile country code is NOT updated here
+      // Phone number country code is independent from current location
     }
   };
 
@@ -274,18 +272,8 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
     setValue("mobileNumber", value);
     setValue("mobileCountryCode", `+${country.dialCode}`);
 
-    const phoneCountry = Country.getAllCountries().find(
-      (c: ICountry) =>
-        c.isoCode.toLowerCase() === country.countryCode.toLowerCase(),
-    );
-
-    if (phoneCountry) {
-      setSelectedCountryCode(phoneCountry.isoCode);
-      setValue("currentCountry", phoneCountry.name);
-      setValue("currentCountryCode", phoneCountry.isoCode);
-      // Reset city when country changes via phone
-      setValue("currentCity", "");
-    }
+    // Note: Current location is NOT updated here
+    // You can live in Japan and have a Kenyan phone number
   };
 
   const onSubmit = (formData: PersonalInfoFormData): void => {
