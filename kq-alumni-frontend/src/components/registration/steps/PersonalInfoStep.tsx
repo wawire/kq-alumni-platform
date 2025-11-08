@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { ArrowRightIcon, ExclamationCircleIcon, CheckCircleIcon } from "@heroicons/react/24/solid";
+import { ArrowRightIcon, ExclamationCircleIcon, CheckCircleIcon, ClockIcon } from "@heroicons/react/24/solid";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { City, Country, ICity, ICountry } from "country-state-city";
 import { FormProvider, useForm } from "react-hook-form";
@@ -16,6 +16,7 @@ import { FormField, FormSelect } from "@/components/forms";
 import { Button } from "@/components/ui";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useDuplicateCheck } from "@/hooks/useDuplicateCheck";
+import ProgressIndicator from "../ProgressIndicator";
 import type { RegistrationFormData } from "../RegistrationForm";
 
 // =====================================================
@@ -327,9 +328,19 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
     <FormProvider {...methods}>
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
       <div>
-        <h2 className="text-3xl font-cabrito font-bold text-kq-dark mb-8">
-          Personal Information & Contact Information
-        </h2>
+        {/* Header with Progress */}
+        <div className="flex items-start justify-between mb-6">
+          <div>
+            <h2 className="text-3xl font-cabrito font-bold text-kq-dark mb-2">
+              Personal Information & Contact Information
+            </h2>
+            <div className="flex items-center gap-2 text-sm text-gray-600">
+              <ClockIcon className="w-4 h-4" />
+              <span>About 5 minutes</span>
+            </div>
+          </div>
+          <ProgressIndicator currentStep={1} totalSteps={3} />
+        </div>
 
         {/* Row 1: ID Number / Passport & Full Name - Side by Side */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
@@ -348,20 +359,32 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
               }}
               style={{ textTransform: "uppercase" }}
               className="uppercase"
+              rightIcon={getVerificationIcon()}
             />
+            {verificationStatus === 'verifying' && (
+              <p className="mt-2 text-sm text-blue-600 flex items-center gap-2">
+                <span className="inline-block w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+                Verifying with our records...
+              </p>
+            )}
           </div>
 
           {/* Full Name */}
           <div>
-            <FormField
-              name="fullName"
-              label="Full Name"
-              type="text"
-              placeholder="As per company records"
-              variant="underline"
-              disabled
-              className="bg-gray-50"
-            />
+            <div className="flex items-center gap-2">
+              <FormField
+                name="fullName"
+                label="Full Name"
+                type="text"
+                placeholder="As per company records"
+                variant="underline"
+                disabled
+                className="bg-gray-50"
+              />
+              {verificationStatus === 'verified' && erpData?.fullName && (
+                <CheckCircleIcon className="w-5 h-5 text-green-600 flex-shrink-0 mt-7" />
+              )}
+            </div>
             <p className="mt-2 text-xs text-gray-500">
               Auto-filled from company records
             </p>
@@ -372,15 +395,20 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           {/* Staff Number */}
           <div>
-            <FormField
-              name="staffNumber"
-              label="Staff Number"
-              type="text"
-              placeholder="e.g., 0012345"
-              variant="underline"
-              disabled
-              className="bg-gray-50"
-            />
+            <div className="flex items-center gap-2">
+              <FormField
+                name="staffNumber"
+                label="Staff Number"
+                type="text"
+                placeholder="e.g., 0012345"
+                variant="underline"
+                disabled
+                className="bg-gray-50"
+              />
+              {verificationStatus === 'verified' && erpData?.staffNumber && (
+                <CheckCircleIcon className="w-5 h-5 text-green-600 flex-shrink-0 mt-7" />
+              )}
+            </div>
             <p className="mt-2 text-xs text-gray-500">
               Auto-filled from company records
             </p>
@@ -486,10 +514,20 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
           variant="primary"
           size="lg"
           fullWidth
-          rightIcon={<ArrowRightIcon className="w-5 h-5" />}
+          rightIcon={verificationStatus === 'verified' ? <ArrowRightIcon className="w-5 h-5" /> : undefined}
           disabled={verificationStatus !== 'verified' || emailCheck.isDuplicate}
         >
-          Next Step
+          {verificationStatus === 'idle' && '🔒 Enter ID Number to Continue'}
+          {verificationStatus === 'verifying' && (
+            <span className="flex items-center justify-center gap-2">
+              <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              Verifying...
+            </span>
+          )}
+          {verificationStatus === 'failed' && '⚠️ Verification Failed - Check ID'}
+          {verificationStatus === 'already_registered' && '⚠️ Already Registered'}
+          {verificationStatus === 'verified' && emailCheck.isDuplicate && '⚠️ Email Already Used'}
+          {verificationStatus === 'verified' && !emailCheck.isDuplicate && 'Continue to Employment Info →'}
         </Button>
       </div>
     </form>

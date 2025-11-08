@@ -1,12 +1,13 @@
 "use client";
 
 import React, { useState } from "react";
-import { ArrowLeftIcon, CheckCircleIcon } from "@heroicons/react/24/solid";
+import { ArrowLeftIcon, CheckCircleIcon, ClockIcon } from "@heroicons/react/24/solid";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Button } from "@/components/ui";
 import { ENGAGEMENT_AREAS } from "@/constants/forms";
+import ProgressIndicator from "../ProgressIndicator";
 import type { RegistrationFormData } from "../RegistrationForm";
 
 const engagementSchema = z.object({
@@ -76,9 +77,19 @@ const EngagementStep: React.FC<Props> = ({
   return (
     <form onSubmit={handleSubmit(onSubmitForm)} className="space-y-8">
       <div>
-        <h2 className="text-3xl font-cabrito font-bold text-kq-dark mb-8">
-          Alumni Engagement & Consent
-        </h2>
+        {/* Header with Progress */}
+        <div className="flex items-start justify-between mb-6">
+          <div>
+            <h2 className="text-3xl font-cabrito font-bold text-kq-dark mb-2">
+              Alumni Engagement & Consent
+            </h2>
+            <div className="flex items-center gap-2 text-sm text-gray-600">
+              <ClockIcon className="w-4 h-4" />
+              <span>About 2 minutes</span>
+            </div>
+          </div>
+          <ProgressIndicator currentStep={3} totalSteps={3} />
+        </div>
 
         {/* Engagement Areas */}
         <div className="mb-8">
@@ -169,10 +180,10 @@ const EngagementStep: React.FC<Props> = ({
           size="lg"
           className="flex-1"
           isLoading={isSubmitting}
-          loadingText="Submitting..."
+          loadingText="Submitting Your Registration..."
           rightIcon={!isSubmitting ? <CheckCircleIcon className="w-5 h-5" /> : undefined}
         >
-          Submit Registration
+          {isSubmitting ? 'Submitting Your Registration...' : 'Complete Registration ✓'}
         </Button>
       </div>
     </form>
