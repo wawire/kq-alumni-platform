@@ -123,6 +123,7 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
     handleSubmit,
     setValue,
     watch,
+    formState: { errors },
   } = methods;
 
   // Watch fields for duplicate checking and verification
@@ -157,10 +158,7 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
   // ID VERIFICATION LOGIC
   // =====================================================
   const verifyIdWithERP = async (idOrPassport: string) => {
-    console.log('🔍 verifyIdWithERP called with:', idOrPassport);
-
     if (!idOrPassport || idOrPassport.length < 5) {
-      console.log('⚠️ ID too short, resetting verification status');
       setVerificationStatus('idle');
       setErpData(null);
       setVerificationError("");
@@ -168,26 +166,21 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
     }
 
     try {
-      console.log('⏳ Setting verification status to: verifying');
       setVerificationStatus('verifying');
       setVerificationError("");
 
       const apiUrl = env.apiUrl;
       const url = `${apiUrl}/api/v1/registrations/verify-id/${encodeURIComponent(idOrPassport)}`;
-      console.log('📡 Fetching:', url);
 
       const response = await fetch(url);
-      console.log('📥 Response status:', response.status);
 
       if (!response.ok) {
         throw new Error('Verification failed');
       }
 
       const result = await response.json();
-      console.log('✅ Verification result:', result);
 
       if (result.isAlreadyRegistered) {
-        console.log('❌ ID already registered');
         setVerificationStatus('already_registered');
         setVerificationError(result.message || 'This ID/Passport is already registered');
         setErpData(null);
@@ -195,7 +188,6 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
       }
 
       if (result.isVerified) {
-        console.log('✅ ID verified successfully!', result);
         setVerificationStatus('verified');
         setErpData({
           staffNumber: result.staffNumber,
@@ -289,24 +281,15 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
   };
 
   const onSubmit = (formData: PersonalInfoFormData): void => {
-    console.log('📝 Form submitted with data:', formData);
-    console.log('🔐 Verification status:', verificationStatus);
-    console.log('📧 Email duplicate check:', emailCheck.isDuplicate);
-    console.log('👤 ERP data:', erpData);
-
     // Don't submit if duplicates found or ID not verified
     if (emailCheck.isDuplicate) {
-      console.log('❌ Blocked: Email is duplicate');
       return;
     }
 
     if (verificationStatus !== 'verified') {
-      console.log('❌ Blocked: Verification status is not verified:', verificationStatus);
       setVerificationError('Please wait for ID verification to complete');
       return;
     }
-
-    console.log('✅ Proceeding to next step');
 
     // Include ERP data in submission
     onNext({
@@ -316,26 +299,9 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
     });
   };
 
-  // Helper to get the duplicate check icon - REMOVED FOR DEBUGGING
-  const getDuplicateIcon = (check: typeof emailCheck) => {
-    return null; // Icons removed for debugging
-  };
-
-  // Helper to get verification status icon - REMOVED FOR DEBUGGING
-  const getVerificationIcon = () => {
-    return null; // Icons removed for debugging
-  };
-
-  // Log button state changes for debugging
-  useEffect(() => {
-    const isDisabled = verificationStatus !== 'verified' || emailCheck.isDuplicate;
-    console.log('🔘 BUTTON STATE:', {
-      verificationStatus,
-      emailCheckIsDuplicate: emailCheck.isDuplicate,
-      isButtonDisabled: isDisabled,
-      buttonText: verificationStatus === 'verified' && !emailCheck.isDuplicate ? 'Continue' : 'Other'
-    });
-  }, [verificationStatus, emailCheck.isDuplicate]);
+  // Check if form has any validation errors
+  const hasErrors = Object.keys(errors).length > 0;
+  const canProceed = verificationStatus === 'verified' && !emailCheck.isDuplicate && !hasErrors;
 
   return (
     <FormProvider {...methods}>
@@ -372,21 +338,25 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
               }}
               style={{ textTransform: "uppercase" }}
               className="uppercase"
-              rightIcon={getVerificationIcon()}
             />
-            {verificationStatus === 'verifying' && (
+            {errors.idNumber && (
+              <p className="mt-2 text-sm text-kq-red">
+                {errors.idNumber.message}
+              </p>
+            )}
+            {!errors.idNumber && verificationStatus === 'verifying' && (
               <p className="mt-2 text-sm text-blue-600 flex items-center gap-2">
                 <span className="inline-block w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
                 Verifying with our records...
               </p>
             )}
-            {verificationStatus === 'verified' && erpData && (
+            {!errors.idNumber && verificationStatus === 'verified' && erpData && (
               <p className="mt-2 text-sm text-green-600 flex items-center gap-2">
                 <CheckCircleIcon className="w-4 h-4" />
                 ✓ ID verified! Staff Number: {erpData.staffNumber}
               </p>
             )}
-            {(verificationStatus === 'failed' || verificationStatus === 'already_registered') && verificationError && (
+            {!errors.idNumber && (verificationStatus === 'failed' || verificationStatus === 'already_registered') && verificationError && (
               <p className="mt-2 text-sm text-red-600 flex items-center gap-2">
                 <ExclamationCircleIcon className="w-4 h-4" />
                 {verificationError}
@@ -442,9 +412,13 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
               placeholder="your.email@example.com"
               required
               variant="underline"
-              rightIcon={getDuplicateIcon(emailCheck)}
             />
-            {emailCheck.isDuplicate && (
+            {errors.email && (
+              <p className="mt-2 text-sm text-kq-red">
+                {errors.email.message}
+              </p>
+            )}
+            {!errors.email && emailCheck.isDuplicate && (
               <p className="mt-2 text-sm text-kq-red">
                 {emailCheck.error || "This email is already registered"}
               </p>
@@ -533,20 +507,26 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
           variant="primary"
           size="lg"
           fullWidth
-          disabled={verificationStatus !== 'verified' || emailCheck.isDuplicate}
+          disabled={!canProceed}
         >
-          {verificationStatus === 'idle' && 'Enter ID Number'}
+          {verificationStatus === 'idle' && 'Enter ID Number to Start'}
           {verificationStatus === 'verifying' && (
             <span className="flex items-center justify-center gap-2">
               <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              Verifying...
+              Verifying ID...
             </span>
           )}
-          {verificationStatus === 'failed' && 'Verification Failed'}
+          {verificationStatus === 'failed' && 'Verification Failed - Check ID Number'}
           {verificationStatus === 'already_registered' && 'Already Registered'}
           {verificationStatus === 'verified' && emailCheck.isDuplicate && 'Email Already Used'}
-          {verificationStatus === 'verified' && !emailCheck.isDuplicate && 'Continue'}
+          {verificationStatus === 'verified' && !emailCheck.isDuplicate && hasErrors && 'Please Complete All Required Fields'}
+          {canProceed && 'Continue'}
         </Button>
+        {verificationStatus === 'verified' && hasErrors && (
+          <p className="mt-3 text-sm text-center text-gray-600">
+            Please fill in all required fields above to continue
+          </p>
+        )}
       </div>
     </form>
     </FormProvider>

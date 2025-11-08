@@ -16,7 +16,6 @@ import EngagementStep from "./steps/EngagementStep";
 import PersonalInfoStep from "./steps/PersonalInfoStep";
 import ReviewStep from "./steps/ReviewStep";
 import SuccessScreen from "./SuccessScreen";
-import AutoSaveIndicator from "@/components/ui/AutoSaveIndicator";
 
 export type FormStep = "personal" | "employment" | "engagement" | "success";
 
@@ -53,19 +52,11 @@ export default function RegistrationForm() {
   // React Query mutation
   const submitMutation = useSubmitRegistration();
 
-  // Auto-save indicator state
-  const [lastSaved, setLastSaved] = useState<Date | null>(null);
-
   // Load persisted data on mount
   useEffect(() => {
     loadFromLocalStorage();
     trackEvent("registration_form_loaded");
   }, [loadFromLocalStorage]);
-
-  // Track auto-save
-  useEffect(() => {
-    setLastSaved(new Date());
-  }, [formData]);
 
   const handleNext = (data: Partial<RegistrationFormData>): void => {
     updateFormData(data);
@@ -238,9 +229,6 @@ export default function RegistrationForm() {
             )}
           </div>
         </div>
-
-        {/* Auto-save Indicator */}
-        <AutoSaveIndicator lastSaved={lastSaved} />
       </div>
     </>
   );
