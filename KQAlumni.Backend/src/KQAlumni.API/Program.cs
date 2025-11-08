@@ -533,6 +533,24 @@ if (app.Environment.IsDevelopment() && isDatabaseAvailable)
 
     Console.WriteLine("═══════════════════════════════════════════════════════");
     Console.WriteLine();
+
+    // SEED ADMIN USERS
+    Console.WriteLine("═══════════════════════════════════════════════════════");
+    Console.WriteLine("ADMIN USER SEEDING");
+    Console.WriteLine("═══════════════════════════════════════════════════════");
+
+    try
+    {
+        await DbSeeder.SeedInitialAdminUsersAsync(app.Services);
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"[ERROR] Admin seeding failed: {ex.Message}");
+        app.Logger.LogError(ex, "Failed to seed admin users");
+    }
+
+    Console.WriteLine("═══════════════════════════════════════════════════════");
+    Console.WriteLine();
 }
 
 // 12. SCHEDULE HANGFIRE JOBS
