@@ -193,6 +193,12 @@ export function useAdminRegistrations(filters?: RegistrationFilters) {
       if (filters?.emailVerified !== undefined) {
         params.append('emailVerified', filters.emailVerified.toString());
       }
+      if (filters?.sortBy) {
+        params.append('sortBy', filters.sortBy);
+      }
+      if (filters?.sortOrder) {
+        params.append('sortOrder', filters.sortOrder);
+      }
       if (filters?.pageNumber) {
         params.append('pageNumber', filters.pageNumber.toString());
       }

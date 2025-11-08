@@ -3,6 +3,7 @@ using KQAlumni.Core.Interfaces;
 using KQAlumni.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using System.Linq.Expressions;
 
 namespace KQAlumni.Infrastructure.Services;
 
@@ -43,6 +44,12 @@ public class AdminRegistrationService : IAdminRegistrationService
     public async Task<(List<AlumniRegistration> Registrations, int TotalCount)> GetRegistrationsAsync(
         string? status = null,
         bool? requiresManualReview = null,
+        string? searchQuery = null,
+        DateTime? dateFrom = null,
+        DateTime? dateTo = null,
+        bool? emailVerified = null,
+        string? sortBy = null,
+        string? sortOrder = null,
         int pageNumber = 1,
         int pageSize = 50,
         CancellationToken cancellationToken = default)
@@ -60,12 +67,68 @@ public class AdminRegistrationService : IAdminRegistrationService
             query = query.Where(r => r.RequiresManualReview == requiresManualReview.Value);
         }
 
+        if (!string.IsNullOrEmpty(searchQuery))
+        {
+            var search = searchQuery.ToLower();
+            query = query.Where(r =>
+                (r.FullName != null && r.FullName.ToLower().Contains(search)) ||
+                (r.Email != null && r.Email.ToLower().Contains(search)) ||
+                (r.StaffNumber != null && r.StaffNumber.ToLower().Contains(search)) ||
+                (r.IdNumber != null && r.IdNumber.ToLower().Contains(search)) ||
+                (r.PassportNumber != null && r.PassportNumber.ToLower().Contains(search)));
+        }
+
+        if (dateFrom.HasValue)
+        {
+            query = query.Where(r => r.CreatedAt >= dateFrom.Value);
+        }
+
+        if (dateTo.HasValue)
+        {
+            query = query.Where(r => r.CreatedAt <= dateTo.Value);
+        }
+
+        if (emailVerified.HasValue)
+        {
+            query = query.Where(r => r.EmailVerified == emailVerified.Value);
+        }
+
+        // Apply sorting
+        if (!string.IsNullOrEmpty(sortBy))
+        {
+            var isDescending = sortOrder?.ToLower() == "desc";
+
+            query = sortBy.ToLower() switch
+            {
+                "fullname" => isDescending
+                    ? query.OrderByDescending(r => r.FullName)
+                    : query.OrderBy(r => r.FullName),
+                "createdat" => isDescending
+                    ? query.OrderByDescending(r => r.CreatedAt)
+                    : query.OrderBy(r => r.CreatedAt),
+                "registrationstatus" => isDescending
+                    ? query.OrderByDescending(r => r.RegistrationStatus)
+                    : query.OrderBy(r => r.RegistrationStatus),
+                "staffnumber" => isDescending
+                    ? query.OrderByDescending(r => r.StaffNumber)
+                    : query.OrderBy(r => r.StaffNumber),
+                "email" => isDescending
+                    ? query.OrderByDescending(r => r.Email)
+                    : query.OrderBy(r => r.Email),
+                _ => query.OrderByDescending(r => r.CreatedAt) // Default sort
+            };
+        }
+        else
+        {
+            // Default sort by creation date (newest first)
+            query = query.OrderByDescending(r => r.CreatedAt);
+        }
+
         // Get total count before pagination
         var totalCount = await query.CountAsync(cancellationToken);
 
         // Apply pagination
         var registrations = await query
-            .OrderByDescending(r => r.CreatedAt)
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync(cancellationToken);

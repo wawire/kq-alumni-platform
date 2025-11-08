@@ -10,12 +10,16 @@ import {
   Search,
   ChevronLeft,
   ChevronRight,
+  ChevronUp,
+  ChevronDown,
   Eye,
   CheckCircle2,
   XCircle,
   Clock,
   AlertCircle,
   Mail,
+  Check,
+  X,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
@@ -25,7 +29,50 @@ import { BulkActions } from '@/components/admin/BulkActions';
 import { RegistrationsFilters } from '@/components/admin/RegistrationsFilters';
 import { Button } from '@/components/ui/button/Button';
 import { useAdminRegistrations, useApproveRegistration, useRejectRegistration } from '@/lib/api/services/adminService';
-import type { RegistrationStatus, RegistrationFilters } from '@/types/admin';
+import type { RegistrationStatus, RegistrationFilters, SortableColumn, SortOrder } from '@/types/admin';
+
+// ============================================
+// Sortable Header Component
+// ============================================
+
+interface SortableHeaderProps {
+  label: string;
+  column: SortableColumn;
+  currentSort?: SortableColumn;
+  currentOrder?: SortOrder;
+  onSort: (column: SortableColumn) => void;
+}
+
+function SortableHeader({ label, column, currentSort, currentOrder, onSort }: SortableHeaderProps) {
+  const isActive = currentSort === column;
+
+  return (
+    <th className="px-6 py-3 text-left">
+      <button
+        onClick={() => onSort(column)}
+        className="flex items-center gap-2 text-xs font-medium text-gray-500 uppercase tracking-wider hover:text-gray-700 transition-colors group"
+      >
+        {label}
+        <div className="flex flex-col">
+          <ChevronUp
+            className={`w-3 h-3 -mb-1 transition-colors ${
+              isActive && currentOrder === 'asc'
+                ? 'text-kq-red'
+                : 'text-gray-300 group-hover:text-gray-400'
+            }`}
+          />
+          <ChevronDown
+            className={`w-3 h-3 -mt-1 transition-colors ${
+              isActive && currentOrder === 'desc'
+                ? 'text-kq-red'
+                : 'text-gray-300 group-hover:text-gray-400'
+            }`}
+          />
+        </div>
+      </button>
+    </th>
+  );
+}
 
 // ============================================
 // Status Badge Component
@@ -105,6 +152,12 @@ function RegistrationsPageContent() {
     pageSize: 20,
   });
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [actionModal, setActionModal] = useState<{
+    type: 'approve' | 'reject' | null;
+    registrationId: string | null;
+    registrationName: string | null;
+  }>({ type: null, registrationId: null, registrationName: null });
+  const [rejectReason, setRejectReason] = useState('');
 
   const { data, isLoading, error } = useAdminRegistrations(filters);
   const approveMutation = useApproveRegistration();
@@ -113,6 +166,26 @@ function RegistrationsPageContent() {
   const handlePageChange = (page: number) => {
     setFilters((prev) => ({ ...prev, pageNumber: page }));
     setSelectedIds([]); // Clear selection on page change
+  };
+
+  const handleSort = (column: SortableColumn) => {
+    setFilters((prev) => {
+      // If clicking the same column, toggle the order
+      if (prev.sortBy === column) {
+        return {
+          ...prev,
+          sortOrder: prev.sortOrder === 'asc' ? 'desc' : 'asc',
+          pageNumber: 1, // Reset to first page when sorting changes
+        };
+      }
+      // If clicking a new column, set it as sortBy with ascending order
+      return {
+        ...prev,
+        sortBy: column,
+        sortOrder: 'asc',
+        pageNumber: 1,
+      };
+    });
   };
 
   const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -169,6 +242,35 @@ function RegistrationsPageContent() {
     a.download = `registrations-${new Date().toISOString().split('T')[0]}.csv`;
     a.click();
     window.URL.revokeObjectURL(url);
+  };
+
+  const handleQuickApprove = async () => {
+    if (!actionModal.registrationId) return;
+
+    try {
+      await approveMutation.mutateAsync({
+        id: actionModal.registrationId,
+        data: { notes: 'Quick approved from table' },
+      });
+      setActionModal({ type: null, registrationId: null, registrationName: null });
+    } catch (error) {
+      console.error('Failed to approve registration:', error);
+    }
+  };
+
+  const handleQuickReject = async () => {
+    if (!actionModal.registrationId || !rejectReason.trim()) return;
+
+    try {
+      await rejectMutation.mutateAsync({
+        id: actionModal.registrationId,
+        data: { reason: rejectReason },
+      });
+      setActionModal({ type: null, registrationId: null, registrationName: null });
+      setRejectReason('');
+    } catch (error) {
+      console.error('Failed to reject registration:', error);
+    }
   };
 
   const isAllSelected = data && selectedIds.length === data.data.length && data.data.length > 0;
@@ -255,21 +357,41 @@ function RegistrationsPageContent() {
                           className="w-4 h-4 text-kq-red border-gray-300 rounded focus:ring-kq-red"
                         />
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Reg. Number
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Alumni Details
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Contact
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Status
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Registered
-                      </th>
+                      <SortableHeader
+                        label="Staff #"
+                        column="staffNumber"
+                        currentSort={filters.sortBy}
+                        currentOrder={filters.sortOrder}
+                        onSort={handleSort}
+                      />
+                      <SortableHeader
+                        label="Alumni Details"
+                        column="fullName"
+                        currentSort={filters.sortBy}
+                        currentOrder={filters.sortOrder}
+                        onSort={handleSort}
+                      />
+                      <SortableHeader
+                        label="Contact"
+                        column="email"
+                        currentSort={filters.sortBy}
+                        currentOrder={filters.sortOrder}
+                        onSort={handleSort}
+                      />
+                      <SortableHeader
+                        label="Status"
+                        column="registrationStatus"
+                        currentSort={filters.sortBy}
+                        currentOrder={filters.sortOrder}
+                        onSort={handleSort}
+                      />
+                      <SortableHeader
+                        label="Registered"
+                        column="createdAt"
+                        currentSort={filters.sortBy}
+                        currentOrder={filters.sortOrder}
+                        onSort={handleSort}
+                      />
                       <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Actions
                       </th>
@@ -281,7 +403,11 @@ function RegistrationsPageContent() {
                         <td colSpan={7} className="px-6 py-12 text-center">
                           <div className="flex flex-col items-center justify-center text-gray-500">
                             <Search className="w-12 h-12 mb-3 opacity-50" />
-                            <p className="text-lg font-medium mb-1">No registrations found</p>
+                            <p className="text-lg font-medium mb-1">
+                              {filters.searchQuery
+                                ? `No registrations found for "${filters.searchQuery}"`
+                                : 'No registrations found'}
+                            </p>
                             <p className="text-sm">Try adjusting your filters</p>
                           </div>
                         </td>
@@ -346,15 +472,51 @@ function RegistrationsPageContent() {
                             </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-right">
-                            <Link href={`/admin/registrations/${registration.id}`}>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                leftIcon={<Eye className="w-4 h-4" />}
-                              >
-                                View
-                              </Button>
-                            </Link>
+                            <div className="flex items-center justify-end gap-2">
+                              {registration.registrationStatus === 'Pending' && (
+                                <>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() =>
+                                      setActionModal({
+                                        type: 'approve',
+                                        registrationId: registration.id,
+                                        registrationName: registration.fullName,
+                                      })
+                                    }
+                                    className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                                    leftIcon={<Check className="w-4 h-4" />}
+                                  >
+                                    Approve
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() =>
+                                      setActionModal({
+                                        type: 'reject',
+                                        registrationId: registration.id,
+                                        registrationName: registration.fullName,
+                                      })
+                                    }
+                                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                    leftIcon={<X className="w-4 h-4" />}
+                                  >
+                                    Reject
+                                  </Button>
+                                </>
+                              )}
+                              <Link href={`/admin/registrations/${registration.id}`}>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  leftIcon={<Eye className="w-4 h-4" />}
+                                >
+                                  View
+                                </Button>
+                              </Link>
+                            </div>
                           </td>
                         </tr>
                       ))
@@ -404,6 +566,84 @@ function RegistrationsPageContent() {
               </div>
             )}
           </>
+        )}
+
+        {/* Approve Confirmation Modal */}
+        {actionModal.type === 'approve' && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+              <h3 className="text-lg font-bold text-gray-900 mb-2">
+                Approve Registration
+              </h3>
+              <p className="text-sm text-gray-600 mb-4">
+                Are you sure you want to approve the registration for{' '}
+                <span className="font-medium">{actionModal.registrationName}</span>?
+              </p>
+              <div className="flex justify-end gap-3">
+                <Button
+                  variant="outline"
+                  size="md"
+                  onClick={() => setActionModal({ type: null, registrationId: null, registrationName: null })}
+                  disabled={approveMutation.isPending}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="primary"
+                  size="md"
+                  onClick={handleQuickApprove}
+                  disabled={approveMutation.isPending}
+                  leftIcon={approveMutation.isPending ? undefined : <CheckCircle2 className="w-4 h-4" />}
+                >
+                  {approveMutation.isPending ? 'Approving...' : 'Approve'}
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Reject Confirmation Modal */}
+        {actionModal.type === 'reject' && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+              <h3 className="text-lg font-bold text-gray-900 mb-2">
+                Reject Registration
+              </h3>
+              <p className="text-sm text-gray-600 mb-4">
+                Please provide a reason for rejecting the registration for{' '}
+                <span className="font-medium">{actionModal.registrationName}</span>:
+              </p>
+              <textarea
+                value={rejectReason}
+                onChange={(e) => setRejectReason(e.target.value)}
+                placeholder="Enter rejection reason..."
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-kq-red focus:border-transparent mb-4"
+                rows={4}
+              />
+              <div className="flex justify-end gap-3">
+                <Button
+                  variant="outline"
+                  size="md"
+                  onClick={() => {
+                    setActionModal({ type: null, registrationId: null, registrationName: null });
+                    setRejectReason('');
+                  }}
+                  disabled={rejectMutation.isPending}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="danger"
+                  size="md"
+                  onClick={handleQuickReject}
+                  disabled={rejectMutation.isPending || !rejectReason.trim()}
+                  leftIcon={rejectMutation.isPending ? undefined : <XCircle className="w-4 h-4" />}
+                >
+                  {rejectMutation.isPending ? 'Rejecting...' : 'Reject'}
+                </Button>
+              </div>
+            </div>
+          </div>
         )}
       </div>
     </AdminLayout>

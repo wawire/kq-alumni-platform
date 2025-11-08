@@ -120,11 +120,6 @@ export function RegistrationsFilters({
                 </button>
               )}
             </div>
-            {localSearch && (
-              <p className="mt-1 text-xs text-gray-500">
-                Searching automatically...
-              </p>
-            )}
           </div>
 
           {/* Advanced Filters Toggle */}
