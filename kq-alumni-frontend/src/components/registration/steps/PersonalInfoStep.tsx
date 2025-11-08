@@ -16,6 +16,7 @@ import { FormField, FormSelect } from "@/components/forms";
 import { Button } from "@/components/ui";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useDuplicateCheck } from "@/hooks/useDuplicateCheck";
+import { env } from "@/lib/env";
 import ProgressIndicator from "../ProgressIndicator";
 import type { RegistrationFormData } from "../RegistrationForm";
 
@@ -167,7 +168,7 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
       setVerificationStatus('verifying');
       setVerificationError("");
 
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5166';
+      const apiUrl = env.apiUrl; // Use centralized env config
       const response = await fetch(`${apiUrl}/api/v1/registrations/verify-id/${encodeURIComponent(idOrPassport)}`);
 
       if (!response.ok) {
