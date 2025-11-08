@@ -45,20 +45,21 @@ public static class DbSeeder
 
             logger.LogInformation("No admin users found. Creating initial SuperAdmin user...");
 
-            // Create initial SuperAdmin user
+            // Create initial SuperAdmin user with forced password change
             var adminUser = await authService.CreateAdminUserAsync(
                 username,
                 email,
                 password,
                 fullName,
-                "SuperAdmin");
+                "SuperAdmin",
+                requiresPasswordChange: true);
 
             logger.LogInformation(
                 "[SUCCESS] Initial SuperAdmin user created successfully:\n" +
                 "   Username: {Username}\n" +
                 "   Email: {Email}\n" +
                 "   Password: {Password}\n" +
-                "   [WARNING] IMPORTANT: Change this password immediately after first login!",
+                "   [SECURITY] User MUST change password on first login",
                 username,
                 email,
                 password);
@@ -99,13 +100,14 @@ public static class DbSeeder
                     continue;
                 }
 
-                // Create admin user
+                // Create admin user with optional password change requirement
                 var adminUser = await authService.CreateAdminUserAsync(
                     adminData.Username,
                     adminData.Email,
                     adminData.Password,
                     adminData.FullName,
-                    adminData.Role);
+                    adminData.Role,
+                    requiresPasswordChange: adminData.RequiresPasswordChange);
 
                 logger.LogInformation(
                     "[SUCCESS] Admin user created: {Username} ({Role})",
@@ -133,4 +135,5 @@ public class AdminUserSeedData
     public string Password { get; set; } = string.Empty;
     public string FullName { get; set; } = string.Empty;
     public string Role { get; set; } = "HROfficer";
+    public bool RequiresPasswordChange { get; set; } = false;
 }

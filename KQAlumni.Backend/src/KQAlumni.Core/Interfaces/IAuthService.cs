@@ -52,12 +52,22 @@ public interface IAuthService
     /// <param name="password">Password</param>
     /// <param name="fullName">Full name</param>
     /// <param name="role">Role (SuperAdmin, HRManager, HROfficer)</param>
+    /// <param name="requiresPasswordChange">Whether user must change password on first login</param>
     /// <returns>Created admin user</returns>
-    Task<AdminUser> CreateAdminUserAsync(string username, string email, string password, string fullName, string role);
+    Task<AdminUser> CreateAdminUserAsync(string username, string email, string password, string fullName, string role, bool requiresPasswordChange = false);
 
     /// <summary>
     /// Updates admin user's last login timestamp
     /// </summary>
     /// <param name="adminUserId">Admin user ID</param>
     Task UpdateLastLoginAsync(int adminUserId);
+
+    /// <summary>
+    /// Changes an admin user's password
+    /// </summary>
+    /// <param name="username">Admin username</param>
+    /// <param name="currentPassword">Current password</param>
+    /// <param name="newPassword">New password</param>
+    /// <returns>True if password changed successfully</returns>
+    Task<bool> ChangePasswordAsync(string username, string currentPassword, string newPassword);
 }

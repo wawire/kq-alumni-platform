@@ -70,6 +70,11 @@ namespace KQAlumni.Infrastructure.Data.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
 
+                    b.Property<bool>("RequiresPasswordChange")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
                     b.Property<string>("Role")
                         .IsRequired()
                         .ValueGeneratedOnAdd()
@@ -94,6 +99,9 @@ namespace KQAlumni.Infrastructure.Data.Migrations
                     b.HasIndex("LastLoginAt")
                         .IsDescending()
                         .HasDatabaseName("IX_AdminUsers_LastLoginAt");
+
+                    b.HasIndex("RequiresPasswordChange")
+                        .HasDatabaseName("IX_AdminUsers_RequiresPasswordChange");
 
                     b.HasIndex("Role")
                         .HasDatabaseName("IX_AdminUsers_Role");

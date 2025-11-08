@@ -85,11 +85,12 @@ public class AdminController : ControllerBase
                 Username = adminUser.Username,
                 FullName = adminUser.FullName,
                 Role = adminUser.Role,
-                Email = adminUser.Email
+                Email = adminUser.Email,
+                RequiresPasswordChange = adminUser.RequiresPasswordChange
             };
 
-            _logger.LogInformation("User {Username} logged in successfully with role {Role}",
-                request.Username, adminUser.Role);
+            _logger.LogInformation("User {Username} logged in successfully with role {Role}. RequiresPasswordChange: {RequiresPasswordChange}",
+                request.Username, adminUser.Role, adminUser.RequiresPasswordChange);
 
             return Ok(response);
         }
@@ -140,7 +141,8 @@ public class AdminController : ControllerBase
                 Username = adminUser.Username,
                 FullName = adminUser.FullName,
                 Role = adminUser.Role,
-                Email = adminUser.Email
+                Email = adminUser.Email,
+                RequiresPasswordChange = adminUser.RequiresPasswordChange
             };
 
             return Ok(response);
@@ -149,6 +151,77 @@ public class AdminController : ControllerBase
         {
             _logger.LogError(ex, "Error getting current user");
             return StatusCode(500);
+        }
+    }
+
+    /// <summary>
+    /// Change current admin user's password
+    /// </summary>
+    /// <param name="request">Password change request</param>
+    /// <returns>Success message</returns>
+    [HttpPost("change-password")]
+    [Authorize]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<ActionResult> ChangePassword([FromBody] ChangePasswordRequest request)
+    {
+        try
+        {
+            var username = User.Identity?.Name;
+
+            if (string.IsNullOrEmpty(username))
+            {
+                return Unauthorized();
+            }
+
+            _logger.LogInformation("Password change request for user: {Username}", username);
+
+            var success = await _authService.ChangePasswordAsync(
+                username,
+                request.CurrentPassword,
+                request.NewPassword);
+
+            if (!success)
+            {
+                return BadRequest(new ErrorResponse
+                {
+                    Type = "https://tools.ietf.org/html/rfc7231#section-6.5.1",
+                    Title = "Password change failed",
+                    Status = StatusCodes.Status400BadRequest,
+                    Detail = "Invalid current password or password change failed"
+                });
+            }
+
+            _logger.LogInformation("Password changed successfully for user: {Username}", username);
+
+            return Ok(new
+            {
+                message = "Password changed successfully",
+                requiresPasswordChange = false
+            });
+        }
+        catch (ArgumentException ex)
+        {
+            _logger.LogWarning(ex, "Invalid password format for user: {Username}", User.Identity?.Name);
+            return BadRequest(new ErrorResponse
+            {
+                Type = "https://tools.ietf.org/html/rfc7231#section-6.5.1",
+                Title = "Invalid password",
+                Status = StatusCodes.Status400BadRequest,
+                Detail = ex.Message
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error changing password for user: {Username}", User.Identity?.Name);
+            return StatusCode(500, new ErrorResponse
+            {
+                Type = "https://tools.ietf.org/html/rfc7231#section-6.6.1",
+                Title = "Internal server error",
+                Status = StatusCodes.Status500InternalServerError,
+                Detail = "An error occurred while changing password"
+            });
         }
     }
 
