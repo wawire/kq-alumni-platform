@@ -54,6 +54,22 @@ public class RegistrationService : IRegistrationService
       // DUPLICATE CHECKS
 
 
+      // Check: ID Number / Passport (always required)
+      var existingByIdNumber = await IsIdNumberRegisteredAsync(
+          request.IdNumber,
+          cancellationToken);
+
+      if (existingByIdNumber)
+      {
+        _logger.LogWarning(
+            "ID/Passport number {IdNumber} already registered",
+            request.IdNumber);
+
+        throw new InvalidOperationException(
+            "This ID/Passport number is already registered. " +
+            "Contact KQ.Alumni@kenya-airways.com to update your profile.");
+      }
+
       // Check: Staff Number (only if provided)
       if (!string.IsNullOrWhiteSpace(request.StaffNumber))
       {
@@ -347,6 +363,18 @@ public class RegistrationService : IRegistrationService
         .Where(r => r.Email == normalized)
         .OrderByDescending(r => r.CreatedAt)
         .FirstOrDefaultAsync(cancellationToken);
+  }
+
+  /// <summary>
+  /// Checks if ID number or passport number is already registered
+  /// </summary>
+  public async Task<bool> IsIdNumberRegisteredAsync(
+      string idNumber,
+      CancellationToken cancellationToken = default)
+  {
+    var normalized = idNumber.ToUpper().Trim();
+    return await _context.AlumniRegistrations
+        .AnyAsync(r => r.IdNumber == normalized, cancellationToken);
   }
 
   /// <summary>
