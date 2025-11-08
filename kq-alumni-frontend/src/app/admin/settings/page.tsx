@@ -10,10 +10,12 @@ import { Lock, AlertCircle, CheckCircle2, Eye, EyeOff } from 'lucide-react';
 
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { Button } from '@/components/ui/button/Button';
-import { useAdminUser } from '@/store/adminStore';
+import { useAdminUser, useAdminToken } from '@/store/adminStore';
+import { env } from '@/lib/env';
 
 export default function AdminSettingsPage() {
   const user = useAdminUser();
+  const token = useAdminToken();
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -53,16 +55,30 @@ export default function AdminSettingsPage() {
     setIsLoading(true);
 
     try {
-      // TODO: Implement actual password change API call
-      // For now, simulating success
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      const response = await fetch(`${env.apiUrl}/api/v1/admin/change-password`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          currentPassword,
+          newPassword,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || 'Failed to change password');
+      }
 
       setSuccess(true);
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
-    } catch {
-      setError('Failed to change password. Please try again.');
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to change password. Please try again.';
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
