@@ -25,8 +25,8 @@ export interface RegistrationFormData {
   passportNumber?: string;
   fullName: string;
   email: string;
-  mobileCountryCode: string;
-  mobileNumber: string;
+  mobileCountryCode?: string;
+  mobileNumber?: string;
   currentCountry: string;
   currentCountryCode: string;
   currentCity: string;
