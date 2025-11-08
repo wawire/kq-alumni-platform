@@ -12,20 +12,11 @@ namespace KQAlumni.Infrastructure.Data;
 public static class DbSeeder
 {
     /// <summary>
-    /// Seeds the initial SuperAdmin user if no admin users exist
+    /// Seeds the initial admin users (SuperAdmin, HRManager, HROfficer) if no admin users exist
     /// This should be called during application startup in Development environment
     /// </summary>
     /// <param name="serviceProvider">Service provider for resolving dependencies</param>
-    /// <param name="username">SuperAdmin username (default: admin)</param>
-    /// <param name="email">SuperAdmin email (default: admin@kenya-airways.com)</param>
-    /// <param name="password">SuperAdmin password (default: Admin@123456)</param>
-    /// <param name="fullName">SuperAdmin full name (default: System Administrator)</param>
-    public static async Task SeedInitialAdminUserAsync(
-        IServiceProvider serviceProvider,
-        string username = "admin",
-        string email = "admin@kenya-airways.com",
-        string password = "Admin@123456",
-        string fullName = "System Administrator")
+    public static async Task SeedInitialAdminUsersAsync(IServiceProvider serviceProvider)
     {
         using var scope = serviceProvider.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -43,30 +34,70 @@ public static class DbSeeder
                 return;
             }
 
-            logger.LogInformation("No admin users found. Creating initial SuperAdmin user...");
+            logger.LogInformation("No admin users found. Creating initial admin users...");
 
-            // Create initial SuperAdmin user with forced password change
-            var adminUser = await authService.CreateAdminUserAsync(
-                username,
-                email,
-                password,
-                fullName,
-                "SuperAdmin",
-                requiresPasswordChange: true);
+            // Define the three initial admin users
+            var adminUsers = new List<AdminUserSeedData>
+            {
+                new AdminUserSeedData
+                {
+                    Username = "admin",
+                    Email = "admin@kenya-airways.com",
+                    Password = "Admin@123456",
+                    FullName = "System Administrator",
+                    Role = "SuperAdmin",
+                    RequiresPasswordChange = true
+                },
+                new AdminUserSeedData
+                {
+                    Username = "hr.manager",
+                    Email = "hr.manager@kenya-airways.com",
+                    Password = "HRManager@123456",
+                    FullName = "HR Manager",
+                    Role = "HRManager",
+                    RequiresPasswordChange = true
+                },
+                new AdminUserSeedData
+                {
+                    Username = "hr.officer",
+                    Email = "hr.officer@kenya-airways.com",
+                    Password = "HROfficer@123456",
+                    FullName = "HR Officer",
+                    Role = "HROfficer",
+                    RequiresPasswordChange = true
+                }
+            };
+
+            // Create all admin users
+            foreach (var adminData in adminUsers)
+            {
+                var adminUser = await authService.CreateAdminUserAsync(
+                    adminData.Username,
+                    adminData.Email,
+                    adminData.Password,
+                    adminData.FullName,
+                    adminData.Role,
+                    requiresPasswordChange: adminData.RequiresPasswordChange);
+
+                logger.LogInformation(
+                    "[SUCCESS] Admin user created: {Username} ({Role}) - Email: {Email}",
+                    adminData.Username,
+                    adminData.Role,
+                    adminData.Email);
+            }
 
             logger.LogInformation(
-                "[SUCCESS] Initial SuperAdmin user created successfully:\n" +
-                "   Username: {Username}\n" +
-                "   Email: {Email}\n" +
-                "   Password: {Password}\n" +
-                "   [SECURITY] User MUST change password on first login",
-                username,
-                email,
-                password);
+                "[SUCCESS] All {Count} initial admin users created successfully.\n" +
+                "   [SECURITY] All users MUST change their passwords on first login.\n" +
+                "   Credentials:\n" +
+                "   1. SuperAdmin    - Username: admin        | Password: Admin@123456\n" +
+                "   2. HRManager     - Username: hr.manager   | Password: HRManager@123456\n" +
+                "   3. HROfficer     - Username: hr.officer   | Password: HROfficer@123456",
+                adminUsers.Count);
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Error seeding initial admin user");
+            logger.LogError(ex, "Error seeding initial admin users");
             throw;
         }
     }
