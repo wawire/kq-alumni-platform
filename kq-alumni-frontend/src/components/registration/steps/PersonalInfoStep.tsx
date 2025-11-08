@@ -47,8 +47,8 @@ const personalInfoSchema = z.object({
     .email("Invalid email format")
     .max(255, "Email address too long")
     .transform((val) => val.toLowerCase().trim()),
-  mobileCountryCode: z.string().min(1, "Phone country code is required"),
-  mobileNumber: z.string().min(1, "Mobile number is required"),
+  mobileCountryCode: z.string().optional(),
+  mobileNumber: z.string().optional(),
   currentCountry: z.string().min(1, "Country is required"),
   currentCountryCode: z.string().min(1, "Country code is required"),
   currentCity: z.string().min(1, "City is required"),
@@ -110,10 +110,10 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
       passportNumber: data.passportNumber || "",
       fullName: data.fullName || "",
       email: data.email || "",
-      mobileCountryCode: data.mobileCountryCode || "+254", // Default Kenya phone code (most alumni)
+      mobileCountryCode: data.mobileCountryCode || "",
       mobileNumber: data.mobileNumber || "",
-      currentCountry: data.currentCountry || "", // No default - user selects where they live
-      currentCountryCode: data.currentCountryCode || "", // No default - user selects where they live
+      currentCountry: data.currentCountry || "",
+      currentCountryCode: data.currentCountryCode || "",
       currentCity: data.currentCity || "",
       cityCustom: data.cityCustom || "",
     },
@@ -429,10 +429,10 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
         {/* Mobile Number */}
         <div className="mb-8">
           <label className="block text-sm font-medium text-gray-700 mb-1.5">
-            Mobile Number
+            Mobile Number <span className="text-gray-500 font-normal">(Optional)</span>
           </label>
           <PhoneInput
-            country={"ke"}
+            country={""}
             value={phoneValue}
             onChange={handlePhoneChange}
             inputStyle={{
