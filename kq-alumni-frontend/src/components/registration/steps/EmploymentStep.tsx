@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowLeftIcon, ArrowRightIcon } from "@heroicons/react/24/solid";
+import { ArrowLeftIcon, ArrowRightIcon, ClockIcon } from "@heroicons/react/24/solid";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { FormProvider, useForm } from "react-hook-form";
 import { z } from "zod";
@@ -9,6 +9,7 @@ import { z } from "zod";
 import { FormField, FormSelect, FormTextarea } from "@/components/forms";
 import { Button } from "@/components/ui";
 import { QUALIFICATIONS, INDUSTRIES, type IndustryOption } from "@/constants/forms";
+import ProgressIndicator from "../ProgressIndicator";
 import type { RegistrationFormData } from "../RegistrationForm";
 
 const employmentSchema = z.object({
@@ -94,9 +95,19 @@ export default function EmploymentStep({ data, onNext, onBack }: Props) {
     <FormProvider {...methods}>
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
       <div>
-        <h2 className="text-3xl font-cabrito font-bold text-kq-dark mb-8">
-          Employment Information & Education
-        </h2>
+        {/* Header with Progress */}
+        <div className="flex items-start justify-between mb-6">
+          <div>
+            <h2 className="text-3xl font-cabrito font-bold text-kq-dark mb-2">
+              Employment Information & Education
+            </h2>
+            <div className="flex items-center gap-2 text-sm text-gray-600">
+              <ClockIcon className="w-4 h-4" />
+              <span>About 3 minutes</span>
+            </div>
+          </div>
+          <ProgressIndicator currentStep={2} totalSteps={3} />
+        </div>
 
         {/* Employer and Job Title */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
@@ -204,7 +215,7 @@ export default function EmploymentStep({ data, onNext, onBack }: Props) {
           className="flex-1"
           rightIcon={<ArrowRightIcon className="w-5 h-5" />}
         >
-          Next Step
+          Continue to Engagement & Consent →
         </Button>
       </div>
     </form>
