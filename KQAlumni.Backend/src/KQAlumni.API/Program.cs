@@ -387,6 +387,10 @@ app.UseResponseCompression();
 app.UseResponseCaching();
 app.UseMiddleware<CacheHeadersMiddleware>();
 app.UseMiddleware<RequestIdMiddleware>();
+
+// Enable endpoint routing (required for controllers to work)
+app.UseRouting();
+
 app.UseCors("AllowFrontend");
 app.UseMiddleware<IpWhitelistMiddleware>();
 app.UseMiddleware<ErrorHandlingMiddleware>();
