@@ -5,7 +5,7 @@
  * Comprehensive filtering options for registration list
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Search,
   Filter,
@@ -31,6 +31,17 @@ export function RegistrationsFilters({
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [localSearch, setLocalSearch] = useState(filters.searchQuery || '');
 
+  // Automatic search with debouncing (800ms delay)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (localSearch !== filters.searchQuery) {
+        onFiltersChange({ ...filters, searchQuery: localSearch || undefined, pageNumber: 1 });
+      }
+    }, 800);
+
+    return () => clearTimeout(timer);
+  }, [localSearch]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const statuses: Array<{ label: string; value: RegistrationStatus | undefined }> = [
     { label: 'All', value: undefined },
     { label: 'Pending', value: 'Pending' },
@@ -43,9 +54,9 @@ export function RegistrationsFilters({
     onFiltersChange({ ...filters, status, pageNumber: 1 });
   };
 
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onFiltersChange({ ...filters, searchQuery: localSearch, pageNumber: 1 });
+  const handleClearSearch = () => {
+    setLocalSearch('');
+    onFiltersChange({ ...filters, searchQuery: undefined, pageNumber: 1 });
   };
 
   const handleDateChange = (field: 'dateFrom' | 'dateTo', value: string) => {
@@ -88,13 +99,13 @@ export function RegistrationsFilters({
       {/* Main Filters Bar */}
       <div className="p-4">
         <div className="flex flex-col lg:flex-row gap-4">
-          {/* Search */}
-          <form onSubmit={handleSearchSubmit} className="flex-1">
+          {/* Search - Automatic with Debouncing */}
+          <div className="flex-1">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
               <input
                 type="text"
-                placeholder="Search by name, email, or staff number..."
+                placeholder="Search by name, email, staff number, or ID (automatic)..."
                 value={localSearch}
                 onChange={(e) => setLocalSearch(e.target.value)}
                 className="w-full pl-10 pr-10 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-kq-red focus:border-transparent"
@@ -102,17 +113,19 @@ export function RegistrationsFilters({
               {localSearch && (
                 <button
                   type="button"
-                  onClick={() => {
-                    setLocalSearch('');
-                    onFiltersChange({ ...filters, searchQuery: undefined, pageNumber: 1 });
-                  }}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  onClick={handleClearSearch}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
                 >
                   <X className="w-5 h-5" />
                 </button>
               )}
             </div>
-          </form>
+            {localSearch && (
+              <p className="mt-1 text-xs text-gray-500">
+                Searching automatically...
+              </p>
+            )}
+          </div>
 
           {/* Advanced Filters Toggle */}
           <div className="flex gap-2">

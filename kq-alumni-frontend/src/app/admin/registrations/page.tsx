@@ -256,19 +256,19 @@ function RegistrationsPageContent() {
                         />
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Staff No / ID / Passport
+                        Reg. Number
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Full Name
+                        Alumni Details
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Email
+                        Contact
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Status
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Created
+                        Registered
                       </th>
                       <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Actions
@@ -298,19 +298,36 @@ function RegistrationsPageContent() {
                             />
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
-                            <span className="text-sm font-medium text-kq-dark">
-                              {registration.staffNumber || registration.idNumber || registration.passportNumber || 'N/A'}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <span className="text-sm text-gray-900">
-                              {registration.fullName}
-                            </span>
+                            <div className="flex flex-col">
+                              <span className="text-sm font-bold text-kq-red">
+                                {registration.registrationNumber || 'N/A'}
+                              </span>
+                              <span className="text-xs text-gray-500">
+                                {registration.staffNumber || 'No Staff #'}
+                              </span>
+                            </div>
                           </td>
                           <td className="px-6 py-4">
-                            <span className="text-sm text-gray-600">
-                              {registration.email}
-                            </span>
+                            <div className="flex flex-col">
+                              <span className="text-sm font-medium text-gray-900">
+                                {registration.fullName}
+                              </span>
+                              <span className="text-xs text-gray-500">
+                                ID: {registration.idNumber || registration.passportNumber || 'N/A'}
+                              </span>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="flex flex-col">
+                              <span className="text-sm text-gray-900">
+                                {registration.email}
+                              </span>
+                              {registration.mobileNumber && (
+                                <span className="text-xs text-gray-500">
+                                  {registration.mobileCountryCode} {registration.mobileNumber}
+                                </span>
+                              )}
+                            </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <StatusBadge
@@ -319,9 +336,14 @@ function RegistrationsPageContent() {
                             />
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
-                            <span className="text-sm text-gray-500">
-                              {new Date(registration.createdAt).toLocaleDateString()}
-                            </span>
+                            <div className="flex flex-col">
+                              <span className="text-sm text-gray-900">
+                                {new Date(registration.createdAt).toLocaleDateString()}
+                              </span>
+                              <span className="text-xs text-gray-500">
+                                {new Date(registration.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              </span>
+                            </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-right">
                             <Link href={`/admin/registrations/${registration.id}`}>
