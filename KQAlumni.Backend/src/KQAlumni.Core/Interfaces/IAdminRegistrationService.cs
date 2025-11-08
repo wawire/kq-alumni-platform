@@ -28,6 +28,14 @@ public interface IAdminRegistrationService
     /// <param name="sortOrder">Sort order - asc or desc (optional)</param>
     /// <param name="pageNumber">Page number (1-based)</param>
     /// <param name="pageSize">Page size</param>
+    /// <param name="department">Filter by department from ERP (optional)</param>
+    /// <param name="exitDateFrom">Filter by exit date from (optional)</param>
+    /// <param name="exitDateTo">Filter by exit date to (optional)</param>
+    /// <param name="country">Filter by current country (optional)</param>
+    /// <param name="city">Filter by current city (optional)</param>
+    /// <param name="industry">Filter by industry (optional)</param>
+    /// <param name="erpValidated">Filter by ERP validation status (optional)</param>
+    /// <param name="registrationYear">Filter by registration year (optional)</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Paginated list of registrations</returns>
     Task<(List<AlumniRegistration> Registrations, int TotalCount)> GetRegistrationsAsync(
@@ -41,6 +49,14 @@ public interface IAdminRegistrationService
         string? sortOrder = null,
         int pageNumber = 1,
         int pageSize = 50,
+        string? department = null,
+        DateTime? exitDateFrom = null,
+        DateTime? exitDateTo = null,
+        string? country = null,
+        string? city = null,
+        string? industry = null,
+        bool? erpValidated = null,
+        int? registrationYear = null,
         CancellationToken cancellationToken = default);
 
     /// <summary>
