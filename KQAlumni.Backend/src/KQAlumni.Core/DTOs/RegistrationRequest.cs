@@ -126,4 +126,18 @@ public class RegistrationRequest
   /// Whether the alumni gave consent for data processing
   /// </summary>
   public bool ConsentGiven { get; set; }
+
+  // ========================================
+  // MANUAL REVIEW FLAGS
+  // ========================================
+
+  /// <summary>
+  /// Whether this registration requires manual review (when ERP verification is unavailable)
+  /// </summary>
+  public bool? RequiresManualReview { get; set; }
+
+  /// <summary>
+  /// Reason for manual review
+  /// </summary>
+  public string? ManualReviewReason { get; set; }
 }

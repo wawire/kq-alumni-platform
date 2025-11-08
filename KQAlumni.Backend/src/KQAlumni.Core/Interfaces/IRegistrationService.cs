@@ -112,12 +112,12 @@ public interface IRegistrationService
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Resend verification email for an approved registration
+    /// Resend verification email to an approved registration
     /// </summary>
-    /// <param name="registrationId">Registration ID</param>
+    /// <param name="email">Email address of the registration</param>
     /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>True if email sent successfully</returns>
+    /// <returns>True if email was sent successfully</returns>
     Task<bool> ResendVerificationEmailAsync(
-        Guid registrationId,
+        string email,
         CancellationToken cancellationToken = default);
 }
