@@ -6,9 +6,14 @@ namespace KQAlumni.Core.DTOs;
 public class RegistrationResponse
 {
   /// <summary>
-  /// Unique registration ID
+  /// Unique registration ID (GUID)
   /// </summary>
   public Guid Id { get; set; }
+
+  /// <summary>
+  /// User-friendly registration number (e.g., KQA-2024-00001)
+  /// </summary>
+  public string RegistrationNumber { get; set; } = string.Empty;
 
   /// <summary>
   /// Staff number

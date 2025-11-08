@@ -141,10 +141,13 @@ public class RegistrationService : IRegistrationService
 
       // CREATE REGISTRATION
 
+      // Generate user-friendly registration number
+      var registrationNumber = await GenerateRegistrationNumberAsync(cancellationToken);
 
       var registration = new AlumniRegistration
       {
         Id = Guid.NewGuid(),
+        RegistrationNumber = registrationNumber,
 
         // Personal Information
         StaffNumber = request.StaffNumber?.ToUpper().Trim(),
@@ -236,6 +239,7 @@ public class RegistrationService : IRegistrationService
       return new RegistrationResponse
       {
         Id = registration.Id,
+        RegistrationNumber = registration.RegistrationNumber,
         StaffNumber = registration.StaffNumber,
         FullName = registration.FullName,
         Email = registration.Email,
@@ -524,5 +528,39 @@ public class RegistrationService : IRegistrationService
         Message = "An error occurred during verification. Please try again."
       };
     }
+  }
+
+  /// <summary>
+  /// Generates a unique user-friendly registration number
+  /// Format: KQA-{year}-{sequential_number}
+  /// Example: KQA-2024-00001
+  /// </summary>
+  private async Task<string> GenerateRegistrationNumberAsync(CancellationToken cancellationToken = default)
+  {
+    var currentYear = DateTime.UtcNow.Year;
+    var prefix = $"KQA-{currentYear}-";
+
+    // Get the latest registration number for this year
+    var latestRegistration = await _context.AlumniRegistrations
+        .Where(r => r.RegistrationNumber.StartsWith(prefix))
+        .OrderByDescending(r => r.RegistrationNumber)
+        .Select(r => r.RegistrationNumber)
+        .FirstOrDefaultAsync(cancellationToken);
+
+    int nextSequence = 1;
+
+    if (!string.IsNullOrEmpty(latestRegistration))
+    {
+      // Extract the sequential number from the last registration
+      // Format: KQA-2024-00001 -> extract "00001"
+      var parts = latestRegistration.Split('-');
+      if (parts.Length == 3 && int.TryParse(parts[2], out int lastSequence))
+      {
+        nextSequence = lastSequence + 1;
+      }
+    }
+
+    // Format: KQA-2024-00001 (5 digits with leading zeros)
+    return $"{prefix}{nextSequence:D5}";
   }
 }

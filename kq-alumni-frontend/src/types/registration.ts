@@ -46,7 +46,7 @@ export interface RegistrationFormData {
  */
 export interface RegistrationResponse {
   id: string;
-  registrationNumber?: string;
+  registrationNumber: string;
   staffNumber: string;
   fullName: string;
   email: string;

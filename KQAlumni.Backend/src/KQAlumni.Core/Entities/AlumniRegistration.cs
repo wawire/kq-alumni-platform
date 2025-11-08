@@ -19,6 +19,16 @@ public class AlumniRegistration
   [Key]
   public Guid Id { get; set; } = Guid.NewGuid();
 
+  /// <summary>
+  /// User-friendly registration number (e.g., KQA-2024-00001)
+  /// Generated automatically on registration
+  /// Format: KQA-{year}-{sequential_number}
+  /// </summary>
+  [Required]
+  [StringLength(20)]
+  [Column(TypeName = "varchar(20)")]
+  public string RegistrationNumber { get; set; } = string.Empty;
+
   // ========================================
   // PERSONAL INFORMATION (Mandatory)
   // ========================================

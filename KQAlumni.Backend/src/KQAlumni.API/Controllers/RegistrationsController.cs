@@ -143,6 +143,7 @@ public class RegistrationsController : ControllerBase
     var response = new RegistrationResponse
     {
       Id = registration.Id,
+      RegistrationNumber = registration.RegistrationNumber,
       StaffNumber = registration.StaffNumber,
       FullName = registration.FullName,
       Email = registration.Email,
