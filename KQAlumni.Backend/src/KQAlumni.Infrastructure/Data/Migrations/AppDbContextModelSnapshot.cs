@@ -276,6 +276,11 @@ namespace KQAlumni.Infrastructure.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("RegistrationNumber")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)");
+
                     b.Property<string>("RegistrationStatus")
                         .IsRequired()
                         .ValueGeneratedOnAdd()
@@ -356,6 +361,10 @@ namespace KQAlumni.Infrastructure.Data.Migrations
                         .IsUnique()
                         .HasDatabaseName("UQ_AlumniRegistrations_LinkedIn")
                         .HasFilter("[LinkedInProfile] IS NOT NULL");
+
+                    b.HasIndex("RegistrationNumber")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_AlumniRegistrations_RegistrationNumber");
 
                     b.HasIndex("RegistrationStatus")
                         .HasDatabaseName("IX_AlumniRegistrations_RegistrationStatus");
