@@ -4,22 +4,25 @@ interface ProgressIndicatorProps {
 }
 
 export default function ProgressIndicator({ currentStep, totalSteps }: ProgressIndicatorProps) {
-  const progress = (currentStep / totalSteps) * 100;
-
   return (
-    <div className="flex items-center gap-3">
-      {/* Progress bar */}
-      <div className="w-24 h-2 bg-gray-200 rounded-full overflow-hidden">
-        <div
-          className="h-full bg-kq-red transition-all duration-300 ease-in-out"
-          style={{ width: `${progress}%` }}
-        />
-      </div>
+    <div className="flex items-center justify-center gap-2 mb-6">
+      {Array.from({ length: totalSteps }, (_, index) => {
+        const stepNumber = index + 1;
+        const isActive = stepNumber === currentStep;
+        const isCompleted = stepNumber < currentStep;
 
-      {/* Step counter */}
-      <span className="text-sm font-medium text-gray-600">
-        {currentStep}/{totalSteps}
-      </span>
+        return (
+          <div
+            key={stepNumber}
+            className={`
+              w-2 h-2 rounded-full transition-all duration-300
+              ${isActive ? 'bg-kq-red w-8' : ''}
+              ${isCompleted ? 'bg-kq-red' : ''}
+              ${!isActive && !isCompleted ? 'bg-gray-300' : ''}
+            `}
+          />
+        );
+      })}
     </div>
   );
 }

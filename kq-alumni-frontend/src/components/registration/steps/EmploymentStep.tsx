@@ -95,18 +95,18 @@ export default function EmploymentStep({ data, onNext, onBack }: Props) {
     <FormProvider {...methods}>
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
       <div>
-        {/* Header with Progress */}
-        <div className="flex items-start justify-between mb-6">
-          <div>
-            <h2 className="text-3xl font-cabrito font-bold text-kq-dark mb-2">
-              Employment Information & Education
-            </h2>
-            <div className="flex items-center gap-2 text-sm text-gray-600">
-              <ClockIcon className="w-4 h-4" />
-              <span>About 3 minutes</span>
-            </div>
+        {/* Progress Indicator - Above Header */}
+        <ProgressIndicator currentStep={2} totalSteps={3} />
+
+        {/* Header */}
+        <div className="mb-6">
+          <h2 className="text-3xl font-cabrito font-bold text-kq-dark mb-2">
+            Employment Information & Education
+          </h2>
+          <div className="flex items-center gap-2 text-sm text-gray-600">
+            <ClockIcon className="w-4 h-4" />
+            <span>About 3 minutes</span>
           </div>
-          <ProgressIndicator currentStep={2} totalSteps={3} />
         </div>
 
         {/* Employer and Job Title */}

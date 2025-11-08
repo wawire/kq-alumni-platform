@@ -77,18 +77,18 @@ const EngagementStep: React.FC<Props> = ({
   return (
     <form onSubmit={handleSubmit(onSubmitForm)} className="space-y-8">
       <div>
-        {/* Header with Progress */}
-        <div className="flex items-start justify-between mb-6">
-          <div>
-            <h2 className="text-3xl font-cabrito font-bold text-kq-dark mb-2">
-              Alumni Engagement & Consent
-            </h2>
-            <div className="flex items-center gap-2 text-sm text-gray-600">
-              <ClockIcon className="w-4 h-4" />
-              <span>About 2 minutes</span>
-            </div>
+        {/* Progress Indicator - Above Header */}
+        <ProgressIndicator currentStep={3} totalSteps={3} />
+
+        {/* Header */}
+        <div className="mb-6">
+          <h2 className="text-3xl font-cabrito font-bold text-kq-dark mb-2">
+            Alumni Engagement & Consent
+          </h2>
+          <div className="flex items-center gap-2 text-sm text-gray-600">
+            <ClockIcon className="w-4 h-4" />
+            <span>About 2 minutes</span>
           </div>
-          <ProgressIndicator currentStep={3} totalSteps={3} />
         </div>
 
         {/* Engagement Areas */}
