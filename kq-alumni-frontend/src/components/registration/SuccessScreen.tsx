@@ -1,5 +1,5 @@
-import { CheckCircleIcon, PlusCircleIcon } from '@heroicons/react/24/solid';
-import Link from 'next/link';
+import { CheckCircleIcon } from '@heroicons/react/24/solid';
+import { useRouter } from 'next/navigation';
 import { useRegistrationActions } from '@/store';
 
 interface Props {
@@ -10,12 +10,13 @@ interface Props {
 
 export default function SuccessScreen({ registrationId, email, fullName }: Props) {
   const { clearRegistration } = useRegistrationActions();
+  const router = useRouter();
 
-  const handleNewRegistration = () => {
+  const handleBackHome = () => {
     clearRegistration();
-    // Reload the page to reset the form completely
-    window.location.href = '/register';
+    router.push('/');
   };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-white flex items-center justify-center p-8">
       <div className="max-w-2xl w-full bg-white rounded-2xl shadow-2xl p-12 text-center">
@@ -61,30 +62,13 @@ export default function SuccessScreen({ registrationId, email, fullName }: Props
           </p>
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Link
-            href="/"
-            className="bg-kq-red hover:bg-kq-red-dark text-white font-cabrito font-bold text-lg px-8 py-4 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl"
-          >
-            Return to Home
-          </Link>
-
-          <button
-            onClick={handleNewRegistration}
-            className="bg-blue-600 hover:bg-blue-700 text-white font-cabrito font-bold text-lg px-8 py-4 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
-          >
-            <PlusCircleIcon className="w-6 h-6" />
-            New Registration
-          </button>
-
-          <a
-            href="mailto:KQ.Alumni@kenya-airways.com"
-            className="bg-white hover:bg-gray-50 text-gray-700 border-2 border-gray-300 font-cabrito font-bold text-lg px-8 py-4 rounded-lg transition-all duration-300"
-          >
-            Contact Support
-          </a>
-        </div>
+        {/* Single Action Button */}
+        <button
+          onClick={handleBackHome}
+          className="bg-kq-red hover:bg-kq-red-dark text-white font-cabrito font-bold text-lg px-12 py-4 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl"
+        >
+          Back Home
+        </button>
       </div>
     </div>
   );
