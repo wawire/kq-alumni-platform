@@ -138,13 +138,13 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
   const emailCheck = useDuplicateCheck("email");
 
   // Trigger duplicate checks when debounced values change
-  useMemo(() => {
+  useEffect(() => {
     if (debouncedEmail && debouncedEmail.length > 0) {
       emailCheck.checkValue(debouncedEmail);
     } else {
       emailCheck.reset();
     }
-  }, [debouncedEmail]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [debouncedEmail, emailCheck]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Sync selectedCountryCode with form value
   useEffect(() => {
