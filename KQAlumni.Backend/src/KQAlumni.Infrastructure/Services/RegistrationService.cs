@@ -65,9 +65,7 @@ public class RegistrationService : IRegistrationService
             "ID/Passport number {IdNumber} already registered",
             request.IdNumber);
 
-        throw new InvalidOperationException(
-            "This ID/Passport number is already registered. " +
-            "Contact KQ.Alumni@kenya-airways.com to update your profile.");
+        throw new InvalidOperationException("Already registered");
       }
 
       // Check: Staff Number (only if provided)
@@ -482,7 +480,7 @@ public class RegistrationService : IRegistrationService
         {
           IsVerified = false,
           IsAlreadyRegistered = true,
-          Message = "This ID/Passport is already registered. If you believe this is an error, please contact support."
+          Message = "Already registered"
         };
       }
 
