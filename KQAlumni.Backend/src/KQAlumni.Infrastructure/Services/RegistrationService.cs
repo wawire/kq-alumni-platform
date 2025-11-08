@@ -65,9 +65,7 @@ public class RegistrationService : IRegistrationService
             "ID/Passport number {IdNumber} already registered",
             request.IdNumber);
 
-        throw new InvalidOperationException(
-            "This ID/Passport number is already registered. " +
-            "Contact KQ.Alumni@kenya-airways.com to update your profile.");
+        throw new InvalidOperationException("This ID/Passport number is already registered");
       }
 
       // Check: Staff Number (only if provided)
@@ -83,9 +81,7 @@ public class RegistrationService : IRegistrationService
               "Staff number {StaffNumber} already registered",
               request.StaffNumber);
 
-          throw new InvalidOperationException(
-              "This staff number is already registered. " +
-              "Contact KQ.Alumni@kenya-airways.com to update your profile.");
+          throw new InvalidOperationException("This staff number is already registered");
         }
       }
 
@@ -100,9 +96,7 @@ public class RegistrationService : IRegistrationService
             "Email {Email} already registered",
             request.Email);
 
-        throw new InvalidOperationException(
-            "This email address is already registered. " +
-            "Contact KQ.Alumni@kenya-airways.com to update your profile.");
+        throw new InvalidOperationException("This email address is already registered");
       }
 
       // Check: Mobile Number (if provided)
@@ -117,9 +111,7 @@ public class RegistrationService : IRegistrationService
             "Mobile number {Mobile} already registered",
             $"{request.MobileCountryCode}{request.MobileNumber}");
 
-        throw new InvalidOperationException(
-            "This mobile number is already registered. " +
-            "Contact KQ.Alumni@kenya-airways.com to update your profile.");
+        throw new InvalidOperationException("This mobile number is already registered");
       }
 
       // Check: LinkedIn Profile (if provided)
@@ -133,9 +125,7 @@ public class RegistrationService : IRegistrationService
             "LinkedIn profile {LinkedIn} already registered",
             request.LinkedInProfile);
 
-        throw new InvalidOperationException(
-            "This LinkedIn profile is already registered. " +
-            "Contact KQ.Alumni@kenya-airways.com to update your profile.");
+        throw new InvalidOperationException("This LinkedIn profile is already registered");
       }
 
 
@@ -482,7 +472,7 @@ public class RegistrationService : IRegistrationService
         {
           IsVerified = false,
           IsAlreadyRegistered = true,
-          Message = "This ID/Passport is already registered. If you believe this is an error, please contact support."
+          Message = "This ID/Passport number is already registered"
         };
       }
 
@@ -498,7 +488,7 @@ public class RegistrationService : IRegistrationService
         {
           IsVerified = false,
           IsAlreadyRegistered = false,
-          Message = erpResult.ErrorMessage ?? "ID/Passport not found in our records. Please verify and contact HR if issue persists."
+          Message = erpResult.ErrorMessage ?? "ID/Passport number not found in our records"
         };
       }
 
