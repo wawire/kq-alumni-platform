@@ -327,88 +327,32 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
     <FormProvider {...methods}>
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
       <div>
-        <h2 className="text-3xl font-cabrito font-bold text-kq-dark mb-2">
+        <h2 className="text-3xl font-cabrito font-bold text-kq-dark mb-8">
           Personal Information & Contact Information
         </h2>
-        <p className="text-sm text-gray-600 mb-8">
-          Enter your ID/Passport number to verify your details
-        </p>
 
-        {/* ID Number / Passport Number - FIRST */}
-        <div className="mb-8">
-          <FormField
-            name="idNumber"
-            label="ID Number / Passport No"
-            type="text"
-            placeholder="e.g., 12345678 or A1234567"
-            required
-            variant="underline"
-            onChange={(e) => {
-              const cleaned = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
-              setValue("idNumber", cleaned);
-            }}
-            style={{ textTransform: "uppercase" }}
-            className="uppercase"
-            rightIcon={getVerificationIcon()}
-            description={verificationError || undefined}
-          />
-          {verificationStatus === 'verifying' && (
-            <p className="mt-2 text-sm text-blue-600 flex items-center gap-2">
-              <span className="inline-block animate-pulse">●</span>
-              Verifying your details with our records...
-            </p>
-          )}
-          {verificationStatus === 'verified' && erpData && (
-            <div className="mt-3 p-4 bg-green-50 border-l-4 border-green-500 rounded-r-lg">
-              <p className="text-sm text-green-800 font-semibold flex items-center gap-2">
-                <CheckCircleIcon className="w-5 h-5" />
-                Successfully Verified
-              </p>
-              {erpData.department && (
-                <p className="text-xs text-green-700 mt-1 ml-7">
-                  Department: {erpData.department}
-                </p>
-              )}
-            </div>
-          )}
-          {(verificationStatus === 'failed' || verificationStatus === 'already_registered') && (
-            <div className="mt-3 p-4 bg-red-50 border-l-4 border-red-500 rounded-r-lg">
-              <p className="text-sm text-red-800 font-semibold flex items-center gap-2">
-                <ExclamationCircleIcon className="w-5 h-5" />
-                {verificationStatus === 'already_registered' ? 'Already Registered' : 'Verification Failed'}
-              </p>
-              {verificationError && (
-                <p className="text-xs text-red-700 mt-1 ml-7">
-                  {verificationError}
-                </p>
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* Show all fields but disabled until verified */}
-        <div className={verificationStatus !== 'verified' ? 'opacity-40 pointer-events-none' : ''}>
-          {/* Email */}
-          <div className="mb-8">
+        {/* Row 1: ID Number / Passport & Full Name - Side by Side */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          {/* ID Number / Passport Number */}
+          <div>
             <FormField
-              name="email"
-              label="Email Address"
-              type="email"
-              placeholder="your.email@example.com"
+              name="idNumber"
+              label="ID Number / Passport No"
+              type="text"
+              placeholder="e.g., 12345678 or A1234567"
               required
               variant="underline"
-              disabled={verificationStatus !== 'verified'}
-              description={
-                emailCheck.isDuplicate
-                  ? emailCheck.error || "This email is already registered"
-                  : undefined
-              }
-              rightIcon={getDuplicateIcon(emailCheck)}
+              onChange={(e) => {
+                const cleaned = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+                setValue("idNumber", cleaned);
+              }}
+              style={{ textTransform: "uppercase" }}
+              className="uppercase"
             />
           </div>
 
           {/* Full Name */}
-          <div className="mb-8">
+          <div>
             <FormField
               name="fullName"
               label="Full Name"
@@ -418,13 +362,13 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
               disabled
               className="bg-gray-50"
             />
-            <p className="mt-2 text-xs text-gray-500">
-              Auto-filled from company records
-            </p>
           </div>
+        </div>
 
+        {/* Row 2: Staff Number & Email - Side by Side */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           {/* Staff Number */}
-          <div className="mb-8">
+          <div>
             <FormField
               name="staffNumber"
               label="Staff Number"
@@ -434,86 +378,99 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
               disabled
               className="bg-gray-50"
             />
-            <p className="mt-2 text-xs text-gray-500">
-              Auto-filled from company records
-            </p>
           </div>
 
-          {/* Mobile Number */}
-          <div className="mb-8">
-            <label className="block text-sm font-medium text-gray-700 mb-3">
-              Mobile Number
-            </label>
-            <PhoneInput
-              country={"ke"}
-              value={phoneValue}
-              onChange={handlePhoneChange}
-              disabled={verificationStatus !== 'verified'}
-              inputStyle={{
-                width: "100%",
-                border: 0,
-                borderBottom: "2px solid #d1d5db",
-                borderRadius: 0,
-                padding: "12px 4px 12px 48px",
-                fontSize: "16px",
-                backgroundColor: "transparent",
-                color: "#111827",
-              }}
-              buttonStyle={{
-                border: 0,
-                borderBottom: "2px solid #d1d5db",
-                borderRadius: 0,
-                backgroundColor: "transparent",
-              }}
-              dropdownStyle={{
-                borderRadius: "8px",
-                boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
-              }}
-              containerClass="phone-input-container"
-              enableSearch
-              searchStyle={{
-                width: "90%",
-                padding: "8px",
-                border: "1px solid #d1d5db",
-                borderRadius: "4px",
-              }}
-              searchPlaceholder="Search country"
-            />
-          </div>
-
-          {/* Country & City */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-            <FormSelect<CountryOption>
-              name="currentCountryCode"
-              label="Country"
-              options={countryOptions}
-              placeholder="Select country"
+          {/* Email */}
+          <div>
+            <FormField
+              name="email"
+              label="Email Address"
+              type="email"
+              placeholder="your.email@example.com"
               required
-              isSearchable
-              isDisabled={verificationStatus !== 'verified'}
-              onChange={(option) => handleCountryChange(option)}
-              formatOptionLabel={(option: CountryOption) => (
-                <div className="flex items-center gap-2">
-                  <span className="text-xl">{option.flag}</span>
-                  <span>{option.label}</span>
-                </div>
-              )}
-            />
-
-            <FormSelect<CityOption>
-              name="currentCity"
-              label="City"
-              options={cityOptions}
-              placeholder={
-                selectedCountryCode ? "Select city" : "Select country first"
+              variant="underline"
+              description={
+                emailCheck.isDuplicate
+                  ? emailCheck.error || "This email is already registered"
+                  : undefined
               }
-              required
-              isSearchable
-              isClearable
-              isDisabled={verificationStatus !== 'verified' || !selectedCountryCode || cityOptions.length === 0}
-              noOptionsMessage={() => "No cities available"}
+              rightIcon={getDuplicateIcon(emailCheck)}
             />
           </div>
+        </div>
+
+        {/* Mobile Number */}
+        <div className="mb-8">
+          <label className="block text-sm font-medium text-gray-700 mb-3">
+            Mobile Number
+          </label>
+          <PhoneInput
+            country={"ke"}
+            value={phoneValue}
+            onChange={handlePhoneChange}
+            inputStyle={{
+              width: "100%",
+              border: 0,
+              borderBottom: "2px solid #d1d5db",
+              borderRadius: 0,
+              padding: "12px 4px 12px 48px",
+              fontSize: "16px",
+              backgroundColor: "transparent",
+              color: "#111827",
+            }}
+            buttonStyle={{
+              border: 0,
+              borderBottom: "2px solid #d1d5db",
+              borderRadius: 0,
+              backgroundColor: "transparent",
+            }}
+            dropdownStyle={{
+              borderRadius: "8px",
+              boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+            }}
+            containerClass="phone-input-container"
+            enableSearch
+            searchStyle={{
+              width: "90%",
+              padding: "8px",
+              border: "1px solid #d1d5db",
+              borderRadius: "4px",
+            }}
+            searchPlaceholder="Search country"
+          />
+        </div>
+
+        {/* Country & City */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          <FormSelect<CountryOption>
+            name="currentCountryCode"
+            label="Country"
+            options={countryOptions}
+            placeholder="Select country"
+            required
+            isSearchable
+            onChange={(option) => handleCountryChange(option)}
+            formatOptionLabel={(option: CountryOption) => (
+              <div className="flex items-center gap-2">
+                <span className="text-xl">{option.flag}</span>
+                <span>{option.label}</span>
+              </div>
+            )}
+          />
+
+          <FormSelect<CityOption>
+            name="currentCity"
+            label="City"
+            options={cityOptions}
+            placeholder={
+              selectedCountryCode ? "Select city" : "Select country first"
+            }
+            required
+            isSearchable
+            isClearable
+            isDisabled={!selectedCountryCode || cityOptions.length === 0}
+            noOptionsMessage={() => "No cities available"}
+          />
         </div>
       </div>
 
@@ -524,13 +481,9 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
           size="lg"
           fullWidth
           rightIcon={<ArrowRightIcon className="w-5 h-5" />}
-          disabled={verificationStatus !== 'verified'}
+          disabled={verificationStatus !== 'verified' || emailCheck.isDuplicate}
         >
-          {verificationStatus === 'idle' && 'Enter ID to Continue'}
-          {verificationStatus === 'verifying' && 'Verifying...'}
-          {verificationStatus === 'failed' && 'Verification Failed - Try Again'}
-          {verificationStatus === 'already_registered' && 'Already Registered'}
-          {verificationStatus === 'verified' && 'Next Step'}
+          Next Step
         </Button>
       </div>
     </form>
