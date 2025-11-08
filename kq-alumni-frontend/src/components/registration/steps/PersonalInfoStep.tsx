@@ -371,6 +371,18 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
                 Verifying with our records...
               </p>
             )}
+            {verificationStatus === 'verified' && erpData && (
+              <p className="mt-2 text-sm text-green-600 flex items-center gap-2">
+                <CheckCircleIcon className="w-4 h-4" />
+                ✓ ID verified! Staff Number: {erpData.staffNumber}
+              </p>
+            )}
+            {(verificationStatus === 'failed' || verificationStatus === 'already_registered') && verificationError && (
+              <p className="mt-2 text-sm text-red-600 flex items-center gap-2">
+                <ExclamationCircleIcon className="w-4 h-4" />
+                {verificationError}
+              </p>
+            )}
           </div>
 
           {/* Full Name */}
