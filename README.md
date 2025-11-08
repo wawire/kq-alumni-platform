@@ -2,7 +2,7 @@
 
 > A modern, enterprise-grade platform for the Kenya Airways Alumni Association, connecting former employees worldwide.
 
-**Version**: 2.0.0 | **Status**: Production Ready | **License**: Proprietary
+**Version**: 2.1.0 | **Status**: Production Ready | **License**: Proprietary
 
 ---
 
@@ -40,6 +40,12 @@ The KQ Alumni Platform is a comprehensive web application that manages registrat
 - ✅ **ERP Integration**: Automatic employee verification via Oracle SOA Suite
 - ✅ **Email Verification**: 30-day token expiry with secure links
 - ✅ **Background Jobs**: Smart scheduling with Hangfire (business hours, off-hours, weekends)
+
+### Resilience & Reliability (v2.1.0)
+- ✅ **ERP Fallback Mode**: Continue registrations when ERP is unavailable with manual review flag
+- ✅ **Email Resend Feature**: User self-service page + admin dashboard action for resending verification emails
+- ✅ **Password Management**: Admin password change functionality with secure API endpoint
+- ✅ **Graceful Degradation**: Manual mode UI appears automatically when ERP verification fails
 
 ### Monitoring & Reliability (v2.0.0)
 - ✅ **Email Delivery Tracking**: Database logging of all email attempts with status, duration, and errors
@@ -798,6 +804,14 @@ If configuration is invalid, the health check will return `Unhealthy` with detai
 ---
 
 ## Version History
+
+**v2.1.0** (2025-11-08)
+- ✅ **ERP Fallback Mode**: Allow registrations when ERP is unavailable with manual review workflow
+- ✅ **Email Verification Resend**: Dual methods for resending verification emails (user self-service + admin dashboard)
+- ✅ **Password Change API**: Connected frontend settings page to backend password change endpoint
+- ✅ **Method Overloading**: ResendVerificationEmailAsync supports both Guid (admin) and string email (user) lookups
+- ✅ **Code Cleanup**: Removed debug console.log statements from production code
+- ✅ **Enhanced UX**: Manual mode UI with clear warnings and "Continue with Manual Review" option
 
 **v2.0.0** (2025-11-04)
 - ✅ Email delivery tracking with database logging

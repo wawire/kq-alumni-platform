@@ -1,6 +1,6 @@
 # KQ Alumni Platform - Deployment Guide
 
-**Version**: 2.0.0 | **Last Updated**: 2025-11-04 | **Environment**: Production
+**Version**: 2.1.0 | **Last Updated**: 2025-11-08 | **Environment**: Production
 
 This guide covers complete deployment to IIS on Windows Server with SQL Server.
 
@@ -166,7 +166,7 @@ NEXT_PUBLIC_ENV=production
 
 # Application
 NEXT_PUBLIC_APP_NAME=KQ Alumni Association
-NEXT_PUBLIC_APP_VERSION=2.0.0
+NEXT_PUBLIC_APP_VERSION=2.1.0
 
 # Feature Flags (disabled for production)
 NEXT_PUBLIC_ENABLE_ANALYTICS=false
@@ -265,6 +265,32 @@ SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE'
 -- Check Hangfire schema
 SELECT name FROM sys.schemas WHERE name = 'Hangfire';
 ```
+
+---
+
+## New Features in v2.1.0
+
+This release includes important resilience improvements:
+
+### ERP Fallback Mode
+- **Feature**: Users can now complete registration even when ERP service is unavailable
+- **Configuration**: Already enabled - no additional setup required
+- **Behavior**: If ERP verification fails, users see "Continue with Manual Review" button
+- **Admin Impact**: Flagged registrations appear in admin dashboard with "RequiresManualReview" flag
+
+### Email Verification Resend
+- **User Self-Service**: Available at `/resend-verification` page
+- **Admin Dashboard**: Resend button available for approved registrations
+- **Endpoints**:
+  - `POST /api/v1/registrations/resend-verification` (public - by email)
+  - `POST /api/v1/admin/registrations/{id}/resend-verification` (admin - by ID)
+
+### Password Change API
+- **Endpoint**: `POST /api/v1/admin/change-password`
+- **Frontend**: Connected in admin settings page
+- **Authentication**: Requires JWT token
+
+**No configuration changes needed** - these features work with existing settings.
 
 ---
 
@@ -731,4 +757,4 @@ Get-EventLog -LogName Application -Source "IIS*" -Newest 20
 
 ---
 
-**Last Updated**: 2025-11-04 | **Version**: 2.0.0
+**Last Updated**: 2025-11-08 | **Version**: 2.1.0
