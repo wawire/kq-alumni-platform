@@ -96,7 +96,7 @@ export default function EmploymentStep({ data, onNext, onBack }: Props) {
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
       <div>
         {/* Progress Indicator - Above Header */}
-        <ProgressIndicator currentStep={2} totalSteps={3} />
+        <ProgressIndicator currentStep={2} totalSteps={4} />
 
         {/* Header */}
         <div className="mb-6">

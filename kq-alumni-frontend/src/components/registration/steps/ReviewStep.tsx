@@ -3,6 +3,7 @@
 import React from "react";
 import { CheckCircleIcon, PencilIcon } from "@heroicons/react/24/outline";
 import { RegistrationFormData } from "@/components/registration/RegistrationForm";
+import ProgressIndicator from "../ProgressIndicator";
 
 interface ReviewStepProps {
   data: Partial<RegistrationFormData>;
@@ -23,6 +24,9 @@ export default function ReviewStep({
 
   return (
     <div className="space-y-6">
+      {/* Progress Indicator */}
+      <ProgressIndicator currentStep={4} totalSteps={4} />
+
       {/* Header */}
       <div className="text-center mb-8">
         <h2 className="text-3xl font-cabrito font-bold text-navy-900 mb-2">

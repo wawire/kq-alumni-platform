@@ -23,14 +23,14 @@ type EngagementFormData = z.infer<typeof engagementSchema>;
 
 interface Props {
   data: Partial<RegistrationFormData>;
-  onSubmit: (data: Partial<RegistrationFormData>) => void;
+  onNext: (data: Partial<RegistrationFormData>) => void;
   onBack: () => void;
   isSubmitting?: boolean;
 }
 
 const EngagementStep: React.FC<Props> = ({
   data,
-  onSubmit,
+  onNext,
   onBack,
   isSubmitting = false,
 }) => {
@@ -71,14 +71,14 @@ const EngagementStep: React.FC<Props> = ({
   };
 
   const onSubmitForm = (formData: EngagementFormData): void => {
-    onSubmit(formData);
+    onNext(formData);
   };
 
   return (
     <form onSubmit={handleSubmit(onSubmitForm)} className="space-y-8">
       <div>
         {/* Progress Indicator - Above Header */}
-        <ProgressIndicator currentStep={3} totalSteps={3} />
+        <ProgressIndicator currentStep={3} totalSteps={4} />
 
         {/* Header */}
         <div className="mb-6">
@@ -149,10 +149,9 @@ const EngagementStep: React.FC<Props> = ({
 
         <div className="bg-blue-50 border-l-4 border-blue-400 p-4 rounded-lg">
           <p className="text-sm text-gray-700 leading-relaxed">
-            <strong>What happens next:</strong> Upon submission, your
-            registration will be verified against our records. You will receive
-            a confirmation email once your registration is approved. Welcome to
-            the KQ Alumni family!
+            <strong>What happens next:</strong> You'll review all your information
+            on the next screen before final submission. This gives you a chance to
+            verify everything is correct.
           </p>
         </div>
       </div>
@@ -176,10 +175,8 @@ const EngagementStep: React.FC<Props> = ({
           variant="primary"
           size="lg"
           className="flex-1"
-          isLoading={isSubmitting}
-          loadingText="Submitting..."
         >
-          {isSubmitting ? 'Submitting...' : 'Submit'}
+          Continue to Review
         </Button>
       </div>
     </form>

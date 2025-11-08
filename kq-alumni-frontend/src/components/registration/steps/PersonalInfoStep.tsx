@@ -344,7 +344,7 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
       <div>
         {/* Progress Indicator - Above Header */}
-        <ProgressIndicator currentStep={1} totalSteps={3} />
+        <ProgressIndicator currentStep={1} totalSteps={4} />
 
         {/* Header */}
         <div className="mb-6">
