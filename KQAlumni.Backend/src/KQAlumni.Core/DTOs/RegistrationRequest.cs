@@ -140,4 +140,29 @@ public class RegistrationRequest
   /// Reason for manual review
   /// </summary>
   public string? ManualReviewReason { get; set; }
+
+  // ========================================
+  // ERP VALIDATION DATA (v2.2.0 Optimization)
+  // ========================================
+
+  /// <summary>
+  /// Whether this registration was validated against ERP during submission (frontend verification)
+  /// If TRUE, backend job will skip redundant ERP call and use saved data
+  /// </summary>
+  public bool? ErpValidated { get; set; }
+
+  /// <summary>
+  /// Staff name from ERP (populated when ErpValidated = true)
+  /// </summary>
+  public string? ErpStaffName { get; set; }
+
+  /// <summary>
+  /// Department from ERP (populated when ErpValidated = true)
+  /// </summary>
+  public string? ErpDepartment { get; set; }
+
+  /// <summary>
+  /// Exit date from ERP (populated when ErpValidated = true)
+  /// </summary>
+  public DateTime? ErpExitDate { get; set; }
 }

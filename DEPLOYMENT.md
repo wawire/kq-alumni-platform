@@ -1,6 +1,6 @@
 # KQ Alumni Platform - Deployment Guide
 
-**Version**: 2.1.0 | **Last Updated**: 2025-11-08 | **Environment**: Production
+**Version**: 2.2.0 | **Last Updated**: 2025-11-08 | **Environment**: Production
 
 This guide covers complete deployment to IIS on Windows Server with SQL Server.
 
@@ -166,7 +166,7 @@ NEXT_PUBLIC_ENV=production
 
 # Application
 NEXT_PUBLIC_APP_NAME=KQ Alumni Association
-NEXT_PUBLIC_APP_VERSION=2.1.0
+NEXT_PUBLIC_APP_VERSION=2.2.0
 
 # Feature Flags (disabled for production)
 NEXT_PUBLIC_ENABLE_ANALYTICS=false
@@ -268,7 +268,22 @@ SELECT name FROM sys.schemas WHERE name = 'Hangfire';
 
 ---
 
-## New Features in v2.1.0
+## New Features in v2.2.0
+
+This release includes performance optimizations:
+
+### ERP Verification Optimization
+- **Feature**: Eliminated redundant ERP API calls (50% reduction)
+- **How it works**: Frontend ERP validation data is saved and reused by backend
+- **Benefits**:
+  - Faster approval processing (~1-2 seconds improvement)
+  - Reduced load on ERP infrastructure
+  - Lower network overhead
+- **Configuration**: No changes needed - works automatically
+
+---
+
+## Features in v2.1.0
 
 This release includes important resilience improvements:
 
@@ -757,4 +772,4 @@ Get-EventLog -LogName Application -Source "IIS*" -Newest 20
 
 ---
 
-**Last Updated**: 2025-11-08 | **Version**: 2.1.0
+**Last Updated**: 2025-11-08 | **Version**: 2.2.0

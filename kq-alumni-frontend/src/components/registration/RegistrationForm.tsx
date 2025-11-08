@@ -41,6 +41,11 @@ export interface RegistrationFormData {
   consentGiven: boolean;
   requiresManualReview?: boolean; // Flag when ERP verification is unavailable
   manualReviewReason?: string; // Reason for manual review
+  // ERP Validation Data (v2.2.0 Optimization)
+  erpValidated?: boolean; // Whether ERP validated during registration
+  erpStaffName?: string; // Staff name from ERP
+  erpDepartment?: string; // Department from ERP
+  erpExitDate?: string; // Exit date from ERP (ISO format)
 }
 
 export default function RegistrationForm() {

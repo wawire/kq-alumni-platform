@@ -295,14 +295,31 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
       return;
     }
 
-    // Include ERP data in submission (if available) or flag for manual review
-    onNext({
-      ...formData,
-      staffNumber: erpData?.staffNumber || formData.staffNumber,
-      fullName: erpData?.fullName || formData.fullName,
-      requiresManualReview: allowManualMode, // Flag for backend to set RequiresManualReview
-      manualReviewReason: allowManualMode ? 'ERP verification unavailable - submitted via manual mode' : undefined,
-    });
+    // v2.2.0 OPTIMIZATION: Include ERP validation data to skip redundant backend verification
+    if (verificationStatus === 'verified' && erpData) {
+      // AUTO PATH: ERP verified during registration
+      onNext({
+        ...formData,
+        staffNumber: erpData.staffNumber || formData.staffNumber,
+        fullName: erpData.fullName || formData.fullName,
+        // Include ERP validation data (eliminates redundant backend ERP call)
+        erpValidated: true,
+        erpStaffName: erpData.fullName,
+        erpDepartment: erpData.department,
+        erpExitDate: erpData.exitDate,
+      });
+    } else if (allowManualMode) {
+      // MANUAL PATH: ERP verification failed/unavailable
+      onNext({
+        ...formData,
+        erpValidated: false,
+        requiresManualReview: true,
+        manualReviewReason: 'ERP verification unavailable - submitted via manual mode',
+      });
+    } else {
+      // Fallback (shouldn't reach here due to validation checks above)
+      setVerificationError('Unable to proceed. Please try again.');
+    }
   };
 
   // Check if form has any validation errors

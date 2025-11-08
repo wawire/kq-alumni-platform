@@ -175,6 +175,13 @@ public class RegistrationService : IRegistrationService
         RequiresManualReview = request.RequiresManualReview ?? false,
         ManualReviewReason = request.ManualReviewReason,
 
+        // ERP Validation Data (v2.2.0 Optimization - Save frontend validation results)
+        ErpValidated = request.ErpValidated ?? false,
+        ErpValidatedAt = request.ErpValidated == true ? DateTime.UtcNow : null,
+        ErpStaffName = request.ErpStaffName,
+        ErpDepartment = request.ErpDepartment,
+        ErpExitDate = request.ErpExitDate,
+
         // Status (NEW WORKFLOW: Start as Pending)
         RegistrationStatus = RegistrationStatus.Pending.ToString(),
 

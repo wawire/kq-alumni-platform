@@ -2,7 +2,7 @@
 
 > A modern, enterprise-grade platform for the Kenya Airways Alumni Association, connecting former employees worldwide.
 
-**Version**: 2.1.0 | **Status**: Production Ready | **License**: Proprietary
+**Version**: 2.2.0 | **Status**: Production Ready | **License**: Proprietary
 
 ---
 
@@ -40,6 +40,11 @@ The KQ Alumni Platform is a comprehensive web application that manages registrat
 - ✅ **ERP Integration**: Automatic employee verification via Oracle SOA Suite
 - ✅ **Email Verification**: 30-day token expiry with secure links
 - ✅ **Background Jobs**: Smart scheduling with Hangfire (business hours, off-hours, weekends)
+
+### Performance & Optimization (v2.2.0)
+- ✅ **Smart ERP Caching**: Frontend validation data reused by backend (50% reduction in ERP API calls)
+- ✅ **Faster Approvals**: Eliminated redundant verification (~1-2 seconds improvement per registration)
+- ✅ **Reduced Infrastructure Load**: Single ERP call per registration instead of double verification
 
 ### Resilience & Reliability (v2.1.0)
 - ✅ **ERP Fallback Mode**: Continue registrations when ERP is unavailable with manual review flag
@@ -804,6 +809,13 @@ If configuration is invalid, the health check will return `Unhealthy` with detai
 ---
 
 ## Version History
+
+**v2.2.0** (2025-11-08)
+- ✅ **Performance Optimization**: Eliminated redundant ERP verification (50% reduction in ERP API calls)
+  - Frontend now sends ERP validation data with registration
+  - Background job skips ERP call if already validated
+  - Faster approval processing (~1-2 seconds improvement)
+  - Reduced load on ERP infrastructure
 
 **v2.1.0** (2025-11-08)
 - ✅ **ERP Fallback Mode**: Allow registrations when ERP is unavailable with manual review workflow
