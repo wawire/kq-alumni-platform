@@ -345,6 +345,58 @@ export function useRejectRegistration() {
 }
 
 /**
+ * Bulk approve multiple registrations
+ */
+export function useBulkApprove() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (data: import('@/types/admin').BulkApproveRequest) => {
+      const response = await adminApi.post<import('@/types/admin').BulkOperationResponse>(
+        '/admin/registrations/bulk-approve',
+        data
+      );
+      return response.data;
+    },
+    onSuccess: () => {
+      // Invalidate all registration queries
+      queryClient.invalidateQueries({
+        queryKey: adminQueryKeys.registrations.all,
+      });
+      queryClient.invalidateQueries({
+        queryKey: adminQueryKeys.dashboard.stats(),
+      });
+    },
+  });
+}
+
+/**
+ * Bulk reject multiple registrations
+ */
+export function useBulkReject() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (data: import('@/types/admin').BulkRejectRequest) => {
+      const response = await adminApi.post<import('@/types/admin').BulkOperationResponse>(
+        '/admin/registrations/bulk-reject',
+        data
+      );
+      return response.data;
+    },
+    onSuccess: () => {
+      // Invalidate all registration queries
+      queryClient.invalidateQueries({
+        queryKey: adminQueryKeys.registrations.all,
+      });
+      queryClient.invalidateQueries({
+        queryKey: adminQueryKeys.dashboard.stats(),
+      });
+    },
+  });
+}
+
+/**
  * Get audit logs for a registration
  */
 export function useRegistrationAuditLogs(id: string) {

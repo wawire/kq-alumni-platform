@@ -186,6 +186,30 @@ export interface RejectRegistrationRequest {
   notes?: string;
 }
 
+export interface BulkApproveRequest {
+  registrationIds: string[];
+  notes?: string;
+}
+
+export interface BulkRejectRequest {
+  registrationIds: string[];
+  reason: string;
+  notes?: string;
+}
+
+export interface BulkOperationResult {
+  registrationId: string;
+  success: boolean;
+  errorMessage?: string;
+}
+
+export interface BulkOperationResponse {
+  message: string;
+  successCount: number;
+  failureCount: number;
+  results: BulkOperationResult[];
+}
+
 // ============================================
 // API Response Types
 // ============================================

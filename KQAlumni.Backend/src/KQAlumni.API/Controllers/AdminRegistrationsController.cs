@@ -526,4 +526,183 @@ public class AdminRegistrationsController : ControllerBase
             return StatusCode(500);
         }
     }
+
+    /// <summary>
+    /// Bulk approve multiple registrations
+    /// </summary>
+    /// <param name="request">Bulk approval request with registration IDs</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Bulk operation results</returns>
+    [HttpPost("bulk-approve")]
+    [Authorize(Policy = "HRManager")] // Only HRManager and SuperAdmin
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult> BulkApprove(
+        [FromBody] BulkApproveRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            if (request.RegistrationIds == null || request.RegistrationIds.Count == 0)
+            {
+                return BadRequest(new ErrorResponse
+                {
+                    Type = "https://tools.ietf.org/html/rfc7231#section-6.5.1",
+                    Title = "Invalid request",
+                    Status = StatusCodes.Status400BadRequest,
+                    Detail = "At least one registration ID must be provided"
+                });
+            }
+
+            if (request.RegistrationIds.Count > 100)
+            {
+                return BadRequest(new ErrorResponse
+                {
+                    Type = "https://tools.ietf.org/html/rfc7231#section-6.5.1",
+                    Title = "Invalid request",
+                    Status = StatusCodes.Status400BadRequest,
+                    Detail = "Maximum 100 registrations can be approved at once"
+                });
+            }
+
+            // Get admin user info from claims
+            var adminUsername = User.Identity?.Name ?? "Unknown";
+            var adminUserIdClaim = User.FindFirst("userId")?.Value;
+            if (!int.TryParse(adminUserIdClaim, out var adminUserId))
+            {
+                adminUserId = 0;
+            }
+
+            var (successCount, failureCount, results) = await _adminRegistrationService.BulkApproveRegistrationsAsync(
+                request.RegistrationIds,
+                adminUserId,
+                adminUsername,
+                request.Notes,
+                cancellationToken);
+
+            _logger.LogInformation(
+                "Bulk approve completed by {AdminUsername}. Success: {SuccessCount}, Failed: {FailureCount}",
+                adminUsername, successCount, failureCount);
+
+            return Ok(new
+            {
+                message = $"Bulk approval completed: {successCount} succeeded, {failureCount} failed",
+                successCount,
+                failureCount,
+                results
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error during bulk approval");
+            return StatusCode(500);
+        }
+    }
+
+    /// <summary>
+    /// Bulk reject multiple registrations
+    /// </summary>
+    /// <param name="request">Bulk rejection request with registration IDs and reason</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Bulk operation results</returns>
+    [HttpPost("bulk-reject")]
+    [Authorize(Policy = "HRManager")] // Only HRManager and SuperAdmin
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult> BulkReject(
+        [FromBody] BulkRejectRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            if (request.RegistrationIds == null || request.RegistrationIds.Count == 0)
+            {
+                return BadRequest(new ErrorResponse
+                {
+                    Type = "https://tools.ietf.org/html/rfc7231#section-6.5.1",
+                    Title = "Invalid request",
+                    Status = StatusCodes.Status400BadRequest,
+                    Detail = "At least one registration ID must be provided"
+                });
+            }
+
+            if (request.RegistrationIds.Count > 100)
+            {
+                return BadRequest(new ErrorResponse
+                {
+                    Type = "https://tools.ietf.org/html/rfc7231#section-6.5.1",
+                    Title = "Invalid request",
+                    Status = StatusCodes.Status400BadRequest,
+                    Detail = "Maximum 100 registrations can be rejected at once"
+                });
+            }
+
+            if (string.IsNullOrWhiteSpace(request.Reason))
+            {
+                return BadRequest(new ErrorResponse
+                {
+                    Type = "https://tools.ietf.org/html/rfc7231#section-6.5.1",
+                    Title = "Invalid request",
+                    Status = StatusCodes.Status400BadRequest,
+                    Detail = "Rejection reason is required for bulk rejection"
+                });
+            }
+
+            // Get admin user info from claims
+            var adminUsername = User.Identity?.Name ?? "Unknown";
+            var adminUserIdClaim = User.FindFirst("userId")?.Value;
+            if (!int.TryParse(adminUserIdClaim, out var adminUserId))
+            {
+                adminUserId = 0;
+            }
+
+            var (successCount, failureCount, results) = await _adminRegistrationService.BulkRejectRegistrationsAsync(
+                request.RegistrationIds,
+                adminUserId,
+                adminUsername,
+                request.Reason,
+                request.Notes,
+                cancellationToken);
+
+            _logger.LogInformation(
+                "Bulk reject completed by {AdminUsername}. Success: {SuccessCount}, Failed: {FailureCount}",
+                adminUsername, successCount, failureCount);
+
+            return Ok(new
+            {
+                message = $"Bulk rejection completed: {successCount} succeeded, {failureCount} failed",
+                successCount,
+                failureCount,
+                results
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error during bulk rejection");
+            return StatusCode(500);
+        }
+    }
+}
+
+/// <summary>
+/// Bulk approve request DTO
+/// </summary>
+public class BulkApproveRequest
+{
+    public List<Guid> RegistrationIds { get; set; } = new();
+    public string? Notes { get; set; }
+}
+
+/// <summary>
+/// Bulk reject request DTO
+/// </summary>
+public class BulkRejectRequest
+{
+    public List<Guid> RegistrationIds { get; set; } = new();
+    public string Reason { get; set; } = string.Empty;
+    public string? Notes { get; set; }
 }
