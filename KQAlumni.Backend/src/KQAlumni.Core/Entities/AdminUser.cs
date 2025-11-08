@@ -71,6 +71,12 @@ public class AdminUser
     public bool IsLockedOut => LockoutEnd.HasValue && LockoutEnd.Value > DateTime.UtcNow;
 
     /// <summary>
+    /// Forces the user to change their password on next login
+    /// Used for initial seeded admin accounts with default passwords
+    /// </summary>
+    public bool RequiresPasswordChange { get; set; } = false;
+
+    /// <summary>
     /// Navigation property: Audit logs performed by this admin
     /// </summary>
     public virtual ICollection<AuditLog> AuditLogs { get; set; } = new List<AuditLog>();

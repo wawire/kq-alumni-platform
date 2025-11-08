@@ -200,7 +200,8 @@ public class AuthService : IAuthService
         string email,
         string password,
         string fullName,
-        string role)
+        string role,
+        bool requiresPasswordChange = false)
     {
         // Check if username already exists
         var existingUser = await _context.AdminUsers
@@ -236,13 +237,16 @@ public class AuthService : IAuthService
             FullName = fullName,
             Role = role,
             IsActive = true,
+            RequiresPasswordChange = requiresPasswordChange,
             CreatedAt = DateTime.UtcNow
         };
 
         _context.AdminUsers.Add(adminUser);
         await _context.SaveChangesAsync();
 
-        _logger.LogInformation("Admin user {Username} created successfully with role {Role}", username, role);
+        _logger.LogInformation(
+            "Admin user {Username} created successfully with role {Role}. Requires password change: {RequiresPasswordChange}",
+            username, role, requiresPasswordChange);
 
         return adminUser;
     }
@@ -257,6 +261,55 @@ public class AuthService : IAuthService
         {
             adminUser.LastLoginAt = DateTime.UtcNow;
             await _context.SaveChangesAsync();
+        }
+    }
+
+    /// <summary>
+    /// Changes an admin user's password
+    /// </summary>
+    public async Task<bool> ChangePasswordAsync(string username, string currentPassword, string newPassword)
+    {
+        try
+        {
+            // Find admin user
+            var adminUser = await _context.AdminUsers
+                .FirstOrDefaultAsync(u => u.Username == username && u.IsActive);
+
+            if (adminUser == null)
+            {
+                _logger.LogWarning("Password change failed: User {Username} not found or inactive", username);
+                return false;
+            }
+
+            // Verify current password
+            if (!VerifyPassword(currentPassword, adminUser.PasswordHash))
+            {
+                _logger.LogWarning("Password change failed: Invalid current password for user {Username}", username);
+                return false;
+            }
+
+            // Validate new password (basic validation)
+            if (string.IsNullOrWhiteSpace(newPassword) || newPassword.Length < 8)
+            {
+                throw new ArgumentException("New password must be at least 8 characters long");
+            }
+
+            // Update password hash and clear RequiresPasswordChange flag
+            adminUser.PasswordHash = HashPassword(newPassword);
+            adminUser.RequiresPasswordChange = false;
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("Password changed successfully for user {Username}", username);
+            return true;
+        }
+        catch (ArgumentException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error changing password for user {Username}", username);
+            return false;
         }
     }
 }

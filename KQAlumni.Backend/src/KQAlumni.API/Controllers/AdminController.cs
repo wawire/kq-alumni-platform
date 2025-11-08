@@ -85,11 +85,12 @@ public class AdminController : ControllerBase
                 Username = adminUser.Username,
                 FullName = adminUser.FullName,
                 Role = adminUser.Role,
-                Email = adminUser.Email
+                Email = adminUser.Email,
+                RequiresPasswordChange = adminUser.RequiresPasswordChange
             };
 
-            _logger.LogInformation("User {Username} logged in successfully with role {Role}",
-                request.Username, adminUser.Role);
+            _logger.LogInformation("User {Username} logged in successfully with role {Role}. RequiresPasswordChange: {RequiresPasswordChange}",
+                request.Username, adminUser.Role, adminUser.RequiresPasswordChange);
 
             return Ok(response);
         }
@@ -140,7 +141,8 @@ public class AdminController : ControllerBase
                 Username = adminUser.Username,
                 FullName = adminUser.FullName,
                 Role = adminUser.Role,
-                Email = adminUser.Email
+                Email = adminUser.Email,
+                RequiresPasswordChange = adminUser.RequiresPasswordChange
             };
 
             return Ok(response);
@@ -149,6 +151,77 @@ public class AdminController : ControllerBase
         {
             _logger.LogError(ex, "Error getting current user");
             return StatusCode(500);
+        }
+    }
+
+    /// <summary>
+    /// Change current admin user's password
+    /// </summary>
+    /// <param name="request">Password change request</param>
+    /// <returns>Success message</returns>
+    [HttpPost("change-password")]
+    [Authorize]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<ActionResult> ChangePassword([FromBody] ChangePasswordRequest request)
+    {
+        try
+        {
+            var username = User.Identity?.Name;
+
+            if (string.IsNullOrEmpty(username))
+            {
+                return Unauthorized();
+            }
+
+            _logger.LogInformation("Password change request for user: {Username}", username);
+
+            var success = await _authService.ChangePasswordAsync(
+                username,
+                request.CurrentPassword,
+                request.NewPassword);
+
+            if (!success)
+            {
+                return BadRequest(new ErrorResponse
+                {
+                    Type = "https://tools.ietf.org/html/rfc7231#section-6.5.1",
+                    Title = "Password change failed",
+                    Status = StatusCodes.Status400BadRequest,
+                    Detail = "Invalid current password or password change failed"
+                });
+            }
+
+            _logger.LogInformation("Password changed successfully for user: {Username}", username);
+
+            return Ok(new
+            {
+                message = "Password changed successfully",
+                requiresPasswordChange = false
+            });
+        }
+        catch (ArgumentException ex)
+        {
+            _logger.LogWarning(ex, "Invalid password format for user: {Username}", User.Identity?.Name);
+            return BadRequest(new ErrorResponse
+            {
+                Type = "https://tools.ietf.org/html/rfc7231#section-6.5.1",
+                Title = "Invalid password",
+                Status = StatusCodes.Status400BadRequest,
+                Detail = ex.Message
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error changing password for user: {Username}", User.Identity?.Name);
+            return StatusCode(500, new ErrorResponse
+            {
+                Type = "https://tools.ietf.org/html/rfc7231#section-6.6.1",
+                Title = "Internal server error",
+                Status = StatusCodes.Status500InternalServerError,
+                Detail = "An error occurred while changing password"
+            });
         }
     }
 
@@ -205,10 +278,10 @@ public class AdminController : ControllerBase
     }
 
     /// <summary>
-    /// Seed initial SuperAdmin user (Development only)
-    /// Creates the first admin user if none exist
+    /// Seed initial admin users (Development only)
+    /// Creates three admin users (SuperAdmin, HRManager, HROfficer) if none exist
     /// </summary>
-    /// <returns>Created admin user details</returns>
+    /// <returns>Created admin users details</returns>
     [HttpPost("seed-initial-admin")]
     [AllowAnonymous]
     [ProducesResponseType(StatusCodes.Status201Created)]
@@ -238,50 +311,96 @@ public class AdminController : ControllerBase
                 return BadRequest(new ErrorResponse
                 {
                     Type = "https://tools.ietf.org/html/rfc7231#section-6.5.1",
-                    Title = "Admin user already exists",
+                    Title = "Admin users already exist",
                     Status = StatusCodes.Status400BadRequest,
-                    Detail = "Admin users already exist. Cannot seed initial admin."
+                    Detail = "Admin users already exist. Cannot seed initial admins."
                 });
             }
 
-            // Create initial SuperAdmin user
-            var adminUser = await _authService.CreateAdminUserAsync(
+            // Create all three initial admin users
+            var createdUsers = new List<object>();
+
+            // 1. SuperAdmin
+            var superAdmin = await _authService.CreateAdminUserAsync(
                 username: "admin",
                 email: "admin@kenya-airways.com",
                 password: "Admin@123456",
                 fullName: "System Administrator",
-                role: "SuperAdmin");
+                role: "SuperAdmin",
+                requiresPasswordChange: true);
 
-            _logger.LogWarning(
-                "[WARNING] Initial SuperAdmin user created via seed endpoint:\n" +
-                "   Username: admin\n" +
-                "   Password: Admin@123456\n" +
-                "   CHANGE THIS PASSWORD IMMEDIATELY!");
-
-            return CreatedAtAction(nameof(GetCurrentUser), new { id = adminUser.Id }, new
+            createdUsers.Add(new
             {
-                message = "Initial SuperAdmin user created successfully",
                 username = "admin",
                 password = "Admin@123456",
                 email = "admin@kenya-airways.com",
-                warning = "[WARNING] CHANGE THIS PASSWORD IMMEDIATELY AFTER FIRST LOGIN!",
+                role = "SuperAdmin",
+                requiresPasswordChange = true
+            });
+
+            // 2. HRManager
+            var hrManager = await _authService.CreateAdminUserAsync(
+                username: "hr.manager",
+                email: "hr.manager@kenya-airways.com",
+                password: "HRManager@123456",
+                fullName: "HR Manager",
+                role: "HRManager",
+                requiresPasswordChange: true);
+
+            createdUsers.Add(new
+            {
+                username = "hr.manager",
+                password = "HRManager@123456",
+                email = "hr.manager@kenya-airways.com",
+                role = "HRManager",
+                requiresPasswordChange = true
+            });
+
+            // 3. HROfficer
+            var hrOfficer = await _authService.CreateAdminUserAsync(
+                username: "hr.officer",
+                email: "hr.officer@kenya-airways.com",
+                password: "HROfficer@123456",
+                fullName: "HR Officer",
+                role: "HROfficer",
+                requiresPasswordChange: true);
+
+            createdUsers.Add(new
+            {
+                username = "hr.officer",
+                password = "HROfficer@123456",
+                email = "hr.officer@kenya-airways.com",
+                role = "HROfficer",
+                requiresPasswordChange = true
+            });
+
+            _logger.LogWarning(
+                "[SUCCESS] All 3 initial admin users created via seed endpoint.\n" +
+                "   [SECURITY] All users MUST change passwords on first login.");
+
+            return CreatedAtAction(nameof(GetCurrentUser), new { id = superAdmin.Id }, new
+            {
+                message = "Initial admin users created successfully",
+                usersCreated = 3,
+                users = createdUsers,
+                warning = "[SECURITY] All users MUST change their passwords on first login!",
                 instructions = new[]
                 {
-                    "1. Login at /api/v1/admin/login with these credentials",
-                    "2. Create additional admin users via /api/v1/admin/users",
-                    "3. Change this default password immediately"
+                    "1. Login with any of the credentials above",
+                    "2. You will be required to change your password immediately",
+                    "3. Use POST /api/v1/admin/change-password to update your password"
                 }
             });
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error seeding initial admin user");
+            _logger.LogError(ex, "Error seeding initial admin users");
             return StatusCode(500, new ErrorResponse
             {
                 Type = "https://tools.ietf.org/html/rfc7231#section-6.6.1",
                 Title = "Internal server error",
                 Status = StatusCodes.Status500InternalServerError,
-                Detail = "An error occurred while seeding the initial admin user"
+                Detail = "An error occurred while seeding the initial admin users"
             });
         }
     }

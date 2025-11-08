@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   BriefcaseIcon,
   HeartIcon,
@@ -10,10 +10,14 @@ import { toast, Toaster } from "sonner";
 
 import { useSubmitRegistration } from "@/lib/api/services/registrationService";
 import { useRegistrationFormData, useRegistrationActions, useRegistrationStatus, useRegistrationId, useCurrentStep, RegistrationStatus } from "@/store";
+import { trackEvent, trackFormStep, trackFormSubmission } from "@/lib/analytics";
 import EmploymentStep from "./steps/EmploymentStep";
 import EngagementStep from "./steps/EngagementStep";
 import PersonalInfoStep from "./steps/PersonalInfoStep";
+import ReviewStep from "./steps/ReviewStep";
 import SuccessScreen from "./SuccessScreen";
+import SocialProof from "./SocialProof";
+import AutoSaveIndicator from "@/components/ui/AutoSaveIndicator";
 
 export type FormStep = "personal" | "employment" | "engagement" | "success";
 
@@ -45,23 +49,41 @@ export default function RegistrationForm() {
   const currentStep = useCurrentStep();
   const registrationId = useRegistrationId();
   const status = useRegistrationStatus();
-  const { updateFormData, nextStep, previousStep, setRegistrationId, setStatus, loadFromLocalStorage } = useRegistrationActions();
+  const { updateFormData, nextStep, previousStep, setRegistrationId, setStatus, loadFromLocalStorage, setCurrentStep } = useRegistrationActions();
 
   // React Query mutation
   const submitMutation = useSubmitRegistration();
 
+  // Auto-save indicator state
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
+
   // Load persisted data on mount
   useEffect(() => {
     loadFromLocalStorage();
+    trackEvent("registration_form_loaded");
   }, [loadFromLocalStorage]);
+
+  // Track auto-save
+  useEffect(() => {
+    setLastSaved(new Date());
+  }, [formData]);
 
   const handleNext = (data: Partial<RegistrationFormData>): void => {
     updateFormData(data);
+
+    // Track step completion
+    const stepNames = ["personal", "employment", "engagement"];
+    trackFormStep(stepNames[currentStep], currentStep + 1);
+
     nextStep();
   };
 
   const handleBack = (): void => {
     previousStep();
+  };
+
+  const handleEditStep = (step: number): void => {
+    setCurrentStep(step);
   };
 
   const handleSubmit = async (
@@ -81,12 +103,18 @@ export default function RegistrationForm() {
           duration: 4000,
         });
 
+        // Track successful submission
+        trackFormSubmission(true, { registration_id: response.id });
+
         setRegistrationId(response.id);
         setStatus(RegistrationStatus.SUCCESS);
         // Note: Form data is cleared when user clicks "New Registration" on success screen
       },
       onError: (error: Error) => {
         toast.dismiss("registration-loading");
+
+        // Track failed submission
+        trackFormSubmission(false, { error: error.message });
 
         const supportEmail = "KQ.Alumni@kenya-airways.com";
         toast.error(error.message || "Registration failed. Please try again.", {
@@ -169,6 +197,13 @@ export default function RegistrationForm() {
                   description="Contribute through mentorship and volunteering"
                 />
               </div>
+
+              {/* Social Proof */}
+              {currentStep > 0 && (
+                <div className="mt-8 pt-8 border-t border-white/10">
+                  <SocialProof />
+                </div>
+              )}
             </div>
 
             <div className="absolute left-12 right-12 bottom-6">
@@ -182,7 +217,7 @@ export default function RegistrationForm() {
 
         {/* RIGHT PANEL (form) */}
         <div className="flex-1 bg-gray-50 flex flex-col justify-center items-center min-h-screen">
-          <div className="max-w-2xl w-full px-8 py-12">
+          <div className="max-w-2xl w-full px-4 sm:px-8 py-8 sm:py-12">
             {currentStep === 0 && (
               <PersonalInfoStep data={formData} onNext={handleNext} />
             )}
@@ -196,13 +231,24 @@ export default function RegistrationForm() {
             {currentStep === 2 && (
               <EngagementStep
                 data={formData}
-                onSubmit={handleSubmit}
+                onNext={handleNext}
                 onBack={handleBack}
+                isSubmitting={false}
+              />
+            )}
+            {currentStep === 3 && (
+              <ReviewStep
+                data={formData}
+                onSubmit={handleSubmit}
+                onEdit={handleEditStep}
                 isSubmitting={submitMutation.isPending}
               />
             )}
           </div>
         </div>
+
+        {/* Auto-save Indicator */}
+        <AutoSaveIndicator lastSaved={lastSaved} />
       </div>
     </>
   );

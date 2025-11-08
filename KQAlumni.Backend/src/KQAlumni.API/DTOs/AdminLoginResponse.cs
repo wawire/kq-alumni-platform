@@ -39,4 +39,9 @@ public class AdminLoginResponse
     /// Admin email
     /// </summary>
     public string Email { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Whether the user must change their password before accessing the system
+    /// </summary>
+    public bool RequiresPasswordChange { get; set; } = false;
 }

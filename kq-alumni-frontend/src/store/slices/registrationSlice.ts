@@ -81,7 +81,7 @@ export interface RegistrationSlice {
 }
 
 const STORAGE_KEY = 'kq-alumni-registration';
-const TOTAL_STEPS = 3;
+const TOTAL_STEPS = 4; // Personal, Employment, Engagement, Review
 
 export const createRegistrationSlice: StateCreator<
   RegistrationSlice,
