@@ -127,6 +127,7 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
   // Watch fields for duplicate checking and verification
   const idNumberValue = watch("idNumber");
   const emailValue = watch("email");
+  const currentCountryCodeValue = watch("currentCountryCode");
 
   // Debounce values to avoid too many API calls
   const debouncedIdNumber = useDebounce(idNumberValue, 1000); // 1 second delay for ID verification
@@ -143,6 +144,13 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
       emailCheck.reset();
     }
   }, [debouncedEmail]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Sync selectedCountryCode with form value
+  useEffect(() => {
+    if (currentCountryCodeValue && currentCountryCodeValue !== selectedCountryCode) {
+      setSelectedCountryCode(currentCountryCodeValue);
+    }
+  }, [currentCountryCodeValue, selectedCountryCode]);
 
   // =====================================================
   // ID VERIFICATION LOGIC
