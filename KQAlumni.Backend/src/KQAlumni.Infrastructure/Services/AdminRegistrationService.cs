@@ -52,6 +52,15 @@ public class AdminRegistrationService : IAdminRegistrationService
         string? sortOrder = null,
         int pageNumber = 1,
         int pageSize = 50,
+        // New advanced filters
+        string? department = null,
+        DateTime? exitDateFrom = null,
+        DateTime? exitDateTo = null,
+        string? country = null,
+        string? city = null,
+        string? industry = null,
+        bool? erpValidated = null,
+        int? registrationYear = null,
         CancellationToken cancellationToken = default)
     {
         var query = _context.AlumniRegistrations.AsQueryable();
@@ -92,6 +101,49 @@ public class AdminRegistrationService : IAdminRegistrationService
         if (emailVerified.HasValue)
         {
             query = query.Where(r => r.EmailVerified == emailVerified.Value);
+        }
+
+        // NEW ADVANCED FILTERS
+
+        if (!string.IsNullOrEmpty(department))
+        {
+            query = query.Where(r => r.ErpDepartment != null && r.ErpDepartment.ToLower().Contains(department.ToLower()));
+        }
+
+        if (exitDateFrom.HasValue)
+        {
+            query = query.Where(r => r.ErpExitDate >= exitDateFrom.Value);
+        }
+
+        if (exitDateTo.HasValue)
+        {
+            query = query.Where(r => r.ErpExitDate <= exitDateTo.Value);
+        }
+
+        if (!string.IsNullOrEmpty(country))
+        {
+            query = query.Where(r => r.CurrentCountry != null && r.CurrentCountry.ToLower().Contains(country.ToLower()));
+        }
+
+        if (!string.IsNullOrEmpty(city))
+        {
+            query = query.Where(r => r.CurrentCity != null && r.CurrentCity.ToLower().Contains(city.ToLower()));
+        }
+
+        if (!string.IsNullOrEmpty(industry))
+        {
+            query = query.Where(r => r.Industry != null && r.Industry.ToLower().Contains(industry.ToLower()));
+        }
+
+        if (erpValidated.HasValue)
+        {
+            query = query.Where(r => r.ErpValidated == erpValidated.Value);
+        }
+
+        if (registrationYear.HasValue)
+        {
+            var yearPrefix = $"KQA-{registrationYear.Value}-";
+            query = query.Where(r => r.RegistrationNumber.StartsWith(yearPrefix));
         }
 
         // Apply sorting

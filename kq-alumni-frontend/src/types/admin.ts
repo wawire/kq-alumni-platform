@@ -123,6 +123,15 @@ export interface RegistrationFilters {
   sortOrder?: SortOrder;
   pageNumber?: number;
   pageSize?: number;
+  // Advanced filters
+  department?: string;
+  exitDateFrom?: string;
+  exitDateTo?: string;
+  country?: string;
+  city?: string;
+  industry?: string;
+  erpValidated?: boolean;
+  registrationYear?: number;
 }
 
 // ============================================

@@ -43,6 +43,14 @@ public class AdminRegistrationsController : ControllerBase
     /// <param name="sortOrder">Sort order (asc, desc)</param>
     /// <param name="pageNumber">Page number (1-based)</param>
     /// <param name="pageSize">Page size (max 100)</param>
+    /// <param name="department">Filter by department from ERP</param>
+    /// <param name="exitDateFrom">Filter by exit date from</param>
+    /// <param name="exitDateTo">Filter by exit date to</param>
+    /// <param name="country">Filter by current country</param>
+    /// <param name="city">Filter by current city</param>
+    /// <param name="industry">Filter by industry</param>
+    /// <param name="erpValidated">Filter by ERP validation status</param>
+    /// <param name="registrationYear">Filter by registration year</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Paginated list of registrations</returns>
     [HttpGet]
@@ -60,6 +68,14 @@ public class AdminRegistrationsController : ControllerBase
         [FromQuery] string? sortOrder = null,
         [FromQuery] int pageNumber = 1,
         [FromQuery] int pageSize = 50,
+        [FromQuery] string? department = null,
+        [FromQuery] string? exitDateFrom = null,
+        [FromQuery] string? exitDateTo = null,
+        [FromQuery] string? country = null,
+        [FromQuery] string? city = null,
+        [FromQuery] string? industry = null,
+        [FromQuery] bool? erpValidated = null,
+        [FromQuery] int? registrationYear = null,
         CancellationToken cancellationToken = default)
     {
         try
@@ -71,6 +87,8 @@ public class AdminRegistrationsController : ControllerBase
             // Parse dates if provided
             DateTime? parsedDateFrom = null;
             DateTime? parsedDateTo = null;
+            DateTime? parsedExitDateFrom = null;
+            DateTime? parsedExitDateTo = null;
 
             if (!string.IsNullOrEmpty(dateFrom) && DateTime.TryParse(dateFrom, out var from))
             {
@@ -80,6 +98,16 @@ public class AdminRegistrationsController : ControllerBase
             if (!string.IsNullOrEmpty(dateTo) && DateTime.TryParse(dateTo, out var to))
             {
                 parsedDateTo = to.AddDays(1).AddSeconds(-1); // Include full day
+            }
+
+            if (!string.IsNullOrEmpty(exitDateFrom) && DateTime.TryParse(exitDateFrom, out var exitFrom))
+            {
+                parsedExitDateFrom = exitFrom;
+            }
+
+            if (!string.IsNullOrEmpty(exitDateTo) && DateTime.TryParse(exitDateTo, out var exitTo))
+            {
+                parsedExitDateTo = exitTo.AddDays(1).AddSeconds(-1); // Include full day
             }
 
             var (registrations, totalCount) = await _adminRegistrationService.GetRegistrationsAsync(
@@ -93,6 +121,14 @@ public class AdminRegistrationsController : ControllerBase
                 sortOrder,
                 pageNumber,
                 pageSize,
+                department,
+                parsedExitDateFrom,
+                parsedExitDateTo,
+                country,
+                city,
+                industry,
+                erpValidated,
+                registrationYear,
                 cancellationToken);
 
             var response = new

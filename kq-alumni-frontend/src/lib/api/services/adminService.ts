@@ -206,6 +206,32 @@ export function useAdminRegistrations(filters?: RegistrationFilters) {
         params.append('pageSize', filters.pageSize.toString());
       }
 
+      // Advanced filters
+      if (filters?.department) {
+        params.append('department', filters.department);
+      }
+      if (filters?.exitDateFrom) {
+        params.append('exitDateFrom', filters.exitDateFrom);
+      }
+      if (filters?.exitDateTo) {
+        params.append('exitDateTo', filters.exitDateTo);
+      }
+      if (filters?.country) {
+        params.append('country', filters.country);
+      }
+      if (filters?.city) {
+        params.append('city', filters.city);
+      }
+      if (filters?.industry) {
+        params.append('industry', filters.industry);
+      }
+      if (filters?.erpValidated !== undefined) {
+        params.append('erpValidated', filters.erpValidated.toString());
+      }
+      if (filters?.registrationYear) {
+        params.append('registrationYear', filters.registrationYear.toString());
+      }
+
       const response = await adminApi.get<PaginatedRegistrations>(
         `/admin/registrations?${params.toString()}`
       );
