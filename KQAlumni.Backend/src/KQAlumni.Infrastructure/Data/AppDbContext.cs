@@ -72,6 +72,11 @@ public class AppDbContext : DbContext
                     .IsUnique()
                     .HasDatabaseName("UQ_AlumniRegistrations_Email");
 
+                        // Registration Number (unique, required)
+                        entity.HasIndex(e => e.RegistrationNumber)
+                    .IsUnique()
+                    .HasDatabaseName("UQ_AlumniRegistrations_RegistrationNumber");
+
                         // Mobile Number (unique if provided, composite index on CountryCode + Number)
                         // Allows multiple NULL values (if mobile not provided)
                         entity.HasIndex(e => new { e.MobileCountryCode, e.MobileNumber })

@@ -105,7 +105,7 @@ export default function RegistrationForm() {
         // Track successful submission
         trackFormSubmission(true, { registration_id: response.id });
 
-        setRegistrationId(response.id);
+        setRegistrationId(response.registrationNumber);
         setStatus(RegistrationStatus.SUCCESS);
         // Note: Form data is cleared when user clicks "New Registration" on success screen
       },
