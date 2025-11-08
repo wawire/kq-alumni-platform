@@ -33,7 +33,7 @@ interface SelectOption {
 }
 
 export interface FormSelectProps<OptionType extends SelectOption = SelectOption>
-  extends Omit<ReactSelectProps<OptionType, false>, 'name'> {
+  extends Omit<ReactSelectProps<OptionType, false>, 'name' | 'onChange'> {
   /**
    * Field name (matches react-hook-form field name)
    */
@@ -73,6 +73,11 @@ export interface FormSelectProps<OptionType extends SelectOption = SelectOption>
    * Format the label for creating new options
    */
   formatCreateLabel?: (inputValue: string) => string;
+
+  /**
+   * Custom onChange handler (receives the full option object)
+   */
+  onChange?: (option: OptionType | null) => void;
 }
 
 export const FormSelect = <OptionType extends SelectOption = SelectOption>({
@@ -88,10 +93,12 @@ export const FormSelect = <OptionType extends SelectOption = SelectOption>({
   isSearchable = true,
   isCreatable = false,
   formatCreateLabel,
+  onChange,
   ...selectProps
 }: FormSelectProps<OptionType>) => {
   const {
     control,
+    setValue,
     formState: { errors },
   } = useFormContext();
 
@@ -128,7 +135,14 @@ export const FormSelect = <OptionType extends SelectOption = SelectOption>({
             isDisabled={isDisabled}
             styles={selectStyles}
             classNamePrefix="react-select"
-            onChange={(option) => field.onChange(option?.value || '')}
+            onChange={(option) => {
+              // Set the value in react-hook-form with validation enabled
+              setValue(name, option?.value || '', { shouldValidate: true });
+              // Call custom onChange if provided (passes full option object)
+              if (onChange) {
+                onChange(option);
+              }
+            }}
             value={
               options.find((opt) => opt.value === field.value) ||
               (field.value ? { value: field.value, label: field.value } as OptionType : null)

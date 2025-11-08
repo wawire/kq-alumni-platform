@@ -260,8 +260,9 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
     const country = Country.getCountryByCode(option.value);
     if (country) {
       setSelectedCountryCode(country.isoCode);
+      // FormSelect already sets currentCountryCode with validation
+      // We just need to set the related fields
       setValue("currentCountry", country.name, { shouldValidate: true });
-      setValue("currentCountryCode", country.isoCode, { shouldValidate: true });
       setValue("currentCity", "", { shouldValidate: true });
 
       // Note: Mobile country code is NOT updated here
@@ -303,6 +304,18 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
   // Check if form has any validation errors
   const hasErrors = Object.keys(errors).length > 0;
   const canProceed = verificationStatus === 'verified' && !emailCheck.isDuplicate && !hasErrors;
+
+  // Debug logging - check what's blocking the button
+  useEffect(() => {
+    console.log('=== CONTINUE BUTTON DEBUG ===');
+    console.log('canProceed:', canProceed);
+    console.log('verificationStatus:', verificationStatus);
+    console.log('emailCheck.isDuplicate:', emailCheck.isDuplicate);
+    console.log('hasErrors:', hasErrors);
+    console.log('errors:', errors);
+    console.log('Form values:', watch());
+    console.log('===========================');
+  }, [verificationStatus, emailCheck.isDuplicate, hasErrors, errors, canProceed]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <FormProvider {...methods}>
