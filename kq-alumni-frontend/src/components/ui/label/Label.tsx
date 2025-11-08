@@ -26,8 +26,8 @@ const labelVariants = cva(
     variants: {
       size: {
         sm: 'text-xs mb-1',
-        md: 'text-sm mb-3',
-        lg: 'text-base mb-4',
+        md: 'text-sm mb-1.5',
+        lg: 'text-base mb-2',
       },
 
       disabled: {

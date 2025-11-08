@@ -96,9 +96,6 @@ const EngagementStep: React.FC<Props> = ({
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Areas of Interest <span className="text-kq-red">*</span>
           </label>
-          <p className="text-sm text-gray-600 mb-4">
-            Select all areas that interest you
-          </p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {ENGAGEMENT_AREAS.map((option) => (
               <label

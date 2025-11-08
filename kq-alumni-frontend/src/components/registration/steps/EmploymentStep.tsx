@@ -150,13 +150,12 @@ export default function EmploymentStep({ data, onNext, onBack }: Props) {
             type="url"
             placeholder="https://www.linkedin.com/in/yourprofile"
             variant="underline"
-            description="LinkedIn profile is optional. Leave blank if you don't have one."
           />
         </div>
 
         {/* Qualifications */}
         <div className="mb-8">
-          <label className="block text-sm font-medium text-gray-700 mb-4">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
             Qualifications Attained <span className="text-kq-red">*</span>
           </label>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
