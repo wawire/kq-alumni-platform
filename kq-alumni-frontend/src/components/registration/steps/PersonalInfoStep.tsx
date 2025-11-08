@@ -362,6 +362,9 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
               disabled
               className="bg-gray-50"
             />
+            <p className="mt-2 text-xs text-gray-500">
+              Auto-filled from company records
+            </p>
           </div>
         </div>
 
@@ -378,6 +381,9 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
               disabled
               className="bg-gray-50"
             />
+            <p className="mt-2 text-xs text-gray-500">
+              Auto-filled from company records
+            </p>
           </div>
 
           {/* Email */}
@@ -389,13 +395,13 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
               placeholder="your.email@example.com"
               required
               variant="underline"
-              description={
-                emailCheck.isDuplicate
-                  ? emailCheck.error || "This email is already registered"
-                  : undefined
-              }
               rightIcon={getDuplicateIcon(emailCheck)}
             />
+            {emailCheck.isDuplicate && (
+              <p className="mt-2 text-sm text-kq-red">
+                {emailCheck.error || "This email is already registered"}
+              </p>
+            )}
           </div>
         </div>
 
