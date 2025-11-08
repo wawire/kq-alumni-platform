@@ -84,20 +84,22 @@ public class RegistrationRequestValidator : AbstractValidator<RegistrationReques
         .Must(NotBeDisposableEmail)
         .WithMessage("Please use a permanent email address");
 
-    // Mobile Number (Required)
-    RuleFor(x => x.MobileNumber)
-        .NotEmpty()
-        .WithMessage("Mobile number is required")
-        .Length(6, 15)
-        .WithMessage("Phone number must be between 6 and 15 digits")
-        .Matches(@"^\d+$")
-        .WithMessage("Phone number must contain only digits");
+    // Mobile Number (Optional - only validate if provided)
+    When(x => !string.IsNullOrEmpty(x.MobileNumber), () =>
+    {
+      RuleFor(x => x.MobileNumber)
+              .Length(6, 15)
+              .WithMessage("Phone number must be between 6 and 15 digits")
+              .Matches(@"^\d+$")
+              .WithMessage("Phone number must contain only digits");
+    });
 
-    RuleFor(x => x.MobileCountryCode)
-        .NotEmpty()
-        .WithMessage("Phone country code is required")
-        .Matches(@"^\+\d{1,4}$")
-        .WithMessage("Invalid phone country code format (e.g., +254)");
+    When(x => !string.IsNullOrEmpty(x.MobileCountryCode), () =>
+    {
+      RuleFor(x => x.MobileCountryCode)
+              .Matches(@"^\+\d{1,4}$")
+              .WithMessage("Invalid phone country code format (e.g., +254)");
+    });
 
     RuleFor(x => x.CurrentCountry)
         .NotEmpty()
