@@ -21,8 +21,9 @@ import ProgressIndicator from "../ProgressIndicator";
 import type { RegistrationFormData } from "../RegistrationForm";
 
 // =====================================================
-// VALIDATION SCHEMA - CONDITIONAL VALIDATION
-// Full Name only required after ID verification
+// VALIDATION SCHEMA
+// Full Name is required and auto-populated from ERP verification
+// Mobile Number is optional
 // =====================================================
 const personalInfoSchema = z.object({
   staffNumber: z
@@ -39,8 +40,8 @@ const personalInfoSchema = z.object({
     .transform((val) => val?.trim().toUpperCase() || undefined),
   fullName: z
     .string()
-    .optional()
-    .transform((val) => val?.trim() || undefined),
+    .min(1, "Full name is required")
+    .transform((val) => val?.trim() || ""),
   email: z
     .string()
     .min(1, "Email address is required")
