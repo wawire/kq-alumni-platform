@@ -20,31 +20,19 @@ namespace KQAlumni.Infrastructure.Data.Migrations
                 defaultValue: "");
 
             // For existing records, generate registration numbers based on their creation date
+            // Uses ROW_NUMBER() to generate sequential numbers per year
             migrationBuilder.Sql(@"
-                DECLARE @counter INT = 1;
-                DECLARE @year INT;
-                DECLARE @lastYear INT = 0;
-
-                UPDATE AlumniRegistrations
-                SET RegistrationNumber =
-                    CASE
-                        WHEN YEAR(CreatedAt) != @lastYear
-                        THEN (
-                            SELECT @lastYear = YEAR(CreatedAt),
-                                   @counter = 1,
-                                   'KQA-' + CAST(YEAR(CreatedAt) AS VARCHAR(4)) + '-' + RIGHT('00000' + CAST(@counter AS VARCHAR(5)), 5)
-                        )
-                        ELSE (
-                            SELECT @counter = @counter + 1,
-                                   'KQA-' + CAST(YEAR(CreatedAt) AS VARCHAR(4)) + '-' + RIGHT('00000' + CAST(@counter AS VARCHAR(5)), 5)
-                        )
-                    END
-                FROM (
-                    SELECT Id, CreatedAt
+                WITH NumberedRegistrations AS (
+                    SELECT
+                        Id,
+                        'KQA-' + CAST(YEAR(CreatedAt) AS VARCHAR(4)) + '-' +
+                        RIGHT('00000' + CAST(ROW_NUMBER() OVER (PARTITION BY YEAR(CreatedAt) ORDER BY CreatedAt) AS VARCHAR(5)), 5) AS RegNumber
                     FROM AlumniRegistrations
-                    ORDER BY CreatedAt
-                ) AS OrderedRegistrations
-                WHERE AlumniRegistrations.Id = OrderedRegistrations.Id;
+                )
+                UPDATE ar
+                SET ar.RegistrationNumber = nr.RegNumber
+                FROM AlumniRegistrations ar
+                INNER JOIN NumberedRegistrations nr ON ar.Id = nr.Id;
             ");
 
             // Create unique index on RegistrationNumber
