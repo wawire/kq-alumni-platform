@@ -157,7 +157,10 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
   // ID VERIFICATION LOGIC
   // =====================================================
   const verifyIdWithERP = async (idOrPassport: string) => {
+    console.log('🔍 verifyIdWithERP called with:', idOrPassport);
+
     if (!idOrPassport || idOrPassport.length < 5) {
+      console.log('⚠️ ID too short, resetting verification status');
       setVerificationStatus('idle');
       setErpData(null);
       setVerificationError("");
@@ -165,19 +168,26 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
     }
 
     try {
+      console.log('⏳ Setting verification status to: verifying');
       setVerificationStatus('verifying');
       setVerificationError("");
 
-      const apiUrl = env.apiUrl; // Use centralized env config
-      const response = await fetch(`${apiUrl}/api/v1/registrations/verify-id/${encodeURIComponent(idOrPassport)}`);
+      const apiUrl = env.apiUrl;
+      const url = `${apiUrl}/api/v1/registrations/verify-id/${encodeURIComponent(idOrPassport)}`;
+      console.log('📡 Fetching:', url);
+
+      const response = await fetch(url);
+      console.log('📥 Response status:', response.status);
 
       if (!response.ok) {
         throw new Error('Verification failed');
       }
 
       const result = await response.json();
+      console.log('✅ Verification result:', result);
 
       if (result.isAlreadyRegistered) {
+        console.log('❌ ID already registered');
         setVerificationStatus('already_registered');
         setVerificationError(result.message || 'This ID/Passport is already registered');
         setErpData(null);
@@ -185,6 +195,7 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
       }
 
       if (result.isVerified) {
+        console.log('✅ ID verified successfully!', result);
         setVerificationStatus('verified');
         setErpData({
           staffNumber: result.staffNumber,
@@ -278,15 +289,24 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
   };
 
   const onSubmit = (formData: PersonalInfoFormData): void => {
+    console.log('📝 Form submitted with data:', formData);
+    console.log('🔐 Verification status:', verificationStatus);
+    console.log('📧 Email duplicate check:', emailCheck.isDuplicate);
+    console.log('👤 ERP data:', erpData);
+
     // Don't submit if duplicates found or ID not verified
     if (emailCheck.isDuplicate) {
+      console.log('❌ Blocked: Email is duplicate');
       return;
     }
 
     if (verificationStatus !== 'verified') {
+      console.log('❌ Blocked: Verification status is not verified:', verificationStatus);
       setVerificationError('Please wait for ID verification to complete');
       return;
     }
+
+    console.log('✅ Proceeding to next step');
 
     // Include ERP data in submission
     onNext({
@@ -296,37 +316,26 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
     });
   };
 
-  // Helper to get the duplicate check icon
+  // Helper to get the duplicate check icon - REMOVED FOR DEBUGGING
   const getDuplicateIcon = (check: typeof emailCheck) => {
-    if (check.isChecking) {
-      return <div className="animate-spin h-5 w-5 border-2 border-gray-300 border-t-kq-red rounded-full" />;
-    }
-    if (check.isDuplicate) {
-      return <ExclamationCircleIcon className="h-5 w-5 text-red-600" />;
-    }
-    if (check.error) {
-      return null;
-    }
-    // Only show checkmark if we actually checked and it's not a duplicate
-    if (watch("email")) {
-      return <CheckCircleIcon className="h-5 w-5 text-green-600" />;
-    }
-    return null;
+    return null; // Icons removed for debugging
   };
 
-  // Helper to get verification status icon
+  // Helper to get verification status icon - REMOVED FOR DEBUGGING
   const getVerificationIcon = () => {
-    if (verificationStatus === 'verifying') {
-      return <div className="animate-spin h-5 w-5 border-2 border-gray-300 border-t-kq-red rounded-full" />;
-    }
-    if (verificationStatus === 'verified') {
-      return <CheckCircleIcon className="h-5 w-5 text-green-600" />;
-    }
-    if (verificationStatus === 'failed' || verificationStatus === 'already_registered') {
-      return <ExclamationCircleIcon className="h-5 w-5 text-red-600" />;
-    }
-    return null;
+    return null; // Icons removed for debugging
   };
+
+  // Log button state changes for debugging
+  useEffect(() => {
+    const isDisabled = verificationStatus !== 'verified' || emailCheck.isDuplicate;
+    console.log('🔘 BUTTON STATE:', {
+      verificationStatus,
+      emailCheckIsDuplicate: emailCheck.isDuplicate,
+      isButtonDisabled: isDisabled,
+      buttonText: verificationStatus === 'verified' && !emailCheck.isDuplicate ? 'Continue' : 'Other'
+    });
+  }, [verificationStatus, emailCheck.isDuplicate]);
 
   return (
     <FormProvider {...methods}>
