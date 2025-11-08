@@ -127,6 +127,7 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
   // Watch fields for duplicate checking and verification
   const idNumberValue = watch("idNumber");
   const emailValue = watch("email");
+  const currentCountryCodeValue = watch("currentCountryCode");
 
   // Debounce values to avoid too many API calls
   const debouncedIdNumber = useDebounce(idNumberValue, 1000); // 1 second delay for ID verification
@@ -143,6 +144,13 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
       emailCheck.reset();
     }
   }, [debouncedEmail]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Sync selectedCountryCode with form value
+  useEffect(() => {
+    if (currentCountryCodeValue && currentCountryCodeValue !== selectedCountryCode) {
+      setSelectedCountryCode(currentCountryCodeValue);
+    }
+  }, [currentCountryCodeValue, selectedCountryCode]);
 
   // =====================================================
   // ID VERIFICATION LOGIC
@@ -521,20 +529,19 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
           variant="primary"
           size="lg"
           fullWidth
-          rightIcon={verificationStatus === 'verified' ? <ArrowRightIcon className="w-5 h-5" /> : undefined}
           disabled={verificationStatus !== 'verified' || emailCheck.isDuplicate}
         >
-          {verificationStatus === 'idle' && '🔒 Enter ID Number to Continue'}
+          {verificationStatus === 'idle' && 'Enter ID Number'}
           {verificationStatus === 'verifying' && (
             <span className="flex items-center justify-center gap-2">
               <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
               Verifying...
             </span>
           )}
-          {verificationStatus === 'failed' && '⚠️ Verification Failed - Check ID'}
-          {verificationStatus === 'already_registered' && '⚠️ Already Registered'}
-          {verificationStatus === 'verified' && emailCheck.isDuplicate && '⚠️ Email Already Used'}
-          {verificationStatus === 'verified' && !emailCheck.isDuplicate && 'Continue to Employment Info →'}
+          {verificationStatus === 'failed' && 'Verification Failed'}
+          {verificationStatus === 'already_registered' && 'Already Registered'}
+          {verificationStatus === 'verified' && emailCheck.isDuplicate && 'Email Already Used'}
+          {verificationStatus === 'verified' && !emailCheck.isDuplicate && 'Continue'}
         </Button>
       </div>
     </form>

@@ -180,10 +180,9 @@ const EngagementStep: React.FC<Props> = ({
           size="lg"
           className="flex-1"
           isLoading={isSubmitting}
-          loadingText="Submitting Your Registration..."
-          rightIcon={!isSubmitting ? <CheckCircleIcon className="w-5 h-5" /> : undefined}
+          loadingText="Submitting..."
         >
-          {isSubmitting ? 'Submitting Your Registration...' : 'Complete Registration ✓'}
+          {isSubmitting ? 'Submitting...' : 'Submit'}
         </Button>
       </div>
     </form>
