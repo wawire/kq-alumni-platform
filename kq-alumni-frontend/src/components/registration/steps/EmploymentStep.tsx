@@ -213,9 +213,8 @@ export default function EmploymentStep({ data, onNext, onBack }: Props) {
           variant="primary"
           size="lg"
           className="flex-1"
-          rightIcon={<ArrowRightIcon className="w-5 h-5" />}
         >
-          Continue to Engagement & Consent →
+          Continue
         </Button>
       </div>
     </form>
