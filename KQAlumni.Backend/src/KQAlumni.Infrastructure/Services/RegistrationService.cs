@@ -525,7 +525,66 @@ public class RegistrationService : IRegistrationService
   }
 
   /// <summary>
-  /// Resend verification email to an approved registration
+  /// Resend verification email for an approved registration (Admin use - by ID)
+  /// </summary>
+  public async Task<bool> ResendVerificationEmailAsync(
+      Guid registrationId,
+      CancellationToken cancellationToken = default)
+  {
+    var registration = await _context.AlumniRegistrations
+        .FirstOrDefaultAsync(r => r.Id == registrationId, cancellationToken);
+
+    if (registration == null)
+    {
+      _logger.LogWarning("Registration {RegistrationId} not found for email resend", registrationId);
+      return false;
+    }
+
+    if (registration.RegistrationStatus != RegistrationStatus.Approved.ToString())
+    {
+      _logger.LogWarning("Cannot resend email for non-approved registration {RegistrationId}", registrationId);
+      return false;
+    }
+
+    // Use existing verification token or generate new one if missing
+    var token = registration.EmailVerificationToken;
+    if (string.IsNullOrEmpty(token))
+    {
+      token = Guid.NewGuid().ToString("N") + Guid.NewGuid().ToString("N");
+      registration.EmailVerificationToken = token;
+      registration.EmailVerificationTokenExpiry = DateTime.UtcNow.AddDays(30);
+      await _context.SaveChangesAsync(cancellationToken);
+    }
+
+    // Send approval email with verification link
+    var emailSent = await _emailService.SendApprovalEmailAsync(
+        registration.FullName,
+        registration.Email,
+        token,
+        cancellationToken);
+
+    if (emailSent)
+    {
+      registration.ApprovalEmailSent = true;
+      registration.ApprovalEmailSentAt = DateTime.UtcNow;
+      await _context.SaveChangesAsync(cancellationToken);
+
+      _logger.LogInformation(
+          "Verification email resent successfully for registration {RegistrationId}",
+          registrationId);
+    }
+    else
+    {
+      _logger.LogError(
+          "Failed to resend verification email for registration {RegistrationId}",
+          registrationId);
+    }
+
+    return emailSent;
+  }
+
+  /// <summary>
+  /// Resend verification email to an approved registration (User self-service - by email)
   /// </summary>
   public async Task<bool> ResendVerificationEmailAsync(
       string email,

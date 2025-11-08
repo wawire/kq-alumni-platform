@@ -112,7 +112,19 @@ public interface IRegistrationService
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Resend verification email to an approved registration
+    /// Resend verification email for an approved registration (Admin use - by ID)
+    /// Used by AdminRegistrationsController for admins to resend from dashboard
+    /// </summary>
+    /// <param name="registrationId">Registration ID</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>True if email sent successfully</returns>
+    Task<bool> ResendVerificationEmailAsync(
+        Guid registrationId,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Resend verification email to an approved registration (User self-service - by email)
+    /// Used by public RegistrationsController for users at /resend-verification page
     /// </summary>
     /// <param name="email">Email address of the registration</param>
     /// <param name="cancellationToken">Cancellation token</param>
