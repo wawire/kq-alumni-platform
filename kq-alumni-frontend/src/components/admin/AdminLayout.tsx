@@ -16,6 +16,7 @@ import {
   FileText,
   LayoutDashboard,
   LogOut,
+  Mail,
   Menu,
   Settings,
   User as UserIcon,
@@ -56,6 +57,7 @@ const navigation: NavItem[] = [
   { name: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard },
   { name: 'Registrations', href: '/admin/registrations', icon: Users },
   { name: 'Requiring Review', href: '/admin/registrations/review', icon: FileText },
+  { name: 'Email Templates', href: '/admin/email-templates', icon: Mail },
 ];
 
 // ============================================
