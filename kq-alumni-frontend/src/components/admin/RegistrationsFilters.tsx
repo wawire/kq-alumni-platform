@@ -105,7 +105,7 @@ export function RegistrationsFilters({
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
               <input
                 type="text"
-                placeholder="Search by name, email, staff number, or ID (automatic)..."
+                placeholder="Search by reg number, name, email, staff number, or ID (automatic)..."
                 value={localSearch}
                 onChange={(e) => setLocalSearch(e.target.value)}
                 className="w-full pl-10 pr-10 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-kq-red focus:border-transparent"

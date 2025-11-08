@@ -71,6 +71,7 @@ public class AdminRegistrationService : IAdminRegistrationService
         {
             var search = searchQuery.ToLower();
             query = query.Where(r =>
+                (r.RegistrationNumber != null && r.RegistrationNumber.ToLower().Contains(search)) ||
                 (r.FullName != null && r.FullName.ToLower().Contains(search)) ||
                 (r.Email != null && r.Email.ToLower().Contains(search)) ||
                 (r.StaffNumber != null && r.StaffNumber.ToLower().Contains(search)) ||

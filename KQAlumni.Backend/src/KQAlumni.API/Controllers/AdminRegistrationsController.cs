@@ -35,7 +35,7 @@ public class AdminRegistrationsController : ControllerBase
     /// </summary>
     /// <param name="status">Filter by status (Pending, Approved, Rejected, Active)</param>
     /// <param name="requiresManualReview">Filter by manual review requirement</param>
-    /// <param name="searchQuery">Search by name, email, staff number, or ID</param>
+    /// <param name="searchQuery">Search by registration number, name, email, staff number, or ID</param>
     /// <param name="dateFrom">Filter registrations created from this date</param>
     /// <param name="dateTo">Filter registrations created to this date</param>
     /// <param name="emailVerified">Filter by email verification status</param>
