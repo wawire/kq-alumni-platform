@@ -16,7 +16,6 @@ import EngagementStep from "./steps/EngagementStep";
 import PersonalInfoStep from "./steps/PersonalInfoStep";
 import ReviewStep from "./steps/ReviewStep";
 import SuccessScreen from "./SuccessScreen";
-import SocialProof from "./SocialProof";
 import AutoSaveIndicator from "@/components/ui/AutoSaveIndicator";
 
 export type FormStep = "personal" | "employment" | "engagement" | "success";
@@ -197,13 +196,6 @@ export default function RegistrationForm() {
                   description="Contribute through mentorship and volunteering"
                 />
               </div>
-
-              {/* Social Proof */}
-              {currentStep > 0 && (
-                <div className="mt-8 pt-8 border-t border-white/10">
-                  <SocialProof />
-                </div>
-              )}
             </div>
 
             <div className="absolute left-12 right-12 bottom-6">
