@@ -109,6 +109,9 @@ export interface PaginatedRegistrations {
   };
 }
 
+export type SortableColumn = 'fullName' | 'createdAt' | 'registrationStatus' | 'staffNumber' | 'email';
+export type SortOrder = 'asc' | 'desc';
+
 export interface RegistrationFilters {
   status?: RegistrationStatus;
   requiresManualReview?: boolean;
@@ -116,6 +119,8 @@ export interface RegistrationFilters {
   dateFrom?: string;
   dateTo?: string;
   emailVerified?: boolean;
+  sortBy?: SortableColumn;
+  sortOrder?: SortOrder;
   pageNumber?: number;
   pageSize?: number;
 }

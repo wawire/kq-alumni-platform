@@ -35,6 +35,12 @@ public class AdminRegistrationsController : ControllerBase
     /// </summary>
     /// <param name="status">Filter by status (Pending, Approved, Rejected, Active)</param>
     /// <param name="requiresManualReview">Filter by manual review requirement</param>
+    /// <param name="searchQuery">Search by name, email, staff number, or ID</param>
+    /// <param name="dateFrom">Filter registrations created from this date</param>
+    /// <param name="dateTo">Filter registrations created to this date</param>
+    /// <param name="emailVerified">Filter by email verification status</param>
+    /// <param name="sortBy">Sort by column (fullName, createdAt, registrationStatus, staffNumber, email)</param>
+    /// <param name="sortOrder">Sort order (asc, desc)</param>
     /// <param name="pageNumber">Page number (1-based)</param>
     /// <param name="pageSize">Page size (max 100)</param>
     /// <param name="cancellationToken">Cancellation token</param>
@@ -46,6 +52,12 @@ public class AdminRegistrationsController : ControllerBase
     public async Task<ActionResult> GetRegistrations(
         [FromQuery] string? status = null,
         [FromQuery] bool? requiresManualReview = null,
+        [FromQuery] string? searchQuery = null,
+        [FromQuery] string? dateFrom = null,
+        [FromQuery] string? dateTo = null,
+        [FromQuery] bool? emailVerified = null,
+        [FromQuery] string? sortBy = null,
+        [FromQuery] string? sortOrder = null,
         [FromQuery] int pageNumber = 1,
         [FromQuery] int pageSize = 50,
         CancellationToken cancellationToken = default)
@@ -56,9 +68,29 @@ public class AdminRegistrationsController : ControllerBase
             if (pageNumber < 1) pageNumber = 1;
             if (pageSize < 1 || pageSize > 100) pageSize = 50;
 
+            // Parse dates if provided
+            DateTime? parsedDateFrom = null;
+            DateTime? parsedDateTo = null;
+
+            if (!string.IsNullOrEmpty(dateFrom) && DateTime.TryParse(dateFrom, out var from))
+            {
+                parsedDateFrom = from;
+            }
+
+            if (!string.IsNullOrEmpty(dateTo) && DateTime.TryParse(dateTo, out var to))
+            {
+                parsedDateTo = to.AddDays(1).AddSeconds(-1); // Include full day
+            }
+
             var (registrations, totalCount) = await _adminRegistrationService.GetRegistrationsAsync(
                 status,
                 requiresManualReview,
+                searchQuery,
+                parsedDateFrom,
+                parsedDateTo,
+                emailVerified,
+                sortBy,
+                sortOrder,
                 pageNumber,
                 pageSize,
                 cancellationToken);

@@ -20,6 +20,12 @@ public interface IAdminRegistrationService
     /// </summary>
     /// <param name="status">Filter by status (optional)</param>
     /// <param name="requiresManualReview">Filter by manual review flag (optional)</param>
+    /// <param name="searchQuery">Search by name, email, staff number, or ID (optional)</param>
+    /// <param name="dateFrom">Filter registrations created from this date (optional)</param>
+    /// <param name="dateTo">Filter registrations created to this date (optional)</param>
+    /// <param name="emailVerified">Filter by email verification status (optional)</param>
+    /// <param name="sortBy">Sort by column (optional)</param>
+    /// <param name="sortOrder">Sort order - asc or desc (optional)</param>
     /// <param name="pageNumber">Page number (1-based)</param>
     /// <param name="pageSize">Page size</param>
     /// <param name="cancellationToken">Cancellation token</param>
@@ -27,6 +33,12 @@ public interface IAdminRegistrationService
     Task<(List<AlumniRegistration> Registrations, int TotalCount)> GetRegistrationsAsync(
         string? status = null,
         bool? requiresManualReview = null,
+        string? searchQuery = null,
+        DateTime? dateFrom = null,
+        DateTime? dateTo = null,
+        bool? emailVerified = null,
+        string? sortBy = null,
+        string? sortOrder = null,
         int pageNumber = 1,
         int pageSize = 50,
         CancellationToken cancellationToken = default);
