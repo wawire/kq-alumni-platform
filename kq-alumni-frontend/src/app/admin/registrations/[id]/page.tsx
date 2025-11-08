@@ -24,6 +24,7 @@ import { useRouter } from 'next/navigation';
 import { toast, Toaster } from 'sonner';
 
 import { AdminLayout } from '@/components/admin/AdminLayout';
+import { AuditLogTimeline } from '@/components/admin/AuditLogTimeline';
 import { Button } from '@/components/ui/button/Button';
 import { ConfirmationModal } from '@/components/ui/modal/ConfirmationModal';
 import {
@@ -424,27 +425,14 @@ export default function RegistrationDetailPage({ params }: Props) {
               </div>
             </div>
 
-            {/* Audit Log */}
-            {auditLogs && auditLogs.length > 0 && (
-              <div className="bg-white rounded-lg border border-gray-200 p-6">
-                <h3 className="text-lg font-semibold text-kq-dark mb-4">Activity History</h3>
-
-                <div className="space-y-3">
-                  {auditLogs.slice(0, 5).map((log) => (
-                    <div key={log.id} className="border-l-2 border-gray-200 pl-3 py-1">
-                      <p className="text-sm font-medium text-kq-dark">{log.action}</p>
-                      <p className="text-xs text-gray-500">
-                        {log.performedBy} •{' '}
-                        {new Date(log.timestamp).toLocaleDateString()}
-                      </p>
-                      {log.notes && (
-                        <p className="text-xs text-gray-600 mt-1">{log.notes}</p>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+            {/* Audit Log Timeline */}
+            <div className="bg-white rounded-lg border border-gray-200 p-6">
+              <h3 className="text-lg font-cabrito font-bold text-kq-dark mb-6 flex items-center gap-2">
+                <Clock className="w-5 h-5 text-kq-red" />
+                Activity Timeline
+              </h3>
+              <AuditLogTimeline logs={auditLogs || []} maxItems={10} />
+            </div>
           </div>
         </div>
 
