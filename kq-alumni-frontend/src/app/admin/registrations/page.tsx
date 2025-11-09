@@ -534,24 +534,24 @@ function RegistrationsPageContent() {
                             />
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="flex flex-col">
-                              <span className="text-sm font-bold text-kq-red">
+                            <Link href={`/admin/registrations/${registration.id}`} className="flex flex-col hover:opacity-80 transition-opacity">
+                              <span className="text-sm font-bold text-kq-red hover:underline">
                                 {registration.registrationNumber || 'N/A'}
                               </span>
                               <span className="text-xs text-gray-500">
                                 {registration.staffNumber || 'No Staff #'}
                               </span>
-                            </div>
+                            </Link>
                           </td>
                           <td className="px-6 py-4">
-                            <div className="flex flex-col">
-                              <span className="text-sm font-medium text-gray-900">
+                            <Link href={`/admin/registrations/${registration.id}`} className="flex flex-col hover:opacity-80 transition-opacity">
+                              <span className="text-sm font-medium text-gray-900 hover:underline">
                                 {registration.fullName}
                               </span>
                               <span className="text-xs text-gray-500">
                                 ID: {registration.idNumber || registration.passportNumber || 'N/A'}
                               </span>
-                            </div>
+                            </Link>
                           </td>
                           <td className="px-6 py-4">
                             <div className="flex flex-col">
@@ -689,14 +689,14 @@ function RegistrationsPageContent() {
                           onChange={(e) => handleSelectOne(registration.id, e.target.checked)}
                           className="w-4 h-4 text-kq-red border-gray-300 rounded focus:ring-kq-red mt-1"
                         />
-                        <div className="flex-1">
-                          <div className="text-sm font-bold text-kq-red">
+                        <Link href={`/admin/registrations/${registration.id}`} className="flex-1 hover:opacity-80 transition-opacity">
+                          <div className="text-sm font-bold text-kq-red hover:underline">
                             {registration.registrationNumber || 'N/A'}
                           </div>
                           <div className="text-xs text-gray-500">
                             {registration.staffNumber || 'No Staff #'}
                           </div>
-                        </div>
+                        </Link>
                       </div>
                       <StatusBadge
                         status={registration.registrationStatus}
@@ -706,12 +706,14 @@ function RegistrationsPageContent() {
 
                     {/* Alumni Details */}
                     <div className="border-t border-gray-100 pt-3">
-                      <div className="text-sm font-medium text-gray-900 mb-1">
-                        {registration.fullName}
-                      </div>
-                      <div className="text-xs text-gray-500">
-                        ID: {registration.idNumber || registration.passportNumber || 'N/A'}
-                      </div>
+                      <Link href={`/admin/registrations/${registration.id}`} className="block hover:opacity-80 transition-opacity">
+                        <div className="text-sm font-medium text-gray-900 mb-1 hover:underline">
+                          {registration.fullName}
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          ID: {registration.idNumber || registration.passportNumber || 'N/A'}
+                        </div>
+                      </Link>
                     </div>
 
                     {/* Contact Information */}
