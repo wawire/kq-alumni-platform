@@ -308,10 +308,15 @@ export function useApproveRegistration() {
         }),
       ]);
 
-      // Force immediate refetch of dashboard stats for real-time notification badge update
-      await queryClient.refetchQueries({
-        queryKey: adminQueryKeys.dashboard.stats(),
-      });
+      // Force immediate refetch for real-time updates
+      await Promise.all([
+        queryClient.refetchQueries({
+          queryKey: adminQueryKeys.dashboard.stats(),
+        }),
+        queryClient.refetchQueries({
+          queryKey: adminQueryKeys.registrations.all,
+        }),
+      ]);
     },
   });
 }
@@ -350,10 +355,15 @@ export function useRejectRegistration() {
         }),
       ]);
 
-      // Force immediate refetch of dashboard stats for real-time notification badge update
-      await queryClient.refetchQueries({
-        queryKey: adminQueryKeys.dashboard.stats(),
-      });
+      // Force immediate refetch for real-time updates
+      await Promise.all([
+        queryClient.refetchQueries({
+          queryKey: adminQueryKeys.dashboard.stats(),
+        }),
+        queryClient.refetchQueries({
+          queryKey: adminQueryKeys.registrations.all,
+        }),
+      ]);
     },
   });
 }
