@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { ArrowRightIcon, ExclamationCircleIcon, CheckCircleIcon, ClockIcon } from "@heroicons/react/24/solid";
+import { ClockIcon } from "@heroicons/react/24/solid";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { City, Country, ICity, ICountry } from "country-state-city";
 import { FormProvider, useForm } from "react-hook-form";
@@ -150,6 +150,16 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
     }
   }, [debouncedEmail]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Show toast when email duplicate is detected
+  useEffect(() => {
+    if (emailCheck.isDuplicate) {
+      toast.error('Email Already Registered', {
+        description: emailCheck.error || 'This email is already registered',
+        duration: 5000,
+      });
+    }
+  }, [emailCheck.isDuplicate, emailCheck.error]);
+
   // Sync selectedCountryCode with form value
   useEffect(() => {
     if (currentCountryCodeValue && currentCountryCodeValue !== selectedCountryCode) {
@@ -185,7 +195,10 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
 
       if (result.isAlreadyRegistered) {
         setVerificationStatus('already_registered');
-        setVerificationError(result.message || 'This ID/Passport is already registered');
+        toast.error('Already Registered', {
+          description: result.message || 'This ID/Passport is already registered',
+          duration: 5000,
+        });
         setErpData(null);
         return;
       }
@@ -389,12 +402,6 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
                 Verifying with our records...
               </p>
             )}
-            {!errors.idNumber && verificationStatus === 'verified' && erpData && (
-              <p className="mt-2 text-sm text-green-600 flex items-center gap-2">
-                <CheckCircleIcon className="w-4 h-4" />
-                ✓ ID verified! Staff Number: {erpData.staffNumber}
-              </p>
-            )}
             {!errors.idNumber && verificationStatus === 'failed' && !allowManualMode && (
               <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
                 <p className="text-sm text-yellow-800 mb-2">
@@ -413,31 +420,20 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
                 </button>
               </div>
             )}
-            {!errors.idNumber && verificationStatus === 'already_registered' && verificationError && (
-              <p className="mt-2 text-sm text-red-600 flex items-center gap-2">
-                <ExclamationCircleIcon className="w-4 h-4" />
-                {verificationError}
-              </p>
-            )}
           </div>
 
           {/* Full Name */}
           <div>
-            <div className="flex items-center gap-2">
-              <FormField
-                name="fullName"
-                label="Full Name"
-                type="text"
-                placeholder={allowManualMode ? "Enter your full name" : "As per company records"}
-                variant="underline"
-                disabled={!allowManualMode}
-                required
-                className={allowManualMode ? "" : "bg-gray-50"}
-              />
-              {verificationStatus === 'verified' && erpData?.fullName && (
-                <CheckCircleIcon className="w-5 h-5 text-green-600 flex-shrink-0 mt-7" />
-              )}
-            </div>
+            <FormField
+              name="fullName"
+              label="Full Name"
+              type="text"
+              placeholder={allowManualMode ? "Enter your full name" : "As per company records"}
+              variant="underline"
+              disabled={!allowManualMode}
+              required
+              className={allowManualMode ? "" : "bg-gray-50"}
+            />
             {errors.fullName && (
               <p className="mt-2 text-sm text-kq-red">
                 {errors.fullName.message}
@@ -450,20 +446,15 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           {/* Staff Number */}
           <div>
-            <div className="flex items-center gap-2">
-              <FormField
-                name="staffNumber"
-                label="Staff Number"
-                type="text"
-                placeholder={allowManualMode ? "e.g., 0012345 (if known)" : "e.g., 0012345"}
-                variant="underline"
-                disabled={!allowManualMode}
-                className={allowManualMode ? "" : "bg-gray-50"}
-              />
-              {verificationStatus === 'verified' && erpData?.staffNumber && (
-                <CheckCircleIcon className="w-5 h-5 text-green-600 flex-shrink-0 mt-7" />
-              )}
-            </div>
+            <FormField
+              name="staffNumber"
+              label="Staff Number"
+              type="text"
+              placeholder={allowManualMode ? "e.g., 0012345 (if known)" : "e.g., 0012345"}
+              variant="underline"
+              disabled={!allowManualMode}
+              className={allowManualMode ? "" : "bg-gray-50"}
+            />
           </div>
 
           {/* Email */}
@@ -479,11 +470,6 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
             {errors.email && (
               <p className="mt-2 text-sm text-kq-red">
                 {errors.email.message}
-              </p>
-            )}
-            {!errors.email && emailCheck.isDuplicate && (
-              <p className="mt-2 text-sm text-kq-red">
-                {emailCheck.error || "This email is already registered"}
               </p>
             )}
           </div>
