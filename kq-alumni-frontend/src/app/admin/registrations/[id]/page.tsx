@@ -345,54 +345,77 @@ export default function RegistrationDetailPage({ params }: Props) {
               </div>
             </div>
 
-            {/* ERP Validation Details */}
-            <div className="bg-white rounded-lg border border-gray-200 p-6">
-              <h3 className="text-lg font-semibold text-kq-dark mb-4 flex items-center gap-2">
-                <Briefcase className="w-5 h-5" />
-                ERP Validation Details
-              </h3>
+            {/* ERP Validation Details - Only show if validated */}
+            {registration.erpValidated && (
+              <div className="bg-white rounded-lg border border-gray-200 p-6">
+                <h3 className="text-lg font-semibold text-kq-dark mb-4 flex items-center gap-2">
+                  <Briefcase className="w-5 h-5" />
+                  ERP Validation Details
+                </h3>
 
-              <div className="space-y-3">
-                <div>
-                  <p className="text-sm text-gray-600">ERP Staff Name</p>
-                  <p className="font-medium text-kq-dark">{registration.erpStaffName || 'N/A'}</p>
-                </div>
-
-                <div>
-                  <p className="text-sm text-gray-600">Department</p>
-                  <p className="font-medium text-kq-dark">{registration.erpDepartment || 'N/A'}</p>
-                </div>
-
-                <div>
-                  <p className="text-sm text-gray-600">Exit Date</p>
-                  <p className="font-medium text-kq-dark">
-                    {registration.erpExitDate
-                      ? new Date(registration.erpExitDate).toLocaleDateString()
-                      : 'N/A'}
-                  </p>
-                </div>
-
-                <div>
-                  <p className="text-sm text-gray-600">Validation Status</p>
-                  <p className="font-medium text-kq-dark">
-                    {registration.erpValidated ? (
-                      <span className="text-green-600">✓ Validated</span>
-                    ) : (
-                      <span className="text-yellow-600">Pending Validation</span>
-                    )}
-                  </p>
-                </div>
-
-                {registration.erpValidatedAt && (
+                <div className="space-y-3">
                   <div>
-                    <p className="text-sm text-gray-600">Validated At</p>
+                    <p className="text-sm text-gray-600">ERP Staff Name</p>
+                    <p className="font-medium text-kq-dark">{registration.erpStaffName || 'N/A'}</p>
+                  </div>
+
+                  <div>
+                    <p className="text-sm text-gray-600">Department</p>
+                    <p className="font-medium text-kq-dark">{registration.erpDepartment || 'N/A'}</p>
+                  </div>
+
+                  <div>
+                    <p className="text-sm text-gray-600">Exit Date</p>
                     <p className="font-medium text-kq-dark">
-                      {new Date(registration.erpValidatedAt).toLocaleString()}
+                      {registration.erpExitDate
+                        ? new Date(registration.erpExitDate).toLocaleDateString()
+                        : 'N/A'}
                     </p>
                   </div>
-                )}
+
+                  <div>
+                    <p className="text-sm text-gray-600">Validation Status</p>
+                    <p className="font-medium text-kq-dark">
+                      <span className="text-green-600">✓ Validated</span>
+                    </p>
+                  </div>
+
+                  {registration.erpValidatedAt && (
+                    <div>
+                      <p className="text-sm text-gray-600">Validated At</p>
+                      <p className="font-medium text-kq-dark">
+                        {new Date(registration.erpValidatedAt).toLocaleString()}
+                      </p>
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
+            )}
+
+            {/* Manual Review Notice - Only show if NOT validated */}
+            {!registration.erpValidated && registration.requiresManualReview && (
+              <div className="bg-orange-50 border border-orange-200 rounded-lg p-6">
+                <div className="flex items-start gap-3">
+                  <AlertCircle className="w-5 h-5 text-orange-600 mt-0.5 flex-shrink-0" />
+                  <div className="flex-1">
+                    <h3 className="text-lg font-semibold text-orange-900 mb-2">
+                      Manual Review Required
+                    </h3>
+                    <p className="text-sm text-orange-800 mb-3">
+                      This registration was submitted without ERP validation. Please verify the alumnus details manually before approving.
+                    </p>
+                    <div className="text-xs text-orange-700 bg-orange-100 rounded p-2">
+                      <strong>Verification Steps:</strong>
+                      <ul className="list-disc list-inside mt-1 space-y-1">
+                        <li>Verify ID/Passport number matches company records</li>
+                        <li>Confirm employment history with HR database</li>
+                        <li>Check email domain matches known alumni patterns</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Location */}
             <div className="bg-white rounded-lg border border-gray-200 p-6">
