@@ -134,11 +134,11 @@ export function AuditLogTimeline({ logs, showAll = false, maxItems = 10 }: Audit
               </div>
 
               {/* Log Content */}
-              <div className={`flex-1 ${colors.bg} ${colors.border} border rounded-lg p-4 mb-2`}>
+              <div className={`flex-1 min-w-0 ${colors.bg} ${colors.border} border rounded-lg p-4 mb-2`}>
                 {/* Header */}
                 <div className="flex items-start justify-between mb-2">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1 flex-wrap">
                       <h4 className="font-bold text-kq-dark">
                         {formatActionName(log.action)}
                       </h4>
@@ -148,7 +148,7 @@ export function AuditLogTimeline({ logs, showAll = false, maxItems = 10 }: Audit
                         </span>
                       )}
                     </div>
-                    <div className="flex items-center gap-3 text-sm text-gray-600">
+                    <div className="flex items-center gap-3 text-sm text-gray-600 flex-wrap">
                       <div className="flex items-center gap-1">
                         <User className="w-4 h-4" />
                         <span className="font-medium">{log.performedBy}</span>
@@ -175,7 +175,7 @@ export function AuditLogTimeline({ logs, showAll = false, maxItems = 10 }: Audit
                 {/* Status Change */}
                 {(log.previousStatus || log.newStatus) && (
                   <div className="mb-3 p-3 bg-white bg-opacity-50 rounded border border-gray-200">
-                    <div className="flex items-center gap-2 text-sm">
+                    <div className="flex items-center gap-2 text-sm flex-wrap">
                       <span className="text-gray-600">Status changed:</span>
                       {log.previousStatus && (
                         <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded font-medium">
@@ -205,11 +205,11 @@ export function AuditLogTimeline({ logs, showAll = false, maxItems = 10 }: Audit
                   <div className="mb-3 p-3 bg-red-50 bg-opacity-50 rounded border border-red-200">
                     <div className="flex items-start gap-2">
                       <AlertCircle className="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0" />
-                      <div>
+                      <div className="flex-1 min-w-0">
                         <p className="text-xs font-medium text-red-900 uppercase tracking-wide mb-1">
                           Rejection Reason
                         </p>
-                        <p className="text-sm text-red-800">
+                        <p className="text-sm text-red-800 break-words">
                           {log.rejectionReason}
                         </p>
                       </div>
@@ -222,11 +222,11 @@ export function AuditLogTimeline({ logs, showAll = false, maxItems = 10 }: Audit
                   <div className="mb-2 p-3 bg-white bg-opacity-50 rounded border border-gray-200">
                     <div className="flex items-start gap-2">
                       <FileText className="w-4 h-4 text-gray-600 mt-0.5 flex-shrink-0" />
-                      <div>
+                      <div className="flex-1 min-w-0">
                         <p className="text-xs font-medium text-gray-600 uppercase tracking-wide mb-1">
                           Notes
                         </p>
-                        <p className="text-sm text-gray-800">
+                        <p className="text-sm text-gray-800 break-words">
                           {log.notes}
                         </p>
                       </div>
@@ -236,7 +236,7 @@ export function AuditLogTimeline({ logs, showAll = false, maxItems = 10 }: Audit
 
                 {/* Admin User Details */}
                 {log.adminUser && (
-                  <div className="text-xs text-gray-500 flex items-center gap-3 mt-2 pt-2 border-t border-gray-200">
+                  <div className="text-xs text-gray-500 flex items-center gap-3 mt-2 pt-2 border-t border-gray-200 flex-wrap">
                     <span>
                       <span className="font-medium">{log.adminUser.fullName}</span>
                       {' '}({log.adminUser.role})
