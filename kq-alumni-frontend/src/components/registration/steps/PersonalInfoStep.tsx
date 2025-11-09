@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { ArrowRightIcon, ExclamationCircleIcon, CheckCircleIcon, ClockIcon } from "@heroicons/react/24/solid";
+import { ClockIcon } from "@heroicons/react/24/solid";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { City, Country, ICity, ICountry } from "country-state-city";
 import { FormProvider, useForm } from "react-hook-form";
@@ -10,6 +10,7 @@ import PhoneInput, {
 } from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
 import { SingleValue } from "react-select";
+import { toast } from "sonner";
 import { z } from "zod";
 
 import { FormField, FormSelect } from "@/components/forms";
@@ -149,6 +150,16 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
     }
   }, [debouncedEmail]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Show toast when email duplicate is detected
+  useEffect(() => {
+    if (emailCheck.isDuplicate) {
+      toast.error('Email Already Registered', {
+        description: emailCheck.error || 'This email is already registered',
+        duration: 5000,
+      });
+    }
+  }, [emailCheck.isDuplicate, emailCheck.error]);
+
   // Sync selectedCountryCode with form value
   useEffect(() => {
     if (currentCountryCodeValue && currentCountryCodeValue !== selectedCountryCode) {
@@ -184,7 +195,10 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
 
       if (result.isAlreadyRegistered) {
         setVerificationStatus('already_registered');
-        setVerificationError(result.message || 'This ID/Passport is already registered');
+        toast.error('Already Registered', {
+          description: result.message || 'This ID/Passport is already registered',
+          duration: 5000,
+        });
         setErpData(null);
         return;
       }
@@ -209,12 +223,20 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
         setVerificationError("");
       } else {
         setVerificationStatus('failed');
-        setVerificationError(result.message || 'ID/Passport not found in our records');
+        // Show toast instead of inline error to reduce form clutter
+        toast.error('ID/Passport Not Found', {
+          description: result.message || 'ID/Passport not found in our records. Please verify and contact HR if this error persists.',
+          duration: 5000,
+        });
         setErpData(null);
       }
     } catch (error) {
       setVerificationStatus('failed');
-      setVerificationError('Unable to verify ID/Passport. This may be due to a system issue. You can continue with manual review.');
+      // Show toast for system errors
+      toast.error('Verification Error', {
+        description: 'Unable to verify ID/Passport. This may be due to a system issue. You can continue with manual review.',
+        duration: 5000,
+      });
       setErpData(null);
     }
   };
@@ -276,8 +298,15 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
     country: PhoneCountryData,
   ): void => {
     setPhoneValue(value);
-    setValue("mobileNumber", value, { shouldValidate: true });
-    setValue("mobileCountryCode", `+${country.dialCode}`, { shouldValidate: true });
+
+    // Remove country dial code from the phone number to avoid duplication
+    // PhoneInput returns the full number (e.g., "254712345678")
+    // We need to store just the local number (e.g., "712345678")
+    const dialCode = country.dialCode || "";
+    const localNumber = value.startsWith(dialCode) ? value.substring(dialCode.length) : value;
+
+    setValue("mobileNumber", localNumber, { shouldValidate: true });
+    setValue("mobileCountryCode", `+${dialCode}`, { shouldValidate: true });
 
     // Note: Current location is NOT updated here
     // You can live in Japan and have a Kenyan phone number
@@ -295,14 +324,31 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
       return;
     }
 
-    // Include ERP data in submission (if available) or flag for manual review
-    onNext({
-      ...formData,
-      staffNumber: erpData?.staffNumber || formData.staffNumber,
-      fullName: erpData?.fullName || formData.fullName,
-      requiresManualReview: allowManualMode, // Flag for backend to set RequiresManualReview
-      manualReviewReason: allowManualMode ? 'ERP verification unavailable - submitted via manual mode' : undefined,
-    });
+    // v2.2.0 OPTIMIZATION: Include ERP validation data to skip redundant backend verification
+    if (verificationStatus === 'verified' && erpData) {
+      // AUTO PATH: ERP verified during registration
+      onNext({
+        ...formData,
+        staffNumber: erpData.staffNumber || formData.staffNumber,
+        fullName: erpData.fullName || formData.fullName,
+        // Include ERP validation data (eliminates redundant backend ERP call)
+        erpValidated: true,
+        erpStaffName: erpData.fullName,
+        erpDepartment: erpData.department,
+        erpExitDate: erpData.exitDate,
+      });
+    } else if (allowManualMode) {
+      // MANUAL PATH: ERP verification failed/unavailable
+      onNext({
+        ...formData,
+        erpValidated: false,
+        requiresManualReview: true,
+        manualReviewReason: 'ERP verification unavailable - submitted via manual mode',
+      });
+    } else {
+      // Fallback (shouldn't reach here due to validation checks above)
+      setVerificationError('Unable to proceed. Please try again.');
+    }
   };
 
   // Check if form has any validation errors
@@ -356,65 +402,38 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
                 Verifying with our records...
               </p>
             )}
-            {!errors.idNumber && verificationStatus === 'verified' && erpData && (
-              <p className="mt-2 text-sm text-green-600 flex items-center gap-2">
-                <CheckCircleIcon className="w-4 h-4" />
-                ✓ ID verified! Staff Number: {erpData.staffNumber}
-              </p>
-            )}
-            {!errors.idNumber && (verificationStatus === 'failed' || verificationStatus === 'already_registered') && verificationError && (
-              <div className="mt-2">
-                <p className="text-sm text-red-600 flex items-center gap-2">
-                  <ExclamationCircleIcon className="w-4 h-4" />
-                  {verificationError}
+            {!errors.idNumber && verificationStatus === 'failed' && !allowManualMode && (
+              <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <p className="text-sm text-yellow-800 mb-2">
+                  <strong>Can't verify automatically?</strong> You can continue with manual review.
+                  Our HR team will verify your information manually.
                 </p>
-                {verificationStatus === 'failed' && !allowManualMode && (
-                  <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                    <p className="text-sm text-yellow-800 mb-2">
-                      <strong>Can't verify automatically?</strong> You can continue with manual review.
-                      Our HR team will verify your information manually.
-                    </p>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setAllowManualMode(true);
-                        setVerificationError('');
-                      }}
-                      className="text-sm font-medium text-yellow-700 hover:text-yellow-900 underline"
-                    >
-                      Continue with Manual Review
-                    </button>
-                  </div>
-                )}
-                {allowManualMode && (
-                  <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                    <p className="text-sm text-blue-800">
-                      <CheckCircleIcon className="w-4 h-4 inline mr-1" />
-                      Manual review mode enabled. Please fill in your details below and our HR team will verify them.
-                    </p>
-                  </div>
-                )}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAllowManualMode(true);
+                    setVerificationError('');
+                  }}
+                  className="text-sm font-medium text-yellow-700 hover:text-yellow-900 underline"
+                >
+                  Continue with Manual Review
+                </button>
               </div>
             )}
           </div>
 
           {/* Full Name */}
           <div>
-            <div className="flex items-center gap-2">
-              <FormField
-                name="fullName"
-                label="Full Name"
-                type="text"
-                placeholder={allowManualMode ? "Enter your full name" : "As per company records"}
-                variant="underline"
-                disabled={!allowManualMode}
-                required
-                className={allowManualMode ? "" : "bg-gray-50"}
-              />
-              {verificationStatus === 'verified' && erpData?.fullName && (
-                <CheckCircleIcon className="w-5 h-5 text-green-600 flex-shrink-0 mt-7" />
-              )}
-            </div>
+            <FormField
+              name="fullName"
+              label="Full Name"
+              type="text"
+              placeholder={allowManualMode ? "Enter your full name" : "As per company records"}
+              variant="underline"
+              disabled={!allowManualMode}
+              required
+              className={allowManualMode ? "" : "bg-gray-50"}
+            />
             {errors.fullName && (
               <p className="mt-2 text-sm text-kq-red">
                 {errors.fullName.message}
@@ -427,25 +446,15 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           {/* Staff Number */}
           <div>
-            <div className="flex items-center gap-2">
-              <FormField
-                name="staffNumber"
-                label="Staff Number"
-                type="text"
-                placeholder={allowManualMode ? "e.g., 0012345 (if known)" : "e.g., 0012345"}
-                variant="underline"
-                disabled={!allowManualMode}
-                className={allowManualMode ? "" : "bg-gray-50"}
-              />
-              {verificationStatus === 'verified' && erpData?.staffNumber && (
-                <CheckCircleIcon className="w-5 h-5 text-green-600 flex-shrink-0 mt-7" />
-              )}
-            </div>
-            {allowManualMode && (
-              <p className="mt-1 text-xs text-gray-500">
-                Optional - Leave blank if you don't know your staff number
-              </p>
-            )}
+            <FormField
+              name="staffNumber"
+              label="Staff Number"
+              type="text"
+              placeholder={allowManualMode ? "e.g., 0012345 (if known)" : "e.g., 0012345"}
+              variant="underline"
+              disabled={!allowManualMode}
+              className={allowManualMode ? "" : "bg-gray-50"}
+            />
           </div>
 
           {/* Email */}
@@ -461,11 +470,6 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
             {errors.email && (
               <p className="mt-2 text-sm text-kq-red">
                 {errors.email.message}
-              </p>
-            )}
-            {!errors.email && emailCheck.isDuplicate && (
-              <p className="mt-2 text-sm text-kq-red">
-                {emailCheck.error || "This email is already registered"}
               </p>
             )}
           </div>

@@ -20,6 +20,7 @@ import {
   Mail,
   Check,
   X,
+  MoreVertical,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
@@ -161,6 +162,7 @@ function RegistrationsPageContent() {
   }>({ type: null, registrationId: null, registrationName: null });
   const [rejectReason, setRejectReason] = useState('');
   const [previewRegistration, setPreviewRegistration] = useState<AdminRegistration | null>(null);
+  const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
 
   const { data, isLoading, error } = useAdminRegistrations(filters);
   const approveMutation = useApproveRegistration();
@@ -354,13 +356,27 @@ function RegistrationsPageContent() {
   const handleQuickApprove = async () => {
     if (!actionModal.registrationId) return;
 
+    toast.loading('Approving registration...', { id: 'quick-approve-toast' });
+
     try {
       await approveMutation.mutateAsync({
         id: actionModal.registrationId,
         data: { notes: 'Quick approved from table' },
       });
+
+      toast.success('Registration approved successfully!', {
+        id: 'quick-approve-toast',
+        description: 'Approval email has been sent to the applicant.',
+        duration: 4000,
+      });
+
       setActionModal({ type: null, registrationId: null, registrationName: null });
     } catch (error) {
+      toast.error('Failed to approve registration', {
+        id: 'quick-approve-toast',
+        description: (error as Error)?.message || 'Please try again.',
+        duration: 5000,
+      });
       console.error('Failed to approve registration:', error);
     }
   };
@@ -368,14 +384,28 @@ function RegistrationsPageContent() {
   const handleQuickReject = async () => {
     if (!actionModal.registrationId || !rejectReason.trim()) return;
 
+    toast.loading('Rejecting registration...', { id: 'quick-reject-toast' });
+
     try {
       await rejectMutation.mutateAsync({
         id: actionModal.registrationId,
         data: { reason: rejectReason },
       });
+
+      toast.success('Registration rejected', {
+        id: 'quick-reject-toast',
+        description: 'Rejection notification has been sent to the applicant.',
+        duration: 4000,
+      });
+
       setActionModal({ type: null, registrationId: null, registrationName: null });
       setRejectReason('');
     } catch (error) {
+      toast.error('Failed to reject registration', {
+        id: 'quick-reject-toast',
+        description: (error as Error)?.message || 'Please try again.',
+        duration: 5000,
+      });
       console.error('Failed to reject registration:', error);
     }
   };
@@ -532,24 +562,24 @@ function RegistrationsPageContent() {
                             />
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="flex flex-col">
-                              <span className="text-sm font-bold text-kq-red">
+                            <Link href={`/admin/registrations/${registration.id}`} className="flex flex-col hover:opacity-80 transition-opacity">
+                              <span className="text-sm font-bold text-kq-red hover:underline">
                                 {registration.registrationNumber || 'N/A'}
                               </span>
                               <span className="text-xs text-gray-500">
                                 {registration.staffNumber || 'No Staff #'}
                               </span>
-                            </div>
+                            </Link>
                           </td>
                           <td className="px-6 py-4">
-                            <div className="flex flex-col">
-                              <span className="text-sm font-medium text-gray-900">
+                            <Link href={`/admin/registrations/${registration.id}`} className="flex flex-col hover:opacity-80 transition-opacity">
+                              <span className="text-sm font-medium text-gray-900 hover:underline">
                                 {registration.fullName}
                               </span>
                               <span className="text-xs text-gray-500">
                                 ID: {registration.idNumber || registration.passportNumber || 'N/A'}
                               </span>
-                            </div>
+                            </Link>
                           </td>
                           <td className="px-6 py-4">
                             <div className="flex flex-col">
@@ -580,49 +610,74 @@ function RegistrationsPageContent() {
                             </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-right">
-                            <div className="flex items-center justify-end gap-2">
-                              {registration.registrationStatus === 'Pending' && (
-                                <>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() =>
-                                      setActionModal({
-                                        type: 'approve',
-                                        registrationId: registration.id,
-                                        registrationName: registration.fullName,
-                                      })
-                                    }
-                                    className="text-green-600 hover:text-green-700 hover:bg-green-50"
-                                    leftIcon={<Check className="w-4 h-4" />}
-                                  >
-                                    Approve
-                                  </Button>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() =>
-                                      setActionModal({
-                                        type: 'reject',
-                                        registrationId: registration.id,
-                                        registrationName: registration.fullName,
-                                      })
-                                    }
-                                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                                    leftIcon={<X className="w-4 h-4" />}
-                                  >
-                                    Reject
-                                  </Button>
-                                </>
-                              )}
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => setPreviewRegistration(registration)}
-                                leftIcon={<Eye className="w-4 h-4" />}
-                              >
-                                Quick View
-                              </Button>
+                            <div className="flex items-center justify-end">
+                              <div className="relative">
+                                <button
+                                  onClick={() => setOpenDropdownId(openDropdownId === registration.id ? null : registration.id)}
+                                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                                  aria-label="Actions menu"
+                                >
+                                  <MoreVertical className="w-5 h-5 text-gray-600" />
+                                </button>
+
+                                {openDropdownId === registration.id && (
+                                  <>
+                                    {/* Backdrop to close dropdown when clicking outside */}
+                                    <div
+                                      className="fixed inset-0 z-10"
+                                      onClick={() => setOpenDropdownId(null)}
+                                    />
+
+                                    {/* Dropdown Menu */}
+                                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-20">
+                                      <button
+                                        onClick={() => {
+                                          setPreviewRegistration(registration);
+                                          setOpenDropdownId(null);
+                                        }}
+                                        className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                                      >
+                                        <Eye className="w-4 h-4" />
+                                        Quick View
+                                      </button>
+
+                                      {registration.registrationStatus === 'Pending' && (
+                                        <>
+                                          <button
+                                            onClick={() => {
+                                              setActionModal({
+                                                type: 'approve',
+                                                registrationId: registration.id,
+                                                registrationName: registration.fullName,
+                                              });
+                                              setOpenDropdownId(null);
+                                            }}
+                                            className="w-full px-4 py-2 text-left text-sm text-green-600 hover:bg-green-50 flex items-center gap-2"
+                                          >
+                                            <Check className="w-4 h-4" />
+                                            Approve
+                                          </button>
+
+                                          <button
+                                            onClick={() => {
+                                              setActionModal({
+                                                type: 'reject',
+                                                registrationId: registration.id,
+                                                registrationName: registration.fullName,
+                                              });
+                                              setOpenDropdownId(null);
+                                            }}
+                                            className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
+                                          >
+                                            <X className="w-4 h-4" />
+                                            Reject
+                                          </button>
+                                        </>
+                                      )}
+                                    </div>
+                                  </>
+                                )}
+                              </div>
                             </div>
                           </td>
                         </tr>
@@ -662,14 +717,14 @@ function RegistrationsPageContent() {
                           onChange={(e) => handleSelectOne(registration.id, e.target.checked)}
                           className="w-4 h-4 text-kq-red border-gray-300 rounded focus:ring-kq-red mt-1"
                         />
-                        <div className="flex-1">
-                          <div className="text-sm font-bold text-kq-red">
+                        <Link href={`/admin/registrations/${registration.id}`} className="flex-1 hover:opacity-80 transition-opacity">
+                          <div className="text-sm font-bold text-kq-red hover:underline">
                             {registration.registrationNumber || 'N/A'}
                           </div>
                           <div className="text-xs text-gray-500">
                             {registration.staffNumber || 'No Staff #'}
                           </div>
-                        </div>
+                        </Link>
                       </div>
                       <StatusBadge
                         status={registration.registrationStatus}
@@ -679,12 +734,14 @@ function RegistrationsPageContent() {
 
                     {/* Alumni Details */}
                     <div className="border-t border-gray-100 pt-3">
-                      <div className="text-sm font-medium text-gray-900 mb-1">
-                        {registration.fullName}
-                      </div>
-                      <div className="text-xs text-gray-500">
-                        ID: {registration.idNumber || registration.passportNumber || 'N/A'}
-                      </div>
+                      <Link href={`/admin/registrations/${registration.id}`} className="block hover:opacity-80 transition-opacity">
+                        <div className="text-sm font-medium text-gray-900 mb-1 hover:underline">
+                          {registration.fullName}
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          ID: {registration.idNumber || registration.passportNumber || 'N/A'}
+                        </div>
+                      </Link>
                     </div>
 
                     {/* Contact Information */}
@@ -713,50 +770,74 @@ function RegistrationsPageContent() {
                     </div>
 
                     {/* Actions */}
-                    <div className="flex flex-col gap-2 pt-3 border-t border-gray-100">
-                      {registration.registrationStatus === 'Pending' && (
-                        <div className="flex gap-2">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() =>
-                              setActionModal({
-                                type: 'approve',
-                                registrationId: registration.id,
-                                registrationName: registration.fullName,
-                              })
-                            }
-                            className="flex-1 text-green-600 hover:text-green-700 hover:bg-green-50"
-                            leftIcon={<Check className="w-4 h-4" />}
-                          >
-                            Approve
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() =>
-                              setActionModal({
-                                type: 'reject',
-                                registrationId: registration.id,
-                                registrationName: registration.fullName,
-                              })
-                            }
-                            className="flex-1 text-red-600 hover:text-red-700 hover:bg-red-50"
-                            leftIcon={<X className="w-4 h-4" />}
-                          >
-                            Reject
-                          </Button>
-                        </div>
-                      )}
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setPreviewRegistration(registration)}
-                        leftIcon={<Eye className="w-4 h-4" />}
-                        className="w-full"
-                      >
-                        Quick View
-                      </Button>
+                    <div className="flex justify-end pt-3 border-t border-gray-100">
+                      <div className="relative">
+                        <button
+                          onClick={() => setOpenDropdownId(openDropdownId === registration.id ? null : registration.id)}
+                          className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                          aria-label="Actions menu"
+                        >
+                          <MoreVertical className="w-5 h-5 text-gray-600" />
+                        </button>
+
+                        {openDropdownId === registration.id && (
+                          <>
+                            {/* Backdrop to close dropdown when clicking outside */}
+                            <div
+                              className="fixed inset-0 z-10"
+                              onClick={() => setOpenDropdownId(null)}
+                            />
+
+                            {/* Dropdown Menu */}
+                            <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-20">
+                              <button
+                                onClick={() => {
+                                  setPreviewRegistration(registration);
+                                  setOpenDropdownId(null);
+                                }}
+                                className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                              >
+                                <Eye className="w-4 h-4" />
+                                Quick View
+                              </button>
+
+                              {registration.registrationStatus === 'Pending' && (
+                                <>
+                                  <button
+                                    onClick={() => {
+                                      setActionModal({
+                                        type: 'approve',
+                                        registrationId: registration.id,
+                                        registrationName: registration.fullName,
+                                      });
+                                      setOpenDropdownId(null);
+                                    }}
+                                    className="w-full px-4 py-2 text-left text-sm text-green-600 hover:bg-green-50 flex items-center gap-2"
+                                  >
+                                    <Check className="w-4 h-4" />
+                                    Approve
+                                  </button>
+
+                                  <button
+                                    onClick={() => {
+                                      setActionModal({
+                                        type: 'reject',
+                                        registrationId: registration.id,
+                                        registrationName: registration.fullName,
+                                      });
+                                      setOpenDropdownId(null);
+                                    }}
+                                    className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
+                                  >
+                                    <X className="w-4 h-4" />
+                                    Reject
+                                  </button>
+                                </>
+                              )}
+                            </div>
+                          </>
+                        )}
+                      </div>
                     </div>
                   </div>
                 ))

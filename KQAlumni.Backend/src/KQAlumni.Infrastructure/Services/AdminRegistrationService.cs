@@ -163,8 +163,8 @@ public class AdminRegistrationService : IAdminRegistrationService
                     ? query.OrderByDescending(r => r.RegistrationStatus)
                     : query.OrderBy(r => r.RegistrationStatus),
                 "staffnumber" => isDescending
-                    ? query.OrderByDescending(r => r.StaffNumber)
-                    : query.OrderBy(r => r.StaffNumber),
+                    ? query.OrderByDescending(r => r.StaffNumber ?? "")
+                    : query.OrderBy(r => r.StaffNumber ?? ""),
                 "email" => isDescending
                     ? query.OrderByDescending(r => r.Email)
                     : query.OrderBy(r => r.Email),
@@ -222,6 +222,7 @@ public class AdminRegistrationService : IAdminRegistrationService
         registration.ReviewedBy = adminUsername;
         registration.ReviewedAt = DateTime.UtcNow;
         registration.ReviewNotes = notes;
+        registration.RequiresManualReview = false; // Clear manual review flag since it's now reviewed
         registration.UpdatedAt = DateTime.UtcNow;
         registration.UpdatedBy = adminUsername;
 
@@ -319,6 +320,7 @@ public class AdminRegistrationService : IAdminRegistrationService
         registration.ReviewedBy = adminUsername;
         registration.ReviewedAt = DateTime.UtcNow;
         registration.ReviewNotes = notes;
+        registration.RequiresManualReview = false; // Clear manual review flag since it's now reviewed
         registration.UpdatedAt = DateTime.UtcNow;
         registration.UpdatedBy = adminUsername;
 

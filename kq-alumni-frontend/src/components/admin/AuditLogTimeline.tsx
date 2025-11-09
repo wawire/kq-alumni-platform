@@ -7,16 +7,10 @@
  */
 
 import {
-  CheckCircle2,
-  XCircle,
-  Edit,
-  Trash2,
-  RefreshCw,
   User,
   Clock,
   AlertCircle,
   FileText,
-  Shield,
 } from 'lucide-react';
 import type { AuditLog } from '@/types/admin';
 
@@ -42,59 +36,30 @@ export function AuditLogTimeline({ logs, showAll = false, maxItems = 10 }: Audit
   const displayLogs = showAll ? logs : logs.slice(0, maxItems);
   const hasMore = !showAll && logs.length > maxItems;
 
-  const getActionIcon = (action: string) => {
-    const actionLower = action.toLowerCase();
-    if (actionLower.includes('approv')) {
-      return <CheckCircle2 className="w-5 h-5" />;
-    }
-    if (actionLower.includes('reject')) {
-      return <XCircle className="w-5 h-5" />;
-    }
-    if (actionLower.includes('update') || actionLower.includes('override')) {
-      return <RefreshCw className="w-5 h-5" />;
-    }
-    if (actionLower.includes('delet')) {
-      return <Trash2 className="w-5 h-5" />;
-    }
-    return <Edit className="w-5 h-5" />;
-  };
-
   const getActionColor = (action: string, isAutomated: boolean) => {
     const actionLower = action.toLowerCase();
 
     if (actionLower.includes('approv')) {
       return {
-        bg: 'bg-green-50',
-        border: 'border-green-200',
-        icon: 'text-green-600',
-        dot: 'bg-green-500',
-        line: 'border-green-200',
+        bg: 'bg-white',
+        leftBorder: 'border-l-4 border-l-green-500',
       };
     }
     if (actionLower.includes('reject')) {
       return {
-        bg: 'bg-red-50',
-        border: 'border-red-200',
-        icon: 'text-red-600',
-        dot: 'bg-red-500',
-        line: 'border-red-200',
+        bg: 'bg-white',
+        leftBorder: 'border-l-4 border-l-red-500',
       };
     }
     if (isAutomated) {
       return {
-        bg: 'bg-blue-50',
-        border: 'border-blue-200',
-        icon: 'text-blue-600',
-        dot: 'bg-blue-500',
-        line: 'border-blue-200',
+        bg: 'bg-white',
+        leftBorder: 'border-l-4 border-l-blue-500',
       };
     }
     return {
-      bg: 'bg-gray-50',
-      border: 'border-gray-200',
-      icon: 'text-gray-600',
-      dot: 'bg-gray-500',
-      line: 'border-gray-200',
+      bg: 'bg-white',
+      leftBorder: 'border-l-4 border-l-gray-300',
     };
   };
 
@@ -104,7 +69,7 @@ export function AuditLogTimeline({ logs, showAll = false, maxItems = 10 }: Audit
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       {displayLogs.map((log, index) => {
         const colors = getActionColor(log.action, log.isAutomated);
         const isLastItem = index === displayLogs.length - 1;
@@ -114,31 +79,19 @@ export function AuditLogTimeline({ logs, showAll = false, maxItems = 10 }: Audit
             {/* Timeline Line */}
             {!isLastItem && (
               <div
-                className={`absolute left-5 top-12 w-0.5 h-full ${colors.line} border-l-2 border-dashed`}
-                style={{ zIndex: 0 }}
+                className="absolute left-0 top-0 bottom-0 w-0.5 bg-gray-200"
+                style={{ marginLeft: '-12px' }}
               />
             )}
 
             {/* Log Entry */}
-            <div className="relative flex gap-4">
-              {/* Timeline Dot */}
-              <div className="relative flex-shrink-0" style={{ zIndex: 1 }}>
-                <div className={`w-10 h-10 rounded-full ${colors.bg} ${colors.border} border-2 flex items-center justify-center ${colors.icon}`}>
-                  {getActionIcon(log.action)}
-                </div>
-                {log.isAutomated && (
-                  <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center border-2 border-white">
-                    <Shield className="w-3 h-3 text-white" />
-                  </div>
-                )}
-              </div>
-
+            <div className="relative">
               {/* Log Content */}
-              <div className={`flex-1 ${colors.bg} ${colors.border} border rounded-lg p-4 mb-2`}>
+              <div className={`flex-1 min-w-0 ${colors.bg} ${colors.leftBorder} border border-gray-200 rounded-lg p-4 shadow-sm`}>
                 {/* Header */}
                 <div className="flex items-start justify-between mb-2">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1 flex-wrap">
                       <h4 className="font-bold text-kq-dark">
                         {formatActionName(log.action)}
                       </h4>
@@ -148,7 +101,7 @@ export function AuditLogTimeline({ logs, showAll = false, maxItems = 10 }: Audit
                         </span>
                       )}
                     </div>
-                    <div className="flex items-center gap-3 text-sm text-gray-600">
+                    <div className="flex items-center gap-3 text-sm text-gray-600 flex-wrap">
                       <div className="flex items-center gap-1">
                         <User className="w-4 h-4" />
                         <span className="font-medium">{log.performedBy}</span>
@@ -174,11 +127,11 @@ export function AuditLogTimeline({ logs, showAll = false, maxItems = 10 }: Audit
 
                 {/* Status Change */}
                 {(log.previousStatus || log.newStatus) && (
-                  <div className="mb-3 p-3 bg-white bg-opacity-50 rounded border border-gray-200">
-                    <div className="flex items-center gap-2 text-sm">
-                      <span className="text-gray-600">Status changed:</span>
+                  <div className="mb-3 p-3 bg-gray-50 rounded-md border border-gray-100">
+                    <div className="flex items-center gap-2 text-sm flex-wrap">
+                      <span className="text-gray-600">Status:</span>
                       {log.previousStatus && (
-                        <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded font-medium">
+                        <span className="px-2 py-1 bg-white text-gray-700 rounded font-medium border border-gray-200">
                           {log.previousStatus}
                         </span>
                       )}
@@ -188,10 +141,10 @@ export function AuditLogTimeline({ logs, showAll = false, maxItems = 10 }: Audit
                       {log.newStatus && (
                         <span className={`px-2 py-1 rounded font-medium ${
                           log.newStatus === 'Approved'
-                            ? 'bg-green-100 text-green-700'
+                            ? 'bg-green-100 text-green-800 border border-green-200'
                             : log.newStatus === 'Rejected'
-                            ? 'bg-red-100 text-red-700'
-                            : 'bg-gray-100 text-gray-700'
+                            ? 'bg-red-100 text-red-800 border border-red-200'
+                            : 'bg-white text-gray-700 border border-gray-200'
                         }`}>
                           {log.newStatus}
                         </span>
@@ -202,14 +155,14 @@ export function AuditLogTimeline({ logs, showAll = false, maxItems = 10 }: Audit
 
                 {/* Rejection Reason */}
                 {log.rejectionReason && (
-                  <div className="mb-3 p-3 bg-red-50 bg-opacity-50 rounded border border-red-200">
+                  <div className="mb-3 p-3 bg-red-50 rounded-md border border-red-200">
                     <div className="flex items-start gap-2">
                       <AlertCircle className="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0" />
-                      <div>
+                      <div className="flex-1 min-w-0">
                         <p className="text-xs font-medium text-red-900 uppercase tracking-wide mb-1">
                           Rejection Reason
                         </p>
-                        <p className="text-sm text-red-800">
+                        <p className="text-sm text-red-800 break-words">
                           {log.rejectionReason}
                         </p>
                       </div>
@@ -219,14 +172,14 @@ export function AuditLogTimeline({ logs, showAll = false, maxItems = 10 }: Audit
 
                 {/* Notes */}
                 {log.notes && (
-                  <div className="mb-2 p-3 bg-white bg-opacity-50 rounded border border-gray-200">
+                  <div className="mb-2 p-3 bg-gray-50 rounded-md border border-gray-100">
                     <div className="flex items-start gap-2">
                       <FileText className="w-4 h-4 text-gray-600 mt-0.5 flex-shrink-0" />
-                      <div>
+                      <div className="flex-1 min-w-0">
                         <p className="text-xs font-medium text-gray-600 uppercase tracking-wide mb-1">
                           Notes
                         </p>
-                        <p className="text-sm text-gray-800">
+                        <p className="text-sm text-gray-800 break-words">
                           {log.notes}
                         </p>
                       </div>
@@ -236,7 +189,7 @@ export function AuditLogTimeline({ logs, showAll = false, maxItems = 10 }: Audit
 
                 {/* Admin User Details */}
                 {log.adminUser && (
-                  <div className="text-xs text-gray-500 flex items-center gap-3 mt-2 pt-2 border-t border-gray-200">
+                  <div className="text-xs text-gray-500 flex items-center gap-3 mt-2 pt-2 border-t border-gray-200 flex-wrap">
                     <span>
                       <span className="font-medium">{log.adminUser.fullName}</span>
                       {' '}({log.adminUser.role})

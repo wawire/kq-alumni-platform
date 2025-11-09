@@ -345,7 +345,8 @@ namespace KQAlumni.Infrastructure.Data.Migrations
                         .HasDatabaseName("IX_AlumniRegistrations_ErpValidated");
 
                     b.HasIndex("IdNumber")
-                        .HasDatabaseName("IX_AlumniRegistrations_IdNumber");
+                        .IsUnique()
+                        .HasDatabaseName("UQ_AlumniRegistrations_IdNumber");
 
                     b.HasIndex("LinkedInProfile")
                         .IsUnique()

@@ -10,7 +10,7 @@ namespace KQAlumni.API.Controllers;
 /// </summary>
 [ApiController]
 [Route("api/v1/[controller]")]
-[Authorize(Policy = "SuperAdmin")] // Only super admins can manage templates
+[Authorize] // All authenticated admin users can view templates (SuperAdmin can edit)
 public class EmailTemplatesController : ControllerBase
 {
     private readonly IEmailTemplateService _templateService;
@@ -115,6 +115,7 @@ public class EmailTemplatesController : ControllerBase
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Created template</returns>
     [HttpPost]
+    [Authorize(Policy = "SuperAdmin")] // Only SuperAdmin can create templates
     [ProducesResponseType(typeof(EmailTemplate), 201)]
     [ProducesResponseType(400)]
     public async Task<ActionResult<EmailTemplate>> CreateTemplate(
@@ -164,6 +165,7 @@ public class EmailTemplatesController : ControllerBase
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Updated template</returns>
     [HttpPut("{id}")]
+    [Authorize(Policy = "SuperAdmin")] // Only SuperAdmin can update templates
     [ProducesResponseType(typeof(EmailTemplate), 200)]
     [ProducesResponseType(400)]
     [ProducesResponseType(404)]
@@ -211,6 +213,7 @@ public class EmailTemplatesController : ControllerBase
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Success response</returns>
     [HttpDelete("{id}")]
+    [Authorize(Policy = "SuperAdmin")] // Only SuperAdmin can delete templates
     [ProducesResponseType(200)]
     [ProducesResponseType(400)]
     [ProducesResponseType(404)]

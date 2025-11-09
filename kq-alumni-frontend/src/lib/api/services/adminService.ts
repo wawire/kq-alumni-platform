@@ -237,7 +237,7 @@ export function useAdminRegistrations(filters?: RegistrationFilters) {
       );
       return response.data;
     },
-    staleTime: 30 * 1000, // 30 seconds
+    staleTime: 0, // Always refetch when invalidated (for real-time updates after approve/reject)
   });
 }
 
@@ -253,7 +253,7 @@ export function useRequiringReviewRegistrations() {
       );
       return response.data.data;
     },
-    staleTime: 30 * 1000, // 30 seconds
+    staleTime: 0, // Always refetch when invalidated (for real-time updates)
   });
 }
 
@@ -294,17 +294,29 @@ export function useApproveRegistration() {
       );
       return response.data;
     },
-    onSuccess: (_, variables) => {
+    onSuccess: async (_, variables) => {
       // Invalidate queries to refresh data
-      queryClient.invalidateQueries({
-        queryKey: adminQueryKeys.registrations.all,
-      });
-      queryClient.invalidateQueries({
-        queryKey: adminQueryKeys.dashboard.stats(),
-      });
-      queryClient.invalidateQueries({
-        queryKey: adminQueryKeys.registrations.detail(variables.id),
-      });
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: adminQueryKeys.registrations.all,
+        }),
+        queryClient.invalidateQueries({
+          queryKey: adminQueryKeys.dashboard.stats(),
+        }),
+        queryClient.invalidateQueries({
+          queryKey: adminQueryKeys.registrations.detail(variables.id),
+        }),
+      ]);
+
+      // Force immediate refetch for real-time updates
+      await Promise.all([
+        queryClient.refetchQueries({
+          queryKey: adminQueryKeys.dashboard.stats(),
+        }),
+        queryClient.refetchQueries({
+          queryKey: adminQueryKeys.registrations.all,
+        }),
+      ]);
     },
   });
 }
@@ -329,17 +341,29 @@ export function useRejectRegistration() {
       );
       return response.data;
     },
-    onSuccess: (_, variables) => {
+    onSuccess: async (_, variables) => {
       // Invalidate queries to refresh data
-      queryClient.invalidateQueries({
-        queryKey: adminQueryKeys.registrations.all,
-      });
-      queryClient.invalidateQueries({
-        queryKey: adminQueryKeys.dashboard.stats(),
-      });
-      queryClient.invalidateQueries({
-        queryKey: adminQueryKeys.registrations.detail(variables.id),
-      });
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: adminQueryKeys.registrations.all,
+        }),
+        queryClient.invalidateQueries({
+          queryKey: adminQueryKeys.dashboard.stats(),
+        }),
+        queryClient.invalidateQueries({
+          queryKey: adminQueryKeys.registrations.detail(variables.id),
+        }),
+      ]);
+
+      // Force immediate refetch for real-time updates
+      await Promise.all([
+        queryClient.refetchQueries({
+          queryKey: adminQueryKeys.dashboard.stats(),
+        }),
+        queryClient.refetchQueries({
+          queryKey: adminQueryKeys.registrations.all,
+        }),
+      ]);
     },
   });
 }
@@ -473,8 +497,8 @@ export function useDashboardStats() {
       );
       return response.data;
     },
-    staleTime: 30 * 1000, // 30 seconds
-    refetchInterval: 60 * 1000, // Auto-refetch every minute
+    staleTime: 0, // Always refetch when invalidated (for real-time notification updates)
+    refetchInterval: 30 * 1000, // Auto-refetch every 30 seconds
   });
 }
 
