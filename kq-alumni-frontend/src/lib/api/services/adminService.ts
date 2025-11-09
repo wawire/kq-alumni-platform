@@ -294,16 +294,23 @@ export function useApproveRegistration() {
       );
       return response.data;
     },
-    onSuccess: (_, variables) => {
+    onSuccess: async (_, variables) => {
       // Invalidate queries to refresh data
-      queryClient.invalidateQueries({
-        queryKey: adminQueryKeys.registrations.all,
-      });
-      queryClient.invalidateQueries({
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: adminQueryKeys.registrations.all,
+        }),
+        queryClient.invalidateQueries({
+          queryKey: adminQueryKeys.dashboard.stats(),
+        }),
+        queryClient.invalidateQueries({
+          queryKey: adminQueryKeys.registrations.detail(variables.id),
+        }),
+      ]);
+
+      // Force immediate refetch of dashboard stats for real-time notification badge update
+      await queryClient.refetchQueries({
         queryKey: adminQueryKeys.dashboard.stats(),
-      });
-      queryClient.invalidateQueries({
-        queryKey: adminQueryKeys.registrations.detail(variables.id),
       });
     },
   });
@@ -329,16 +336,23 @@ export function useRejectRegistration() {
       );
       return response.data;
     },
-    onSuccess: (_, variables) => {
+    onSuccess: async (_, variables) => {
       // Invalidate queries to refresh data
-      queryClient.invalidateQueries({
-        queryKey: adminQueryKeys.registrations.all,
-      });
-      queryClient.invalidateQueries({
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: adminQueryKeys.registrations.all,
+        }),
+        queryClient.invalidateQueries({
+          queryKey: adminQueryKeys.dashboard.stats(),
+        }),
+        queryClient.invalidateQueries({
+          queryKey: adminQueryKeys.registrations.detail(variables.id),
+        }),
+      ]);
+
+      // Force immediate refetch of dashboard stats for real-time notification badge update
+      await queryClient.refetchQueries({
         queryKey: adminQueryKeys.dashboard.stats(),
-      });
-      queryClient.invalidateQueries({
-        queryKey: adminQueryKeys.registrations.detail(variables.id),
       });
     },
   });
