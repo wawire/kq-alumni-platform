@@ -237,7 +237,7 @@ export function useAdminRegistrations(filters?: RegistrationFilters) {
       );
       return response.data;
     },
-    staleTime: 30 * 1000, // 30 seconds
+    staleTime: 0, // Always refetch when invalidated (for real-time updates after approve/reject)
   });
 }
 
@@ -253,7 +253,7 @@ export function useRequiringReviewRegistrations() {
       );
       return response.data.data;
     },
-    staleTime: 30 * 1000, // 30 seconds
+    staleTime: 0, // Always refetch when invalidated (for real-time updates)
   });
 }
 
