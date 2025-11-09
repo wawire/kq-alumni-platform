@@ -10,6 +10,7 @@ import PhoneInput, {
 } from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
 import { SingleValue } from "react-select";
+import { toast } from "sonner";
 import { z } from "zod";
 
 import { FormField, FormSelect } from "@/components/forms";
@@ -209,12 +210,20 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
         setVerificationError("");
       } else {
         setVerificationStatus('failed');
-        setVerificationError(result.message || 'ID/Passport not found in our records');
+        // Show toast instead of inline error to reduce form clutter
+        toast.error('ID/Passport Not Found', {
+          description: result.message || 'ID/Passport not found in our records. Please verify and contact HR if this error persists.',
+          duration: 5000,
+        });
         setErpData(null);
       }
     } catch (error) {
       setVerificationStatus('failed');
-      setVerificationError('Unable to verify ID/Passport. This may be due to a system issue. You can continue with manual review.');
+      // Show toast for system errors
+      toast.error('Verification Error', {
+        description: 'Unable to verify ID/Passport. This may be due to a system issue. You can continue with manual review.',
+        duration: 5000,
+      });
       setErpData(null);
     }
   };
@@ -379,39 +388,37 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
                 ✓ ID verified! Staff Number: {erpData.staffNumber}
               </p>
             )}
-            {!errors.idNumber && (verificationStatus === 'failed' || verificationStatus === 'already_registered') && verificationError && (
-              <div className="mt-2">
-                <p className="text-sm text-red-600 flex items-center gap-2">
-                  <ExclamationCircleIcon className="w-4 h-4" />
-                  {verificationError}
+            {!errors.idNumber && verificationStatus === 'failed' && !allowManualMode && (
+              <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <p className="text-sm text-yellow-800 mb-2">
+                  <strong>Can't verify automatically?</strong> You can continue with manual review.
+                  Our HR team will verify your information manually.
                 </p>
-                {verificationStatus === 'failed' && !allowManualMode && (
-                  <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                    <p className="text-sm text-yellow-800 mb-2">
-                      <strong>Can't verify automatically?</strong> You can continue with manual review.
-                      Our HR team will verify your information manually.
-                    </p>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setAllowManualMode(true);
-                        setVerificationError('');
-                      }}
-                      className="text-sm font-medium text-yellow-700 hover:text-yellow-900 underline"
-                    >
-                      Continue with Manual Review
-                    </button>
-                  </div>
-                )}
-                {allowManualMode && (
-                  <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                    <p className="text-sm text-blue-800">
-                      <CheckCircleIcon className="w-4 h-4 inline mr-1" />
-                      Manual review mode enabled. Please fill in your details below and our HR team will verify them.
-                    </p>
-                  </div>
-                )}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAllowManualMode(true);
+                    setVerificationError('');
+                  }}
+                  className="text-sm font-medium text-yellow-700 hover:text-yellow-900 underline"
+                >
+                  Continue with Manual Review
+                </button>
               </div>
+            )}
+            {!errors.idNumber && allowManualMode && (
+              <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <p className="text-sm text-blue-800">
+                  <CheckCircleIcon className="w-4 h-4 inline mr-1" />
+                  Manual review mode enabled. Please fill in your details below and our HR team will verify them.
+                </p>
+              </div>
+            )}
+            {!errors.idNumber && verificationStatus === 'already_registered' && verificationError && (
+              <p className="mt-2 text-sm text-red-600 flex items-center gap-2">
+                <ExclamationCircleIcon className="w-4 h-4" />
+                {verificationError}
+              </p>
             )}
           </div>
 
