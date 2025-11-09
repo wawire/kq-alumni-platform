@@ -285,8 +285,15 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
     country: PhoneCountryData,
   ): void => {
     setPhoneValue(value);
-    setValue("mobileNumber", value, { shouldValidate: true });
-    setValue("mobileCountryCode", `+${country.dialCode}`, { shouldValidate: true });
+
+    // Remove country dial code from the phone number to avoid duplication
+    // PhoneInput returns the full number (e.g., "254712345678")
+    // We need to store just the local number (e.g., "712345678")
+    const dialCode = country.dialCode || "";
+    const localNumber = value.startsWith(dialCode) ? value.substring(dialCode.length) : value;
+
+    setValue("mobileNumber", localNumber, { shouldValidate: true });
+    setValue("mobileCountryCode", `+${dialCode}`, { shouldValidate: true });
 
     // Note: Current location is NOT updated here
     // You can live in Japan and have a Kenyan phone number
@@ -406,14 +413,6 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
                 </button>
               </div>
             )}
-            {!errors.idNumber && allowManualMode && (
-              <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                <p className="text-sm text-blue-800">
-                  <CheckCircleIcon className="w-4 h-4 inline mr-1" />
-                  Manual review mode enabled. Please fill in your details below and our HR team will verify them.
-                </p>
-              </div>
-            )}
             {!errors.idNumber && verificationStatus === 'already_registered' && verificationError && (
               <p className="mt-2 text-sm text-red-600 flex items-center gap-2">
                 <ExclamationCircleIcon className="w-4 h-4" />
@@ -465,11 +464,6 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
                 <CheckCircleIcon className="w-5 h-5 text-green-600 flex-shrink-0 mt-7" />
               )}
             </div>
-            {allowManualMode && (
-              <p className="mt-1 text-xs text-gray-500">
-                Optional - Leave blank if you don't know your staff number
-              </p>
-            )}
           </div>
 
           {/* Email */}

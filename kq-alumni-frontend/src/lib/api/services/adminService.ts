@@ -473,8 +473,8 @@ export function useDashboardStats() {
       );
       return response.data;
     },
-    staleTime: 30 * 1000, // 30 seconds
-    refetchInterval: 60 * 1000, // Auto-refetch every minute
+    staleTime: 0, // Always refetch when invalidated (for real-time notification updates)
+    refetchInterval: 30 * 1000, // Auto-refetch every 30 seconds
   });
 }
 
