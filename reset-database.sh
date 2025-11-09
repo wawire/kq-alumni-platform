@@ -14,21 +14,6 @@ echo "KQ ALUMNI DATABASE RESET"
 echo "=========================================="
 echo ""
 
-echo "Step 0: Verifying migration fix..."
-echo "-----------------------------------"
-if ! grep -q "IF EXISTS" KQAlumni.Backend/src/KQAlumni.Infrastructure/Data/Migrations/20251108000000_AddUniqueConstraintIdNumber.cs; then
-    echo "ERROR: Migration file not updated!"
-    echo ""
-    echo "You need to pull the latest changes first:"
-    echo "  git pull origin claude/test-registration-workflow-011CUw4YBfpRQtkGTLg7Nh8s"
-    echo ""
-    echo "The migration file should contain 'IF EXISTS' checks."
-    echo "Current file does not have the fix."
-    exit 1
-fi
-echo "✓ Migration fix verified"
-echo ""
-
 # Navigate to API project
 cd KQAlumni.Backend/src/KQAlumni.API
 
