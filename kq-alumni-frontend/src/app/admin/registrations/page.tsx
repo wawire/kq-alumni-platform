@@ -356,13 +356,27 @@ function RegistrationsPageContent() {
   const handleQuickApprove = async () => {
     if (!actionModal.registrationId) return;
 
+    toast.loading('Approving registration...', { id: 'quick-approve-toast' });
+
     try {
       await approveMutation.mutateAsync({
         id: actionModal.registrationId,
         data: { notes: 'Quick approved from table' },
       });
+
+      toast.success('Registration approved successfully!', {
+        id: 'quick-approve-toast',
+        description: 'Approval email has been sent to the applicant.',
+        duration: 4000,
+      });
+
       setActionModal({ type: null, registrationId: null, registrationName: null });
     } catch (error) {
+      toast.error('Failed to approve registration', {
+        id: 'quick-approve-toast',
+        description: (error as Error)?.message || 'Please try again.',
+        duration: 5000,
+      });
       console.error('Failed to approve registration:', error);
     }
   };
@@ -370,14 +384,28 @@ function RegistrationsPageContent() {
   const handleQuickReject = async () => {
     if (!actionModal.registrationId || !rejectReason.trim()) return;
 
+    toast.loading('Rejecting registration...', { id: 'quick-reject-toast' });
+
     try {
       await rejectMutation.mutateAsync({
         id: actionModal.registrationId,
         data: { reason: rejectReason },
       });
+
+      toast.success('Registration rejected', {
+        id: 'quick-reject-toast',
+        description: 'Rejection notification has been sent to the applicant.',
+        duration: 4000,
+      });
+
       setActionModal({ type: null, registrationId: null, registrationName: null });
       setRejectReason('');
     } catch (error) {
+      toast.error('Failed to reject registration', {
+        id: 'quick-reject-toast',
+        description: (error as Error)?.message || 'Please try again.',
+        duration: 5000,
+      });
       console.error('Failed to reject registration:', error);
     }
   };

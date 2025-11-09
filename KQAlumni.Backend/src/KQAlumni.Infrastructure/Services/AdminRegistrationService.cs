@@ -222,6 +222,7 @@ public class AdminRegistrationService : IAdminRegistrationService
         registration.ReviewedBy = adminUsername;
         registration.ReviewedAt = DateTime.UtcNow;
         registration.ReviewNotes = notes;
+        registration.RequiresManualReview = false; // Clear manual review flag since it's now reviewed
         registration.UpdatedAt = DateTime.UtcNow;
         registration.UpdatedBy = adminUsername;
 
@@ -319,6 +320,7 @@ public class AdminRegistrationService : IAdminRegistrationService
         registration.ReviewedBy = adminUsername;
         registration.ReviewedAt = DateTime.UtcNow;
         registration.ReviewNotes = notes;
+        registration.RequiresManualReview = false; // Clear manual review flag since it's now reviewed
         registration.UpdatedAt = DateTime.UtcNow;
         registration.UpdatedBy = adminUsername;
 
