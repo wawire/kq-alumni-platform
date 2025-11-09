@@ -172,7 +172,8 @@ export function AdminLayout({ children }: AdminLayoutProps) {
         <nav className="mt-6 px-3">
           {navigation.map((item) => {
             const Icon = item.icon;
-            const isActive = pathname === item.href || pathname?.startsWith(item.href + '/');
+            // Fix: Use exact match to prevent "/admin/registrations" staying active on "/admin/registrations/review"
+            const isActive = pathname === item.href;
 
             return (
               <Link
@@ -185,7 +186,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                   transition-colors
                   ${
                     isActive
-                      ? 'bg-kq-red text-white'
+                      ? 'bg-kq-red text-white hover:text-white hover:bg-kq-red'
                       : 'text-gray-300 hover:bg-navy-800 hover:text-white'
                   }
                 `}

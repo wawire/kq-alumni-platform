@@ -417,6 +417,58 @@ export default function RegistrationDetailPage({ params }: Props) {
               </div>
             )}
 
+            {/* Professional Information */}
+            <div className="bg-white rounded-lg border border-gray-200 p-6">
+              <h3 className="text-lg font-semibold text-kq-dark mb-4 flex items-center gap-2">
+                <Briefcase className="w-5 h-5" />
+                Professional Information
+              </h3>
+
+              <div className="space-y-4">
+                {registration.currentEmployer && (
+                  <div>
+                    <p className="text-sm text-gray-600">Current Employer</p>
+                    <p className="font-medium text-kq-dark">{registration.currentEmployer}</p>
+                  </div>
+                )}
+
+                {registration.currentJobTitle && (
+                  <div>
+                    <p className="text-sm text-gray-600">Current Job Title</p>
+                    <p className="font-medium text-kq-dark">{registration.currentJobTitle}</p>
+                  </div>
+                )}
+
+                {registration.industry && (
+                  <div>
+                    <p className="text-sm text-gray-600">Industry</p>
+                    <p className="font-medium text-kq-dark">{registration.industry}</p>
+                  </div>
+                )}
+
+                {registration.qualificationsAttained && (
+                  <div>
+                    <p className="text-sm text-gray-600">Qualifications Attained</p>
+                    <p className="font-medium text-kq-dark whitespace-pre-wrap">{registration.qualificationsAttained}</p>
+                  </div>
+                )}
+
+                {registration.professionalCertifications && (
+                  <div>
+                    <p className="text-sm text-gray-600">Professional Certifications</p>
+                    <p className="font-medium text-kq-dark whitespace-pre-wrap">{registration.professionalCertifications}</p>
+                  </div>
+                )}
+
+                {registration.engagementPreferences && (
+                  <div>
+                    <p className="text-sm text-gray-600">Engagement Preferences</p>
+                    <p className="font-medium text-kq-dark whitespace-pre-wrap">{registration.engagementPreferences}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
             {/* Location */}
             <div className="bg-white rounded-lg border border-gray-200 p-6">
               <h3 className="text-lg font-semibold text-kq-dark mb-4 flex items-center gap-2">
