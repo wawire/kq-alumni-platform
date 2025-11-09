@@ -52,19 +52,20 @@ namespace KQAlumni.Infrastructure.Data.Migrations
                 maxLength: 50,
                 nullable: true);
 
-            // Create index on IdNumber for duplicate checking
+            // Create UNIQUE index on IdNumber (ID/Passport numbers must be unique per person)
             migrationBuilder.CreateIndex(
-                name: "IX_AlumniRegistrations_IdNumber",
+                name: "UQ_AlumniRegistrations_IdNumber",
                 table: "AlumniRegistrations",
-                column: "IdNumber");
+                column: "IdNumber",
+                unique: true);
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            // Drop new index on IdNumber
+            // Drop unique index on IdNumber
             migrationBuilder.DropIndex(
-                name: "IX_AlumniRegistrations_IdNumber",
+                name: "UQ_AlumniRegistrations_IdNumber",
                 table: "AlumniRegistrations");
 
             // Drop filtered unique constraint on StaffNumber
