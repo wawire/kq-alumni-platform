@@ -159,7 +159,8 @@ public class AppDbContext : DbContext
                         // REQUIRED FIELDS
                         // ========================================
 
-                        entity.Property(e => e.StaffNumber).IsRequired();
+                        // StaffNumber is optional (nullable) to support manual mode registrations
+                        // entity.Property(e => e.StaffNumber).IsRequired(); // REMOVED: Must be nullable for manual mode
                         entity.Property(e => e.FullName).IsRequired();
                         entity.Property(e => e.Email).IsRequired();
                         entity.Property(e => e.CurrentCountry).IsRequired();
