@@ -5,7 +5,7 @@ using Microsoft.Extensions.Options;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text;
-using System.Xml.Linq;
+using System.Text.Json;
 
 namespace KQAlumni.Infrastructure.Services;
 
@@ -191,7 +191,7 @@ public class ErpService : IErpService
       // [PRODUCTION] Call real ERP API (INTERNAL NETWORK ONLY)
       _logger.LogInformation("Validating ID/Passport {IdOrPassport} against ERP", idOrPassport);
 
-      // Send GET request with ID/Passport as query parameter
+      // Send GET request - ERP returns all leavers, we filter client-side
       var endpoint = _settings.IdPassportEndpoint ?? _settings.Endpoint;
       var requestUrl = $"{endpoint}?nationalIdentifier={Uri.EscapeDataString(idOrPassport)}";
       var response = await _httpClient.GetAsync(requestUrl, cancellationToken);
@@ -202,15 +202,19 @@ public class ErpService : IErpService
         return CreateErrorResult("Unable to validate ID/Passport. Please try again or contact HR.");
       }
 
-      // Parse XML response
-      var xmlContent = await response.Content.ReadAsStringAsync(cancellationToken);
-      var erpData = ParseErpXmlResponse(xmlContent);
+      // Parse JSON response (ERP returns JSON array of all leavers)
+      var jsonContent = await response.Content.ReadAsStringAsync(cancellationToken);
+      var erpData = ParseErpJsonResponse(jsonContent, idOrPassport);
 
       if (erpData == null || !erpData.Found)
       {
         _logger.LogWarning("ID/Passport {IdOrPassport} not found in ERP", idOrPassport);
         return CreateErrorResult("ID/Passport not found in our records. Please verify and contact HR if issue persists.");
       }
+
+      _logger.LogInformation(
+          "ID/Passport {IdOrPassport} validated successfully. Staff: {StaffNumber}, Name: {FullName}",
+          idOrPassport, erpData.StaffNumber, erpData.FullName);
 
       return new ErpValidationResult
       {
@@ -245,48 +249,91 @@ public class ErpService : IErpService
   // ========================================
 
   /// <summary>
-  /// Parses XML response from ERP API and extracts leaver information
-  /// Maps XML structure: dbReferenceLeaversOutput with fields like STAFFID, FULLNAME, NATIONAL_IDENTIFIER, etc.
+  /// Parses JSON response from ERP API and finds the leaver matching the nationalIdentifier
+  /// ERP returns JSON array of all leavers - we filter to find the matching record
+  /// Handles NATIONAL_IDENTIFIER as either string or null object {"@nil": "true"}
   /// </summary>
-  private ErpApiResponse? ParseErpXmlResponse(string xmlContent)
+  private ErpApiResponse? ParseErpJsonResponse(string jsonContent, string searchNationalId)
   {
     try
     {
-      var doc = XDocument.Parse(xmlContent);
-      var leaverNode = doc.Descendants("dbReferenceLeaversOutput").FirstOrDefault();
+      // Parse JSON array
+      var jsonArray = JsonDocument.Parse(jsonContent);
 
-      if (leaverNode == null)
+      if (jsonArray.RootElement.ValueKind != JsonValueKind.Array)
       {
-        _logger.LogWarning("No dbReferenceLeaversOutput node found in ERP XML response");
+        _logger.LogWarning("ERP API returned non-array response");
         return null;
       }
 
-      // Extract fields from XML
-      var staffId = leaverNode.Element("STAFFID")?.Value;
-      var fullName = leaverNode.Element("FULLNAME")?.Value;
-      var nationalIdentifier = leaverNode.Element("NATIONAL_IDENTIFIER")?.Value;
-      var department = leaverNode.Element("DEPARTMENT")?.Value ?? leaverNode.Element("ORGANISATION")?.Value;
-      var actualTerminationDate = leaverNode.Element("ACTUAL_TERMINATION_DATE")?.Value;
-
-      // Parse exit date
-      DateTime? exitDate = null;
-      if (!string.IsNullOrEmpty(actualTerminationDate) && DateTime.TryParse(actualTerminationDate, out var parsedDate))
+      // Search through array to find matching NATIONAL_IDENTIFIER
+      foreach (var element in jsonArray.RootElement.EnumerateArray())
       {
-        exitDate = parsedDate;
+        // Get NATIONAL_IDENTIFIER - can be string or null object
+        string? nationalId = null;
+        if (element.TryGetProperty("NATIONAL_IDENTIFIER", out var natIdProperty))
+        {
+          if (natIdProperty.ValueKind == JsonValueKind.String)
+          {
+            nationalId = natIdProperty.GetString();
+          }
+          // Skip if it's an object (null marker: {"@nil": "true"})
+        }
+
+        // Check if this record matches our search ID
+        if (string.IsNullOrEmpty(nationalId) ||
+            !nationalId.Equals(searchNationalId, StringComparison.OrdinalIgnoreCase))
+        {
+          continue; // Not a match, try next record
+        }
+
+        // Found matching record! Extract all fields
+        var staffId = element.TryGetProperty("STAFFID", out var staffIdProp)
+            ? staffIdProp.GetString() : null;
+        var fullName = element.TryGetProperty("FULLNAME", out var fullNameProp)
+            ? fullNameProp.GetString() : null;
+        var department = element.TryGetProperty("DEPARTMENT", out var deptProp)
+            ? deptProp.GetString()
+            : element.TryGetProperty("ORGANISATION", out var orgProp)
+                ? orgProp.GetString()
+                : null;
+        var actualTerminationDate = element.TryGetProperty("ACTUAL_TERMINATION_DATE", out var dateProp)
+            ? dateProp.GetString() : null;
+
+        // Parse exit date
+        DateTime? exitDate = null;
+        if (!string.IsNullOrEmpty(actualTerminationDate) &&
+            DateTime.TryParse(actualTerminationDate, out var parsedDate))
+        {
+          exitDate = parsedDate;
+        }
+
+        _logger.LogInformation(
+            "Found ERP match for ID {NationalId}: Staff={StaffId}, Name={FullName}, Dept={Department}",
+            searchNationalId, staffId, fullName, department);
+
+        return new ErpApiResponse
+        {
+          Found = !string.IsNullOrEmpty(staffId),
+          StaffNumber = staffId,
+          FullName = fullName,
+          Department = department,
+          ExitDate = exitDate
+        };
       }
 
-      return new ErpApiResponse
-      {
-        Found = !string.IsNullOrEmpty(staffId),
-        StaffNumber = staffId,
-        FullName = fullName,
-        Department = department,
-        ExitDate = exitDate
-      };
+      // No match found in the array
+      _logger.LogWarning("No matching NATIONAL_IDENTIFIER found in ERP response for: {SearchId}", searchNationalId);
+      return null;
+    }
+    catch (JsonException ex)
+    {
+      _logger.LogError(ex, "Failed to parse ERP JSON response");
+      return null;
     }
     catch (Exception ex)
     {
-      _logger.LogError(ex, "Failed to parse ERP XML response");
+      _logger.LogError(ex, "Unexpected error parsing ERP response");
       return null;
     }
   }
