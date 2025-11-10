@@ -20,15 +20,18 @@ public class ErpService : IErpService
   private readonly HttpClient _httpClient;
   private readonly ErpApiSettings _settings;
   private readonly ILogger<ErpService> _logger;
+  private readonly IErpCacheService? _cacheService;
 
   public ErpService(
       HttpClient httpClient,
       IOptions<ErpApiSettings> settings,
-      ILogger<ErpService> logger)
+      ILogger<ErpService> logger,
+      IErpCacheService? cacheService = null)
   {
     _httpClient = httpClient;
     _settings = settings.Value;
     _logger = logger;
+    _cacheService = cacheService;
 
     // Configure HttpClient timeout
     _httpClient.Timeout = TimeSpan.FromSeconds(_settings.TimeoutSeconds);
@@ -185,8 +188,37 @@ public class ErpService : IErpService
         return GenerateMockValidationResultForId(idOrPassport);
       }
 
-      // [PRODUCTION] Call real ERP API (INTERNAL NETWORK ONLY)
-      _logger.LogInformation("Validating ID/Passport {IdOrPassport} against ERP", idOrPassport);
+      // [CACHE MODE] Use cached data for fast lookups (if caching enabled)
+      if (_settings.EnableCaching && _cacheService != null)
+      {
+        _logger.LogInformation("Looking up ID/Passport {IdOrPassport} in ERP cache", idOrPassport);
+
+        var cachedEmployee = _cacheService.FindByNationalId(idOrPassport);
+
+        if (cachedEmployee != null)
+        {
+          _logger.LogInformation(
+            "Found in cache: Staff={StaffId}, Name={FullName}",
+            cachedEmployee.StaffId, cachedEmployee.FullName);
+
+          return new ErpValidationResult
+          {
+            IsValid = true,
+            StaffNumber = cachedEmployee.StaffId,
+            StaffName = cachedEmployee.FullName,
+            Department = cachedEmployee.Department,
+            ExitDate = cachedEmployee.ExitDate,
+            NameSimilarityScore = 0,
+            IsMockData = false
+          };
+        }
+
+        _logger.LogWarning("ID/Passport {IdOrPassport} not found in cache", idOrPassport);
+        return CreateErrorResult("ID/Passport not found in our records. Please verify and contact HR if issue persists.");
+      }
+
+      // [FALLBACK] Call real ERP API directly (when caching disabled)
+      _logger.LogInformation("Validating ID/Passport {IdOrPassport} against ERP (cache disabled)", idOrPassport);
 
       // Build full URL - use IdPassportEndpoint if specified, otherwise use Endpoint
       // Note: Must check for empty string, not just null
