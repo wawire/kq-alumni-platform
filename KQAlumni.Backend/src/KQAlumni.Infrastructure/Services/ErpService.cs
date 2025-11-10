@@ -2,7 +2,10 @@ using KQAlumni.Core.Entities;
 using KQAlumni.Core.Interfaces;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Text;
+using System.Xml.Linq;
 
 namespace KQAlumni.Infrastructure.Services;
 
@@ -32,6 +35,14 @@ public class ErpService : IErpService
     {
       _httpClient.BaseAddress = baseUri;
       _httpClient.Timeout = TimeSpan.FromSeconds(_settings.TimeoutSeconds);
+
+      // Add Basic Authentication if credentials are provided
+      if (!string.IsNullOrEmpty(_settings.BasicAuthUsername) && !string.IsNullOrEmpty(_settings.BasicAuthPassword))
+      {
+        var credentials = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{_settings.BasicAuthUsername}:{_settings.BasicAuthPassword}"));
+        _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", credentials);
+        _logger.LogInformation("ERP Service configured with Basic Authentication");
+      }
     }
     else if (_settings.EnableMockMode)
     {
@@ -180,11 +191,10 @@ public class ErpService : IErpService
       // [PRODUCTION] Call real ERP API (INTERNAL NETWORK ONLY)
       _logger.LogInformation("Validating ID/Passport {IdOrPassport} against ERP", idOrPassport);
 
-      var request = new { idPassport = idOrPassport };
-      var response = await _httpClient.PostAsJsonAsync(
-          _settings.IdPassportEndpoint ?? _settings.Endpoint, // Use IdPassportEndpoint if available, fallback to default
-          request,
-          cancellationToken);
+      // Send GET request with ID/Passport as query parameter
+      var endpoint = _settings.IdPassportEndpoint ?? _settings.Endpoint;
+      var requestUrl = $"{endpoint}?nationalIdentifier={Uri.EscapeDataString(idOrPassport)}";
+      var response = await _httpClient.GetAsync(requestUrl, cancellationToken);
 
       if (!response.IsSuccessStatusCode)
       {
@@ -192,7 +202,9 @@ public class ErpService : IErpService
         return CreateErrorResult("Unable to validate ID/Passport. Please try again or contact HR.");
       }
 
-      var erpData = await response.Content.ReadFromJsonAsync<ErpApiResponse>(cancellationToken);
+      // Parse XML response
+      var xmlContent = await response.Content.ReadAsStringAsync(cancellationToken);
+      var erpData = ParseErpXmlResponse(xmlContent);
 
       if (erpData == null || !erpData.Found)
       {
@@ -231,6 +243,53 @@ public class ErpService : IErpService
   // ========================================
   // PRIVATE HELPER METHODS
   // ========================================
+
+  /// <summary>
+  /// Parses XML response from ERP API and extracts leaver information
+  /// Maps XML structure: dbReferenceLeaversOutput with fields like STAFFID, FULLNAME, NATIONAL_IDENTIFIER, etc.
+  /// </summary>
+  private ErpApiResponse? ParseErpXmlResponse(string xmlContent)
+  {
+    try
+    {
+      var doc = XDocument.Parse(xmlContent);
+      var leaverNode = doc.Descendants("dbReferenceLeaversOutput").FirstOrDefault();
+
+      if (leaverNode == null)
+      {
+        _logger.LogWarning("No dbReferenceLeaversOutput node found in ERP XML response");
+        return null;
+      }
+
+      // Extract fields from XML
+      var staffId = leaverNode.Element("STAFFID")?.Value;
+      var fullName = leaverNode.Element("FULLNAME")?.Value;
+      var nationalIdentifier = leaverNode.Element("NATIONAL_IDENTIFIER")?.Value;
+      var department = leaverNode.Element("DEPARTMENT")?.Value ?? leaverNode.Element("ORGANISATION")?.Value;
+      var actualTerminationDate = leaverNode.Element("ACTUAL_TERMINATION_DATE")?.Value;
+
+      // Parse exit date
+      DateTime? exitDate = null;
+      if (!string.IsNullOrEmpty(actualTerminationDate) && DateTime.TryParse(actualTerminationDate, out var parsedDate))
+      {
+        exitDate = parsedDate;
+      }
+
+      return new ErpApiResponse
+      {
+        Found = !string.IsNullOrEmpty(staffId),
+        StaffNumber = staffId,
+        FullName = fullName,
+        Department = department,
+        ExitDate = exitDate
+      };
+    }
+    catch (Exception ex)
+    {
+      _logger.LogError(ex, "Failed to parse ERP XML response");
+      return null;
+    }
+  }
 
   /// <summary>
   /// Generates mock validation result for development
