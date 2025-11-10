@@ -190,6 +190,13 @@ public class ErpService : IErpService
 
       // Build full URL - don't rely on HttpClient.BaseAddress
       var endpoint = _settings.IdPassportEndpoint ?? _settings.Endpoint;
+
+      // DEBUG: Log settings to diagnose configuration issue
+      _logger.LogInformation("DEBUG - BaseUrl: '{BaseUrl}', Endpoint: '{Endpoint}', IdPassportEndpoint: '{IdPassportEndpoint}'",
+          _settings.BaseUrl ?? "NULL",
+          _settings.Endpoint ?? "NULL",
+          _settings.IdPassportEndpoint ?? "NULL");
+
       var fullUrl = $"{_settings.BaseUrl}{endpoint}?nationalIdentifier={Uri.EscapeDataString(idOrPassport)}";
 
       _logger.LogInformation("Calling ERP API: {Url}", fullUrl);
