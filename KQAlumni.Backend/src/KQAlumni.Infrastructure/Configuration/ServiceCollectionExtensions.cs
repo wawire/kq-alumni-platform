@@ -78,6 +78,13 @@ public static class ServiceCollectionExtensions
     // ========================================
 
     services.AddHttpClient<IErpService, ErpService>()
+        .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+        {
+          // Disable proxy for internal ERP (10.2.131.147)
+          // This allows direct connection without going through system proxy
+          UseProxy = false,
+          Proxy = null
+        })
         .SetHandlerLifetime(TimeSpan.FromMinutes(5))
         .AddPolicyHandler(GetRetryPolicy())
         .AddPolicyHandler(GetCircuitBreakerPolicy());
