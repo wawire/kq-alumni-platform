@@ -1,5 +1,6 @@
 using KQAlumni.Core.Entities;
 using KQAlumni.Core.Interfaces;
+using KQAlumni.Infrastructure.BackgroundServices;
 using KQAlumni.Infrastructure.Data;
 using KQAlumni.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
@@ -88,6 +89,22 @@ public static class ServiceCollectionExtensions
         .SetHandlerLifetime(TimeSpan.FromMinutes(5))
         .AddPolicyHandler(GetRetryPolicy())
         .AddPolicyHandler(GetCircuitBreakerPolicy());
+
+    // ========================================
+    // ERP Cache Service (In-Memory Caching for Fast Lookups)
+    // ========================================
+
+    // Register cache service as singleton (shared across all requests)
+    services.AddHttpClient<IErpCacheService, ErpCacheService>()
+        .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+        {
+          UseProxy = false,
+          Proxy = null
+        });
+    services.AddSingleton<IErpCacheService, ErpCacheService>();
+
+    // Register background service for automatic cache refresh
+    services.AddHostedService<ErpCacheBackgroundService>();
 
     // ========================================
     // Email Service (with delivery tracking)
