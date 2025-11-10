@@ -30,27 +30,24 @@ public class ErpService : IErpService
     _settings = settings.Value;
     _logger = logger;
 
-    // Configure HttpClient for ERP API (only if valid URL and not in mock mode)
-    if (!_settings.EnableMockMode && Uri.TryCreate(_settings.BaseUrl, UriKind.Absolute, out var baseUri))
-    {
-      _httpClient.BaseAddress = baseUri;
-      _httpClient.Timeout = TimeSpan.FromSeconds(_settings.TimeoutSeconds);
+    // Configure HttpClient timeout
+    _httpClient.Timeout = TimeSpan.FromSeconds(_settings.TimeoutSeconds);
 
-      // Add Basic Authentication if credentials are provided
-      if (!string.IsNullOrEmpty(_settings.BasicAuthUsername) && !string.IsNullOrEmpty(_settings.BasicAuthPassword))
-      {
-        var credentials = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{_settings.BasicAuthUsername}:{_settings.BasicAuthPassword}"));
-        _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", credentials);
-        _logger.LogInformation("ERP Service configured with Basic Authentication");
-      }
+    // Add Basic Authentication if credentials are provided
+    if (!string.IsNullOrEmpty(_settings.BasicAuthUsername) && !string.IsNullOrEmpty(_settings.BasicAuthPassword))
+    {
+      var credentials = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{_settings.BasicAuthUsername}:{_settings.BasicAuthPassword}"));
+      _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", credentials);
+      _logger.LogInformation("ERP Service configured with Basic Authentication");
     }
-    else if (_settings.EnableMockMode)
+
+    if (_settings.EnableMockMode)
     {
       _logger.LogInformation("ERP Service initialized in MOCK MODE - ERP URL not configured");
     }
     else
     {
-      _logger.LogWarning("ERP Service BaseUrl is invalid: {BaseUrl}. Service will fail in production mode.", _settings.BaseUrl);
+      _logger.LogInformation("ERP Service initialized for production: {BaseUrl}{Endpoint}", _settings.BaseUrl, _settings.Endpoint);
     }
   }
 
@@ -191,10 +188,13 @@ public class ErpService : IErpService
       // [PRODUCTION] Call real ERP API (INTERNAL NETWORK ONLY)
       _logger.LogInformation("Validating ID/Passport {IdOrPassport} against ERP", idOrPassport);
 
-      // Send GET request - ERP returns all leavers, we filter client-side
+      // Build full URL - don't rely on HttpClient.BaseAddress
       var endpoint = _settings.IdPassportEndpoint ?? _settings.Endpoint;
-      var requestUrl = $"{endpoint}?nationalIdentifier={Uri.EscapeDataString(idOrPassport)}";
-      var response = await _httpClient.GetAsync(requestUrl, cancellationToken);
+      var fullUrl = $"{_settings.BaseUrl}{endpoint}?nationalIdentifier={Uri.EscapeDataString(idOrPassport)}";
+
+      _logger.LogInformation("Calling ERP API: {Url}", fullUrl);
+
+      var response = await _httpClient.GetAsync(fullUrl, cancellationToken);
 
       if (!response.IsSuccessStatusCode)
       {
