@@ -188,14 +188,11 @@ public class ErpService : IErpService
       // [PRODUCTION] Call real ERP API (INTERNAL NETWORK ONLY)
       _logger.LogInformation("Validating ID/Passport {IdOrPassport} against ERP", idOrPassport);
 
-      // Build full URL - don't rely on HttpClient.BaseAddress
-      var endpoint = _settings.IdPassportEndpoint ?? _settings.Endpoint;
-
-      // DEBUG: Log settings to diagnose configuration issue
-      _logger.LogInformation("DEBUG - BaseUrl: '{BaseUrl}', Endpoint: '{Endpoint}', IdPassportEndpoint: '{IdPassportEndpoint}'",
-          _settings.BaseUrl ?? "NULL",
-          _settings.Endpoint ?? "NULL",
-          _settings.IdPassportEndpoint ?? "NULL");
+      // Build full URL - use IdPassportEndpoint if specified, otherwise use Endpoint
+      // Note: Must check for empty string, not just null
+      var endpoint = string.IsNullOrEmpty(_settings.IdPassportEndpoint)
+          ? _settings.Endpoint
+          : _settings.IdPassportEndpoint;
 
       var fullUrl = $"{_settings.BaseUrl}{endpoint}?nationalIdentifier={Uri.EscapeDataString(idOrPassport)}";
 
