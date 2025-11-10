@@ -96,7 +96,17 @@ public class ErpApiSettings : IValidatableObject
   public string? ApiKey { get; set; }
 
   /// <summary>
-  /// Authentication scheme (ApiKey, Bearer, etc.)
+  /// Basic Auth Username for ERP API
+  /// </summary>
+  public string? BasicAuthUsername { get; set; }
+
+  /// <summary>
+  /// Basic Auth Password for ERP API
+  /// </summary>
+  public string? BasicAuthPassword { get; set; }
+
+  /// <summary>
+  /// Authentication scheme (ApiKey, Bearer, Basic)
   /// </summary>
   public string? AuthenticationScheme { get; set; }
 
