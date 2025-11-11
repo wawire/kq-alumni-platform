@@ -23,10 +23,6 @@ public static class ServiceCollectionExtensions
       this IServiceCollection services,
       IConfiguration configuration)
   {
-    // ========================================
-    // Database (Entity Framework Core)
-    // ========================================
-
     var connectionString = configuration.GetConnectionString("DefaultConnection")
         ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found");
 
@@ -50,10 +46,6 @@ public static class ServiceCollectionExtensions
       }
     });
 
-    // ========================================
-    // Configuration Options with Validation
-    // ========================================
-
     services.AddOptions<ErpApiSettings>()
         .Bind(configuration.GetSection(ErpApiSettings.SectionName))
         .ValidateDataAnnotations()
@@ -64,19 +56,11 @@ public static class ServiceCollectionExtensions
         .ValidateDataAnnotations()
         .ValidateOnStart();
 
-    // ========================================
-    // Business Services
-    // ========================================
-
     services.AddScoped<IRegistrationService, RegistrationService>();
     services.AddScoped<ITokenService, TokenService>();
     services.AddScoped<IAuthService, AuthService>();
     services.AddScoped<IAdminRegistrationService, AdminRegistrationService>();
     services.AddScoped<IEmailTemplateService, EmailTemplateService>();
-
-    // ========================================
-    // ERP Service with HttpClient + Polly Resilience
-    // ========================================
 
     services.AddHttpClient<IErpService, ErpService>()
         .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
@@ -90,10 +74,6 @@ public static class ServiceCollectionExtensions
         .AddPolicyHandler(GetRetryPolicy())
         .AddPolicyHandler(GetCircuitBreakerPolicy());
 
-    // ========================================
-    // ERP Cache Service (In-Memory Caching for Fast Lookups)
-    // ========================================
-
     // Register cache service as singleton (shared across all requests)
     services.AddHttpClient<IErpCacheService, ErpCacheService>()
         .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
@@ -106,22 +86,7 @@ public static class ServiceCollectionExtensions
     // Register background service for automatic cache refresh
     services.AddHostedService<ErpCacheBackgroundService>();
 
-    // ========================================
-    // Email Service (with delivery tracking)
-    // ========================================
-
     services.AddScoped<IEmailService, EmailServiceWithTracking>();
-
-    // ========================================
-    // Service Registration Complete
-    // ========================================
-    // Infrastructure services registered:
-    // - DbContext: AppDbContext
-    // - IRegistrationService: RegistrationService
-    // - ITokenService: TokenService
-    // - IErpService: ErpService (with Polly policies)
-    // - IEmailService: EmailServiceWithTracking (with database logging)
-    // - Configuration: ErpApiSettings, EmailSettings
 
     return services;
   }

@@ -269,10 +269,6 @@ public class EmailTemplatesController : ControllerBase
     }
 }
 
-// ============================================
-// Request/Response DTOs
-// ============================================
-
 public class CreateTemplateRequest
 {
     public string TemplateKey { get; set; } = string.Empty;

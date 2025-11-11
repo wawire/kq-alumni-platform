@@ -9,10 +9,6 @@ namespace KQAlumni.Core.Entities;
 /// </summary>
 public class AlumniRegistration
 {
-  // ========================================
-  // PRIMARY KEY
-  // ========================================
-
   /// <summary>
   /// Unique identifier for the registration (GUID/UUID)
   /// </summary>
@@ -28,10 +24,6 @@ public class AlumniRegistration
   [StringLength(20)]
   [Column(TypeName = "varchar(20)")]
   public string RegistrationNumber { get; set; } = string.Empty;
-
-  // ========================================
-  // PERSONAL INFORMATION (Mandatory)
-  // ========================================
 
   /// <summary>
   /// Staff number (7 characters): 00XXXXX (any alphanumeric after 00)
@@ -66,10 +58,6 @@ public class AlumniRegistration
   [StringLength(200, MinimumLength = 2)]
   [Column(TypeName = "nvarchar(200)")]
   public string FullName { get; set; } = string.Empty;
-
-  // ========================================
-  // CONTACT INFORMATION (Mandatory)
-  // ========================================
 
   /// <summary>
   /// Current email address for communication
@@ -135,10 +123,6 @@ public class AlumniRegistration
   [Column(TypeName = "nvarchar(100)")]
   public string? CityCustom { get; set; }
 
-  // ========================================
-  // EMPLOYMENT INFORMATION (Optional)
-  // ========================================
-
   /// <summary>
   /// Current employer name
   /// </summary>
@@ -169,10 +153,6 @@ public class AlumniRegistration
   [Url]
   public string? LinkedInProfile { get; set; } = null; // ✅ Explicitly nullable with default null
 
-  // ========================================
-  // EDUCATION & PROFESSIONAL DEVELOPMENT
-  // ========================================
-
   /// <summary>
   /// Qualifications attained (stored as JSON array: ["MASTERS", "BACHELORS"])
   /// </summary>
@@ -187,20 +167,12 @@ public class AlumniRegistration
   [Column(TypeName = "nvarchar(1000)")]
   public string? ProfessionalCertifications { get; set; }
 
-  // ========================================
-  // ALUMNI ENGAGEMENT
-  // ========================================
-
   /// <summary>
   /// Areas of interest (stored as JSON array: ["MENTORSHIP", "NETWORKING"])
   /// </summary>
   [Required]
   [Column(TypeName = "nvarchar(max)")]
   public string EngagementPreferences { get; set; } = "[]";
-
-  // ========================================
-  // CONSENT & VERIFICATION
-  // ========================================
 
   /// <summary>
   /// Whether the alumni gave consent for data processing
@@ -212,10 +184,6 @@ public class AlumniRegistration
   /// Timestamp when consent was given
   /// </summary>
   public DateTime? ConsentGivenAt { get; set; }
-
-  // ========================================
-  // EMAIL VERIFICATION
-  // ========================================
 
   /// <summary>
   /// Email verification token (32-character alphanumeric)
@@ -238,10 +206,6 @@ public class AlumniRegistration
   /// When the email was verified
   /// </summary>
   public DateTime? EmailVerifiedAt { get; set; }
-
-  // ========================================
-  // ERP VALIDATION DATA
-  // ========================================
 
   /// <summary>
   /// Whether the staff number was validated against ERP
@@ -283,10 +247,6 @@ public class AlumniRegistration
   [Column(TypeName = "date")]
   public DateTime? ErpExitDate { get; set; }
 
-  // ========================================
-  // STATUS & WORKFLOW
-  // ========================================
-
   /// <summary>
   /// Registration status: Pending | Approved | Active | Rejected
   /// </summary>
@@ -311,10 +271,6 @@ public class AlumniRegistration
   [StringLength(500)]
   [Column(TypeName = "nvarchar(500)")]
   public string? RejectionReason { get; set; }
-
-  // ========================================
-  // MANUAL REVIEW FLAGS (Admin Dashboard)
-  // ========================================
 
   /// <summary>
   /// Whether this registration requires manual HR review
@@ -353,18 +309,10 @@ public class AlumniRegistration
   [Column(TypeName = "nvarchar(1000)")]
   public string? ReviewNotes { get; set; }
 
-  // ========================================
-  // NAVIGATION PROPERTIES
-  // ========================================
-
   /// <summary>
   /// Navigation property: Audit logs for this registration
   /// </summary>
   public virtual ICollection<AuditLog> AuditLogs { get; set; } = new List<AuditLog>();
-
-  // ========================================
-  // EMAIL TRACKING
-  // ========================================
 
   /// <summary>
   /// Whether confirmation email was sent (Email 1: Registration Received)
@@ -395,10 +343,6 @@ public class AlumniRegistration
   /// When rejection email was sent
   /// </summary>
   public DateTime? RejectionEmailSentAt { get; set; }
-
-  // ========================================
-  // AUDIT FIELDS
-  // ========================================
 
   /// <summary>
   /// When the registration was created (UTC)

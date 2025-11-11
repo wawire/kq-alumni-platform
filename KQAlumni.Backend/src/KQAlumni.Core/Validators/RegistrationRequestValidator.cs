@@ -10,10 +10,6 @@ namespace KQAlumni.Core.Validators;
 /// </summary>
 public class RegistrationRequestValidator : AbstractValidator<RegistrationRequest>
 {
-  // ========================================
-  // REGEX PATTERNS
-  // ========================================
-
   // Staff Number: 7 chars, starts with "00", followed by 5 alphanumeric (uppercase)
   // Accepts: 0012345, 00C5050, 00RG002, 00PW057, 00EM004, 00LON01
   private const string StaffNumberPattern = @"^00[0-9A-Z]{5}$";
@@ -39,10 +35,6 @@ public class RegistrationRequestValidator : AbstractValidator<RegistrationReques
 
   public RegistrationRequestValidator()
   {
-    // ========================================
-    // PERSONAL INFORMATION
-    // ========================================
-
     // Staff Number (Optional - will be auto-populated from ERP)
     When(x => !string.IsNullOrEmpty(x.StaffNumber), () =>
     {
@@ -69,10 +61,6 @@ public class RegistrationRequestValidator : AbstractValidator<RegistrationReques
         .WithMessage("Full name must be between 2 and 200 characters")
         .Matches(FullNamePattern)
         .WithMessage("Full name can only contain letters, spaces, hyphens, and apostrophes");
-
-    // ========================================
-    // CONTACT INFORMATION
-    // ========================================
 
     RuleFor(x => x.Email)
         .NotEmpty()
@@ -133,10 +121,6 @@ public class RegistrationRequestValidator : AbstractValidator<RegistrationReques
               .WithMessage("City name can only contain letters, spaces, and hyphens");
     });
 
-    // ========================================
-    // EMPLOYMENT INFORMATION (Optional)
-    // ========================================
-
     When(x => !string.IsNullOrEmpty(x.CurrentEmployer), () =>
     {
       RuleFor(x => x.CurrentEmployer)
@@ -167,10 +151,6 @@ public class RegistrationRequestValidator : AbstractValidator<RegistrationReques
               .WithMessage("Please provide a valid LinkedIn profile URL");
     });
 
-    // ========================================
-    // EDUCATION & PROFESSIONAL DEVELOPMENT
-    // ========================================
-
     RuleFor(x => x.QualificationsAttained)
         .NotEmpty()
         .WithMessage("Please select at least one qualification")
@@ -186,10 +166,6 @@ public class RegistrationRequestValidator : AbstractValidator<RegistrationReques
               .WithMessage("Professional certifications text too long (max 1000 characters)");
     });
 
-    // ========================================
-    // ALUMNI ENGAGEMENT
-    // ========================================
-
     RuleFor(x => x.EngagementPreferences)
         .NotEmpty()
         .WithMessage("Please select at least one area of interest")
@@ -198,18 +174,10 @@ public class RegistrationRequestValidator : AbstractValidator<RegistrationReques
         .Must(preferences => preferences.Count <= 6)
         .WithMessage("Maximum 6 areas of interest allowed");
 
-    // ========================================
-    // CONSENT & VERIFICATION
-    // ========================================
-
     RuleFor(x => x.ConsentGiven)
         .Equal(true)
         .WithMessage("You must give consent to register");
   }
-
-  // ========================================
-  // CUSTOM VALIDATORS
-  // ========================================
 
   private bool BeUpperCase(string value)
   {

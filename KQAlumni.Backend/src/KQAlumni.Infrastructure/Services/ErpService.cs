@@ -54,10 +54,6 @@ public class ErpService : IErpService
     }
   }
 
-  // ========================================
-  // PUBLIC METHODS
-  // ========================================
-
   public async Task<ErpValidationResult> ValidateStaffNumberAsync(
       string staffNumber,
       CancellationToken cancellationToken = default)
@@ -279,10 +275,6 @@ public class ErpService : IErpService
       return CreateErrorResult("An unexpected error occurred. Please contact support.");
     }
   }
-
-  // ========================================
-  // PRIVATE HELPER METHODS
-  // ========================================
 
   /// <summary>
   /// Parses JSON response from ERP API and finds the leaver matching the nationalIdentifier
