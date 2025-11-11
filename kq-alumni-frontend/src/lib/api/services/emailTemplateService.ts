@@ -132,7 +132,7 @@ export function useEmailTemplate(id: number) {
       const response = await templateApi.get<EmailTemplate>(`/emailtemplates/${id}`);
       return response.data;
     },
-    enabled: !!id,
+    enabled: Boolean(id),
   });
 }
 
@@ -146,7 +146,7 @@ export function useEmailTemplateByKey(key: string) {
       const response = await templateApi.get<EmailTemplate>(`/emailtemplates/by-key/${key}`);
       return response.data;
     },
-    enabled: !!key,
+    enabled: Boolean(key),
   });
 }
 

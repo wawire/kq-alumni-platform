@@ -106,11 +106,15 @@ class ABTestManager {
    * Get existing assignment for an experiment
    */
   private getAssignment(experimentName: string): ABTestAssignment | null {
-    if (typeof window === "undefined") return null;
+    if (typeof window === "undefined") {
+      return null;
+    }
 
     try {
       const stored = window.localStorage.getItem(STORAGE_KEY);
-      if (!stored) return null;
+      if (!stored) {
+        return null;
+      }
 
       const assignments: ABTestAssignment[] = JSON.parse(stored);
       return assignments.find((a) => a.experimentName === experimentName) || null;
@@ -123,7 +127,9 @@ class ABTestManager {
    * Save assignment to localStorage
    */
   private saveAssignment(assignment: ABTestAssignment): void {
-    if (typeof window === "undefined") return;
+    if (typeof window === "undefined") {
+      return;
+    }
 
     try {
       const stored = window.localStorage.getItem(STORAGE_KEY);
@@ -142,7 +148,9 @@ class ABTestManager {
    * Get all assignments (for debugging)
    */
   getAllAssignments(): ABTestAssignment[] {
-    if (typeof window === "undefined") return [];
+    if (typeof window === "undefined") {
+      return [];
+    }
 
     try {
       const stored = window.localStorage.getItem(STORAGE_KEY);
@@ -156,7 +164,9 @@ class ABTestManager {
    * Clear all assignments (for testing)
    */
   clearAssignments(): void {
-    if (typeof window === "undefined") return;
+    if (typeof window === "undefined") {
+      return;
+    }
     window.localStorage.removeItem(STORAGE_KEY);
   }
 }

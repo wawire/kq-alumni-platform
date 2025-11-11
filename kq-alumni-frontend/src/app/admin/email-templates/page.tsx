@@ -10,10 +10,8 @@ import {
   Mail,
   Edit2,
   Eye,
-  Plus,
   Save,
   X,
-  Send,
   Copy,
   CheckCircle2,
   AlertCircle,
@@ -36,10 +34,9 @@ import { toast } from 'sonner';
 
 interface VariableHelperProps {
   variables: string[];
-  onInsert: (variable: string) => void;
 }
 
-function VariableHelper({ variables, onInsert }: VariableHelperProps) {
+function VariableHelper({ variables }: VariableHelperProps) {
   const [copiedVar, setCopiedVar] = useState<string | null>(null);
 
   const handleCopy = (variable: string) => {
@@ -134,7 +131,7 @@ function TemplateEditorModal({ template, onClose, onSave }: TemplateEditorModalP
       setPreviewSubject(result.subject);
       setPreviewHtml(result.htmlBody);
       setShowPreview(true);
-    } catch (error) {
+    } catch {
       toast.error('Failed to generate preview');
     }
   };
@@ -226,13 +223,7 @@ function TemplateEditorModal({ template, onClose, onSave }: TemplateEditorModalP
                 />
               </div>
 
-              <VariableHelper
-                variables={availableVariables}
-                onInsert={(variable) => {
-                  // Insert at cursor position in the active field
-                  // For simplicity, just copy to clipboard
-                }}
-              />
+              <VariableHelper variables={availableVariables} />
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">

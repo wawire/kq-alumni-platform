@@ -287,7 +287,6 @@ function RegistrationsPageContent() {
 
     // Excel-friendly CSV with comprehensive data
     const headers = [
-      'Registration Number',
       'Staff Number',
       'Full Name',
       'ID Number',
@@ -316,7 +315,6 @@ function RegistrationsPageContent() {
       const updatedDate = new Date(reg.updatedAt);
 
       return [
-        reg.registrationNumber || '',
         reg.staffNumber || '',
         `"${reg.fullName}"`,
         reg.idNumber || '',
@@ -354,7 +352,9 @@ function RegistrationsPageContent() {
   };
 
   const handleQuickApprove = async () => {
-    if (!actionModal.registrationId) return;
+    if (!actionModal.registrationId) {
+      return;
+    }
 
     toast.loading('Approving registration...', { id: 'quick-approve-toast' });
 
@@ -382,7 +382,9 @@ function RegistrationsPageContent() {
   };
 
   const handleQuickReject = async () => {
-    if (!actionModal.registrationId || !rejectReason.trim()) return;
+    if (!actionModal.registrationId || !rejectReason.trim()) {
+      return;
+    }
 
     toast.loading('Rejecting registration...', { id: 'quick-reject-toast' });
 
@@ -564,10 +566,10 @@ function RegistrationsPageContent() {
                           <td className="px-6 py-4 whitespace-nowrap">
                             <Link href={`/admin/registrations/${registration.id}`} className="flex flex-col hover:opacity-80 transition-opacity">
                               <span className="text-sm font-bold text-kq-red hover:underline">
-                                {registration.registrationNumber || 'N/A'}
+                                {registration.staffNumber || 'N/A'}
                               </span>
                               <span className="text-xs text-gray-500">
-                                {registration.staffNumber || 'No Staff #'}
+                                ID: {registration.id.substring(0, 8)}...
                               </span>
                             </Link>
                           </td>
@@ -719,10 +721,10 @@ function RegistrationsPageContent() {
                         />
                         <Link href={`/admin/registrations/${registration.id}`} className="flex-1 hover:opacity-80 transition-opacity">
                           <div className="text-sm font-bold text-kq-red hover:underline">
-                            {registration.registrationNumber || 'N/A'}
+                            {registration.staffNumber || 'N/A'}
                           </div>
                           <div className="text-xs text-gray-500">
-                            {registration.staffNumber || 'No Staff #'}
+                            ID: {registration.id.substring(0, 8)}...
                           </div>
                         </Link>
                       </div>
@@ -951,7 +953,7 @@ function RegistrationsPageContent() {
                   Cancel
                 </Button>
                 <Button
-                  variant="danger"
+                  variant="destructive"
                   size="md"
                   onClick={handleQuickReject}
                   disabled={rejectMutation.isPending || !rejectReason.trim()}
