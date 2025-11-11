@@ -207,10 +207,6 @@ public class EmailTemplateService : IEmailTemplateService
         _logger.LogInformation("Default email templates seeding completed");
     }
 
-    // ========================================
-    // Private Helper Methods
-    // ========================================
-
     /// <summary>
     /// Replace template variables with actual values
     /// Supports {{variableName}} syntax
@@ -329,10 +325,6 @@ public class EmailTemplateService : IEmailTemplateService
         await CreateTemplateAsync(template, cancellationToken);
         _logger.LogInformation("Created default rejection template");
     }
-
-    // ========================================
-    // Default Template HTML
-    // ========================================
 
     private string GetDefaultConfirmationTemplate()
     {

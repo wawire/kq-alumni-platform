@@ -6,10 +6,6 @@ namespace KQAlumni.Core.DTOs;
 /// </summary>
 public class RegistrationRequest
 {
-  // ========================================
-  // PERSONAL INFORMATION (Mandatory)
-  // ========================================
-
   /// <summary>
   /// Staff number (7 characters): 000XXXX | 00CXXXX | 00AXXXX | 00HXXXX
   /// Optional - will be auto-populated from ERP using ID/Passport
@@ -31,10 +27,6 @@ public class RegistrationRequest
   /// Full name as per company records
   /// </summary>
   public string FullName { get; set; } = string.Empty;
-
-  // ========================================
-  // CONTACT INFORMATION
-  // ========================================
 
   /// <summary>
   /// Current email address
@@ -71,10 +63,6 @@ public class RegistrationRequest
   /// </summary>
   public string? CityCustom { get; set; }
 
-  // ========================================
-  // EMPLOYMENT INFORMATION (Optional)
-  // ========================================
-
   /// <summary>
   /// Current employer name
   /// </summary>
@@ -95,10 +83,6 @@ public class RegistrationRequest
   /// </summary>
   public string? LinkedInProfile { get; set; }
 
-  // ========================================
-  // EDUCATION & PROFESSIONAL DEVELOPMENT
-  // ========================================
-
   /// <summary>
   /// Qualifications attained (e.g., ["MASTERS", "BACHELORS"])
   /// </summary>
@@ -109,27 +93,15 @@ public class RegistrationRequest
   /// </summary>
   public string? ProfessionalCertifications { get; set; }
 
-  // ========================================
-  // ALUMNI ENGAGEMENT
-  // ========================================
-
   /// <summary>
   /// Areas of interest (e.g., ["MENTORSHIP", "NETWORKING"])
   /// </summary>
   public List<string> EngagementPreferences { get; set; } = new();
 
-  // ========================================
-  // CONSENT & VERIFICATION
-  // ========================================
-
   /// <summary>
   /// Whether the alumni gave consent for data processing
   /// </summary>
   public bool ConsentGiven { get; set; }
-
-  // ========================================
-  // MANUAL REVIEW FLAGS
-  // ========================================
 
   /// <summary>
   /// Whether this registration requires manual review (when ERP verification is unavailable)
@@ -140,10 +112,6 @@ public class RegistrationRequest
   /// Reason for manual review
   /// </summary>
   public string? ManualReviewReason { get; set; }
-
-  // ========================================
-  // ERP VALIDATION DATA (v2.2.0 Optimization)
-  // ========================================
 
   /// <summary>
   /// Whether this registration was validated against ERP during submission (frontend verification)

@@ -13,10 +13,6 @@ public class AppDbContext : DbContext
         {
         }
 
-        // ========================================
-        // DbSets (Database Tables)
-        // ========================================
-
         /// <summary>
         /// Alumni registrations table
         /// </summary>
@@ -42,10 +38,6 @@ public class AppDbContext : DbContext
         /// </summary>
         public DbSet<EmailTemplate> EmailTemplates { get; set; } = null!;
 
-        // ========================================
-        // Model Configuration
-        // ========================================
-
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
                 base.OnModelCreating(modelBuilder);
@@ -53,19 +45,9 @@ public class AppDbContext : DbContext
                 // Configure AlumniRegistration entity
                 modelBuilder.Entity<AlumniRegistration>(entity =>
                 {
-                        // ========================================
-                        // TABLE NAME
-                        // ========================================
                         entity.ToTable("AlumniRegistrations");
 
-                        // ========================================
-                        // PRIMARY KEY
-                        // ========================================
                         entity.HasKey(e => e.Id);
-
-                        // ========================================
-                        // UNIQUE CONSTRAINTS
-                        // ========================================
 
                         // Staff Number (unique, required)
                         entity.HasIndex(e => e.StaffNumber)
@@ -96,10 +78,6 @@ public class AppDbContext : DbContext
                     .HasDatabaseName("UQ_AlumniRegistrations_LinkedIn")
                     .HasFilter("[LinkedInProfile] IS NOT NULL");
 
-                        // ========================================
-                        // REGULAR INDEXES (for query performance)
-                        // ========================================
-
                         entity.HasIndex(e => e.RegistrationStatus)
                     .HasDatabaseName("IX_AlumniRegistrations_RegistrationStatus");
 
@@ -116,10 +94,6 @@ public class AppDbContext : DbContext
                         entity.HasIndex(e => e.ManuallyReviewed)
                     .HasDatabaseName("IX_AlumniRegistrations_ManuallyReviewed");
 
-                        // ========================================
-                        // COMPOSITE INDEXES (for query performance)
-                        // ========================================
-
                         // Status + CreatedAt: For sorting registrations within a status
                         entity.HasIndex(e => new { e.RegistrationStatus, e.CreatedAt })
                     .IsDescending(false, true)
@@ -132,10 +106,6 @@ public class AppDbContext : DbContext
                         // Email verification + Status: For filtering by verification status
                         entity.HasIndex(e => new { e.ErpValidated, e.RegistrationStatus })
                     .HasDatabaseName("IX_AlumniRegistrations_Validated_Status");
-
-                        // ========================================
-                        // DEFAULT VALUES
-                        // ========================================
 
                         entity.Property(e => e.Id)
                     .HasDefaultValueSql("NEWID()");
@@ -155,10 +125,6 @@ public class AppDbContext : DbContext
                         entity.Property(e => e.ErpValidated)
                     .HasDefaultValue(false);
 
-                        // ========================================
-                        // REQUIRED FIELDS
-                        // ========================================
-
                         // StaffNumber is optional (nullable) to support manual mode registrations
                         // entity.Property(e => e.StaffNumber).IsRequired(); // REMOVED: Must be nullable for manual mode
                         entity.Property(e => e.FullName).IsRequired();
@@ -171,10 +137,6 @@ public class AppDbContext : DbContext
                         entity.Property(e => e.ConsentGiven).IsRequired();
                         entity.Property(e => e.RegistrationStatus).IsRequired();
 
-                        // ========================================
-                        // CHECK CONSTRAINTS
-                        // ========================================
-
                         // Consent must be true (user must explicitly consent)
                         entity.ToTable(t => t.HasCheckConstraint(
                     "CK_AlumniRegistrations_ConsentRequired",
@@ -182,9 +144,6 @@ public class AppDbContext : DbContext
                 ));
                 });
 
-                // ========================================
-                // Configure AdminUser entity
-                // ========================================
                 modelBuilder.Entity<AdminUser>(entity =>
                 {
                         entity.ToTable("AdminUsers");
@@ -235,9 +194,6 @@ public class AppDbContext : DbContext
                         entity.Property(e => e.Role).HasDefaultValue("HROfficer");
                 });
 
-                // ========================================
-                // Configure AuditLog entity
-                // ========================================
                 modelBuilder.Entity<AuditLog>(entity =>
                 {
                         entity.ToTable("AuditLogs");
@@ -277,10 +233,6 @@ public class AppDbContext : DbContext
                         entity.HasIndex(e => e.IsAutomated)
                             .HasDatabaseName("IX_AuditLogs_IsAutomated");
 
-                        // ========================================
-                        // COMPOSITE INDEXES (for query performance)
-                        // ========================================
-
                         // RegistrationId + Timestamp: For efficient audit log queries per registration
                         entity.HasIndex(e => new { e.RegistrationId, e.Timestamp })
                             .IsDescending(false, true)
@@ -305,9 +257,6 @@ public class AppDbContext : DbContext
                         entity.Property(e => e.IsAutomated).HasDefaultValue(false);
                 });
 
-                // ========================================
-                // Configure EmailLog entity
-                // ========================================
                 modelBuilder.Entity<EmailLog>(entity =>
                 {
                         entity.ToTable("EmailLogs");
@@ -341,10 +290,6 @@ public class AppDbContext : DbContext
                         entity.HasIndex(e => e.EmailType)
                             .HasDatabaseName("IX_EmailLogs_EmailType");
 
-                        // ========================================
-                        // COMPOSITE INDEXES (for query performance)
-                        // ========================================
-
                         // Status + SentAt: For efficient delivery status queries
                         entity.HasIndex(e => new { e.Status, e.SentAt })
                             .IsDescending(false, true)
@@ -371,9 +316,6 @@ public class AppDbContext : DbContext
                         entity.Property(e => e.RetryCount).HasDefaultValue(0);
                 });
 
-                // ========================================
-                // Configure EmailTemplate entity
-                // ========================================
                 modelBuilder.Entity<EmailTemplate>(entity =>
                 {
                         entity.ToTable("EmailTemplates");
@@ -406,10 +348,6 @@ public class AppDbContext : DbContext
                         entity.Property(e => e.UpdatedAt).HasDefaultValueSql("GETUTCDATE()");
                 });
         }
-
-        // ========================================
-        // SaveChanges Override (Auto-update UpdatedAt)
-        // ========================================
 
         public override int SaveChanges()
         {
