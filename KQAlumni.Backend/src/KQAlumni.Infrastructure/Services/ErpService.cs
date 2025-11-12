@@ -294,6 +294,14 @@ public class ErpService : IErpService
         return null;
       }
 
+      var totalRecords = jsonArray.RootElement.GetArrayLength();
+      _logger.LogInformation(
+        "Parsing ERP response: {TotalRecords} records returned, searching for ID '{SearchId}' (Length: {Length})",
+        totalRecords, searchNationalId, searchNationalId.Length);
+
+      var recordsWithIds = 0;
+      var sampleIds = new List<string>();
+
       // Search through array to find matching NATIONAL_IDENTIFIER
       foreach (var element in jsonArray.RootElement.EnumerateArray())
       {
@@ -304,6 +312,14 @@ public class ErpService : IErpService
           if (natIdProperty.ValueKind == JsonValueKind.String)
           {
             nationalId = natIdProperty.GetString();
+            if (!string.IsNullOrEmpty(nationalId))
+            {
+              recordsWithIds++;
+              if (sampleIds.Count < 5)
+              {
+                sampleIds.Add(nationalId);
+              }
+            }
           }
           // Skip if it's an object (null marker: {"@nil": "true"})
         }
@@ -351,7 +367,9 @@ public class ErpService : IErpService
       }
 
       // No match found in the array
-      _logger.LogWarning("No matching NATIONAL_IDENTIFIER found in ERP response for: {SearchId}", searchNationalId);
+      _logger.LogWarning(
+        "No matching NATIONAL_IDENTIFIER found in ERP response for: '{SearchId}'. Total records: {TotalRecords}, Records with IDs: {RecordsWithIds}, Sample IDs: {SampleIds}",
+        searchNationalId, totalRecords, recordsWithIds, string.Join(", ", sampleIds.Select(id => $"'{id}'")));
       return null;
     }
     catch (JsonException ex)
