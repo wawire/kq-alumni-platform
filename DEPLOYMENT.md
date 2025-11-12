@@ -28,7 +28,7 @@ This guide covers complete deployment to IIS on Windows Server with SQL Server.
 | **IIS** | 10+ | Built-in (Enable via Server Manager) |
 | **.NET 8.0 Hosting Bundle** | Latest | https://dotnet.microsoft.com/download/dotnet/8.0 |
 | **Node.js** | 18.17+ | https://nodejs.org/ |
-| **SQL Server** | 2019+ | Already at 10.2.150.23 |
+| **SQL Server** | 2019+ | Already at 10.2.155.150 |
 | **IIS URL Rewrite Module** | 2.1+ | https://www.iis.net/downloads/microsoft/url-rewrite |
 | **IIS Application Request Routing** | 3.0+ | https://www.iis.net/downloads/microsoft/application-request-routing |
 
@@ -72,13 +72,13 @@ Create this file (it's in .gitignore) with production settings:
 
   "CorsSettings": {
     "AllowedOrigins": [
-      "https://kqalumni-dev.kenya-airways.com"
+      "https://kqalumni.kenya-airways.com"
     ]
   },
 
   "ConnectionStrings": {
-    "DefaultConnection": "Server=10.2.150.23;Database=KQAlumniDB;User Id=kqalumni_user;Password=YOUR_ACTUAL_PASSWORD;TrustServerCertificate=true;Encrypt=true;",
-    "HangfireConnection": "Server=10.2.150.23;Database=KQAlumniDB;User Id=kqalumni_user;Password=YOUR_ACTUAL_PASSWORD;TrustServerCertificate=true;Encrypt=true;"
+    "DefaultConnection": "Server=10.2.155.150;Database=KQAlumniDB;User Id=kqalumni_user;Password=YOUR_ACTUAL_PASSWORD;TrustServerCertificate=true;Encrypt=true;",
+    "HangfireConnection": "Server=10.2.155.150;Database=KQAlumniDB;User Id=kqalumni_user;Password=YOUR_ACTUAL_PASSWORD;TrustServerCertificate=true;Encrypt=true;"
   },
 
   "ErpApi": {
@@ -120,7 +120,7 @@ Create this file (it's in .gitignore) with production settings:
   },
 
   "AppSettings": {
-    "BaseUrl": "https://kqalumni-dev.kenya-airways.com"
+    "BaseUrl": "https://kqalumni.kenya-airways.com"
   },
 
   "JwtSettings": {
@@ -156,7 +156,7 @@ Create this file (it's in .gitignore) with production settings:
 
 ```bash
 # Backend API URL (REQUIRED)
-NEXT_PUBLIC_API_URL=https://kqalumniapi-dev.kenya-airways.com
+NEXT_PUBLIC_API_URL=https://api-kqalumni.kenya-airways.com
 
 # API Request Timeout (milliseconds)
 NEXT_PUBLIC_API_TIMEOUT=30000
@@ -189,8 +189,8 @@ The application will validate configuration on startup. If any required settings
 ║          KQ ALUMNI PLATFORM - CONFIGURATION SUMMARY           ║
 ╠════════════════════════════════════════════════════════════════╣
 ║ Environment:        Production                                 ║
-║ Base URL:           https://kqalumni-dev.kenya-airways.com     ║
-║ Database:           10.2.150.23 / KQAlumniDB                   ║
+║ Base URL:           https://kqalumni.kenya-airways.com         ║
+║ Database:           10.2.155.150 / KQAlumniDB                  ║
 ║ Email Sending:      ✅ Enabled                                 ║
 ╚════════════════════════════════════════════════════════════════╝
 ```
@@ -209,7 +209,7 @@ The application will validate configuration on startup. If any required settings
 
 ### Step 1: Create Database and User
 
-Connect to SQL Server at `10.2.150.23` with SQL Server Management Studio or `sqlcmd`:
+Connect to SQL Server at `10.2.155.150` with SQL Server Management Studio or `sqlcmd`:
 
 ```sql
 -- Create database
@@ -245,7 +245,7 @@ cd KQAlumni.Backend/src/KQAlumni.API
 dotnet build
 
 # Apply all migrations
-dotnet ef database update --connection "Server=10.2.150.23;Database=KQAlumniDB;User Id=kqalumni_user;Password=YOUR_PASSWORD;TrustServerCertificate=true;Encrypt=true;"
+dotnet ef database update --connection "Server=10.2.155.150;Database=KQAlumniDB;User Id=kqalumni_user;Password=YOUR_PASSWORD;TrustServerCertificate=true;Encrypt=true;"
 ```
 
 This creates all tables including:
@@ -400,7 +400,7 @@ New-Website -Name "KQAlumni-API" `
   -PhysicalPath "C:\inetpub\kqalumni-api" `
   -ApplicationPool "KQAlumniAPI" `
   -Port 80 `
-  -HostHeader "kqalumniapi-dev.kenya-airways.com"
+  -HostHeader "api-kqalumni.kenya-airways.com"
 
 # Start the site
 Start-Website -Name "KQAlumni-API"
@@ -481,7 +481,7 @@ New-Website -Name "KQAlumni-Frontend" `
   -PhysicalPath "C:\inetpub\kqalumni-frontend" `
   -ApplicationPool "KQAlumniFrontend" `
   -Port 80 `
-  -HostHeader "kqalumni-dev.kenya-airways.com"
+  -HostHeader "kqalumni.kenya-airways.com"
 
 # Start
 Start-Website -Name "KQAlumni-Frontend"
@@ -494,7 +494,7 @@ Start-Website -Name "KQAlumni-Frontend"
 ### 1. Backend Health Check
 
 ```bash
-curl https://kqalumniapi-dev.kenya-airways.com/health
+curl https://api-kqalumni.kenya-airways.com/health
 ```
 
 **Expected Response**:
@@ -533,13 +533,13 @@ Get-Content "C:\inetpub\kqalumni-api\logs\stdout_*.log" -Tail 50
 
 ### 3. Test Swagger API
 
-Visit: `https://kqalumniapi-dev.kenya-airways.com/swagger`
+Visit: `https://api-kqalumni.kenya-airways.com/swagger`
 
 Should display API documentation.
 
 ### 4. Test Frontend
 
-Visit: `https://kqalumni-dev.kenya-airways.com`
+Visit: `https://kqalumni.kenya-airways.com`
 
 Should display homepage.
 
@@ -585,7 +585,7 @@ Get-Content "C:\inetpub\kqalumni-api\logs\stdout_*.log" -Tail 100
 **Diagnosis**:
 ```powershell
 # Test connection from server
-sqlcmd -S 10.2.150.23 -U kqalumni_user -P "YourPassword" -Q "SELECT 1"
+sqlcmd -S 10.2.155.150 -U kqalumni_user -P "YourPassword" -Q "SELECT 1"
 ```
 
 **Common Causes**:
@@ -759,7 +759,7 @@ node --version
 Get-EventLog -LogName Application -Source "IIS*" -Newest 20
 
 # Monitor Hangfire jobs
-# Visit: https://kqalumniapi-dev.kenya-airways.com/hangfire
+# Visit: https://api-kqalumni.kenya-airways.com/hangfire
 ```
 
 ---
