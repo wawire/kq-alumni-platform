@@ -61,7 +61,11 @@ export interface AdminRegistration {
   currentCountry: string;
   currentCountryCode: string;
   currentCity: string;
+  currentEmployer?: string;
+  currentJobTitle?: string;
+  industry?: string;
   qualificationsAttained: string;
+  professionalCertifications?: string;
   engagementPreferences: string;
   registrationStatus: RegistrationStatus;
 
