@@ -425,38 +425,10 @@ export default function RegistrationDetailPage({ params }: Props) {
               </h3>
 
               <div className="space-y-4">
-                {registration.currentEmployer && (
-                  <div>
-                    <p className="text-sm text-gray-600">Current Employer</p>
-                    <p className="font-medium text-kq-dark">{registration.currentEmployer}</p>
-                  </div>
-                )}
-
-                {registration.currentJobTitle && (
-                  <div>
-                    <p className="text-sm text-gray-600">Current Job Title</p>
-                    <p className="font-medium text-kq-dark">{registration.currentJobTitle}</p>
-                  </div>
-                )}
-
-                {registration.industry && (
-                  <div>
-                    <p className="text-sm text-gray-600">Industry</p>
-                    <p className="font-medium text-kq-dark">{registration.industry}</p>
-                  </div>
-                )}
-
                 {registration.qualificationsAttained && (
                   <div>
                     <p className="text-sm text-gray-600">Qualifications Attained</p>
                     <p className="font-medium text-kq-dark whitespace-pre-wrap">{registration.qualificationsAttained}</p>
-                  </div>
-                )}
-
-                {registration.professionalCertifications && (
-                  <div>
-                    <p className="text-sm text-gray-600">Professional Certifications</p>
-                    <p className="font-medium text-kq-dark whitespace-pre-wrap">{registration.professionalCertifications}</p>
                   </div>
                 )}
 

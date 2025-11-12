@@ -60,7 +60,9 @@ interface FieldErrorProps {
 }
 
 export function FieldError({ error, touched }: FieldErrorProps) {
-  if (!error || !touched) return null;
+  if (!error || !touched) {
+    return null;
+  }
 
   return (
     <p className="text-xs text-red-600 font-roboto mt-1 flex items-start gap-1">

@@ -5,7 +5,7 @@
  * Quick view modal for registration details without leaving the page
  */
 
-import { X, Mail, Phone, MapPin, Calendar, CheckCircle2, XCircle, AlertCircle, User, Hash, Building } from 'lucide-react';
+import { X, Mail, MapPin, Calendar, CheckCircle2, XCircle, AlertCircle, User, Building } from 'lucide-react';
 import type { AdminRegistration } from '@/types/admin';
 import { Button } from '@/components/ui/button/Button';
 
@@ -41,7 +41,7 @@ export function RegistrationPreviewModal({ registration, onClose }: Registration
             </h2>
             <div className="flex items-center gap-3 flex-wrap">
               <span className="text-sm font-bold text-kq-red">
-                {registration.registrationNumber || 'N/A'}
+                {registration.staffNumber || `ID: ${registration.id.substring(0, 8)}...`}
               </span>
               <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 text-xs font-medium rounded-full border ${getStatusColor()}`}>
                 {registration.registrationStatus}

@@ -102,7 +102,7 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
   // ID Verification State
   const [verificationStatus, setVerificationStatus] = useState<VerificationStatus>('idle');
   const [erpData, setErpData] = useState<ErpVerificationData | null>(null);
-  const [verificationError, setVerificationError] = useState<string>("");
+  const [_verificationError, setVerificationError] = useState<string>("");
   const [allowManualMode, setAllowManualMode] = useState<boolean>(false); // Fallback mode when ERP is unavailable
 
   const methods = useForm<PersonalInfoFormData>({
@@ -230,7 +230,7 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
         });
         setErpData(null);
       }
-    } catch (error) {
+    } catch {
       setVerificationStatus('failed');
       // Show toast for system errors
       toast.error('Verification Error', {

@@ -68,7 +68,9 @@ class Analytics {
   trackPageView(path: string): void {
     this.trackEvent("page_view", { path });
 
-    if (!this.isEnabled) return;
+    if (!this.isEnabled) {
+      return;
+    }
 
     // Google Analytics
     if (typeof window !== "undefined" && (window as any).gtag) {
