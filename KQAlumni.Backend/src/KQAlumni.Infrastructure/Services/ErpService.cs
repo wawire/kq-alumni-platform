@@ -222,7 +222,10 @@ public class ErpService : IErpService
           ? _settings.Endpoint
           : _settings.IdPassportEndpoint;
 
-      var fullUrl = $"{_settings.BaseUrl}{endpoint}?nationalIdentifier={Uri.EscapeDataString(idOrPassport)}";
+      // ERP requires ALL query parameters to be present (even if empty)
+      // Format: ?primaryKeyId=&staffid=&fullname=&nationalIdentifier=VALUE&contracttype=&...
+      var queryParams = $"primaryKeyId=&staffid=&fullname=&nationalIdentifier={Uri.EscapeDataString(idOrPassport)}&contracttype=&persontype=&terminationYear=&actualTerminationDate=&leavingReason=&hiredate=&gradeName=&designation=&payrollname=&organisation=&department=";
+      var fullUrl = $"{_settings.BaseUrl}{endpoint}?{queryParams}";
 
       _logger.LogInformation("Calling ERP API: {Url}", fullUrl);
 

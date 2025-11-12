@@ -358,8 +358,8 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
   };
 
   // Check if form has any validation errors
-  const hasErrors = Object.keys(errors).length > 0;
-  const hasVerificationError = verificationError && verificationError.length > 0;
+  const hasErrors = Object.keys(errors || {}).length > 0;
+  const hasVerificationError = Boolean(verificationError && verificationError.length > 0);
   const canProceed = (verificationStatus === 'verified' || allowManualMode) && !emailCheck.isDuplicate && !hasErrors && !hasVerificationError;
 
   return (
