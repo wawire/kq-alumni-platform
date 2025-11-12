@@ -398,12 +398,12 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
               style={{ textTransform: "uppercase" }}
               className="uppercase"
             />
-            {errors.idNumber && (
+            {errors?.idNumber && (
               <p className="mt-2 text-sm text-kq-red">
                 {errors.idNumber.message}
               </p>
             )}
-            {!errors.idNumber && verificationStatus === 'failed' && !allowManualMode && (
+            {!errors?.idNumber && verificationStatus === 'failed' && !allowManualMode && (
               <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
                 <p className="text-sm text-yellow-800 mb-2">
                   <strong>Can't verify automatically?</strong> You can continue with manual review.
@@ -435,7 +435,7 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
               required
               className={allowManualMode ? "" : "bg-gray-50"}
             />
-            {errors.fullName && (
+            {errors?.fullName && (
               <p className="mt-2 text-sm text-kq-red">
                 {errors.fullName.message}
               </p>
@@ -468,7 +468,7 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
               required
               variant="underline"
             />
-            {errors.email && (
+            {errors?.email && (
               <p className="mt-2 text-sm text-kq-red">
                 {errors.email.message}
               </p>
