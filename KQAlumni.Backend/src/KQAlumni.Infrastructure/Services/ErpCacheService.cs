@@ -102,8 +102,10 @@ public class ErpCacheService : IErpCacheService
         return;
       }
 
-      // Build URL to fetch ALL employees
-      var fullUrl = $"{_settings.BaseUrl}{_settings.Endpoint}";
+      // Build URL to fetch ALL employees (all parameters empty = return all)
+      // ERP requires ALL query parameters to be present
+      var queryParams = "primaryKeyId=&staffid=&fullname=&nationalIdentifier=&contracttype=&persontype=&terminationYear=&actualTerminationDate=&leavingReason=&hiredate=&gradeName=&designation=&payrollname=&organisation=&department=";
+      var fullUrl = $"{_settings.BaseUrl}{_settings.Endpoint}?{queryParams}";
       _logger.LogInformation("Fetching all ERP employees from: {Url}", fullUrl);
 
       // Fetch from ERP
