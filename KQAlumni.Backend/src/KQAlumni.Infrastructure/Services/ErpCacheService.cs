@@ -44,9 +44,36 @@ public class ErpCacheService : IErpCacheService
     if (string.IsNullOrWhiteSpace(nationalId))
       return null;
 
-    return _cache.FirstOrDefault(e =>
+    _logger.LogInformation(
+      "Searching cache for National ID: '{NationalId}' (Length: {Length}, Cache Size: {CacheSize})",
+      nationalId, nationalId.Length, _cache.Count);
+
+    // Log first 5 IDs in cache for comparison (if cache has data)
+    if (_cache.Count > 0 && _cache.Count <= 5)
+    {
+      var sampleIds = string.Join(", ", _cache.Take(5).Select(e => $"'{e.NationalIdentifier}'"));
+      _logger.LogInformation("Sample IDs in cache: {SampleIds}", sampleIds);
+    }
+    else if (_cache.Count > 5)
+    {
+      var sampleIds = string.Join(", ", _cache.Take(5).Select(e => $"'{e.NationalIdentifier}'"));
+      _logger.LogInformation("Sample IDs in cache (first 5 of {Total}): {SampleIds}", _cache.Count, sampleIds);
+    }
+
+    var result = _cache.FirstOrDefault(e =>
       !string.IsNullOrEmpty(e.NationalIdentifier) &&
       e.NationalIdentifier.Equals(nationalId, StringComparison.OrdinalIgnoreCase));
+
+    if (result != null)
+    {
+      _logger.LogInformation("Found match in cache: Staff={StaffId}, Name={FullName}", result.StaffId, result.FullName);
+    }
+    else
+    {
+      _logger.LogWarning("No match found in cache for National ID: '{NationalId}'", nationalId);
+    }
+
+    return result;
   }
 
   /// <summary>
