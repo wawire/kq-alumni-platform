@@ -103,17 +103,27 @@ if (redisEnabled && !string.IsNullOrEmpty(redisConnectionString))
             options.Configuration = redisConnectionString;
             options.InstanceName = builder.Configuration.GetValue<string>("Redis:InstanceName", "KQAlumni:");
         });
-        Console.WriteLine("[CACHE] Redis distributed cache configured successfully.");
+
+        if (builder.Environment.IsDevelopment())
+        {
+            Console.WriteLine("[CACHE] Redis distributed cache configured successfully.");
+        }
     }
     catch (Exception ex)
     {
-        Console.WriteLine($"[CACHE] Redis configuration failed, falling back to memory cache: {ex.Message}");
+        if (builder.Environment.IsDevelopment())
+        {
+            Console.WriteLine($"[CACHE] Redis configuration failed, falling back to memory cache: {ex.Message}");
+        }
         builder.Services.AddDistributedMemoryCache();
     }
 }
 else
 {
-    Console.WriteLine("[CACHE] Redis disabled, using in-memory cache.");
+    if (builder.Environment.IsDevelopment())
+    {
+        Console.WriteLine("[CACHE] Redis disabled, using in-memory cache.");
+    }
     builder.Services.AddDistributedMemoryCache();
 }
 
@@ -199,35 +209,44 @@ builder.Services.AddHttpClient();
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
     ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 
-Console.WriteLine("═══════════════════════════════════════════════════════");
-Console.WriteLine("DATABASE CONNECTION TEST");
-Console.WriteLine("═══════════════════════════════════════════════════════");
-
-// Sanitize connection string for logging (hide sensitive data)
-var sanitizedConnStr = System.Text.RegularExpressions.Regex.Replace(
-    connectionString,
-    @"Password=[^;]+",
-    "Password=***",
-    System.Text.RegularExpressions.RegexOptions.IgnoreCase);
-Console.WriteLine($"Connection String: {sanitizedConnStr}");
-
 bool isDatabaseAvailable = false;
 string databaseName = "Unknown";
 string serverName = "Unknown";
+
+if (builder.Environment.IsDevelopment())
+{
+    Console.WriteLine("═══════════════════════════════════════════════════════");
+    Console.WriteLine("DATABASE CONNECTION TEST");
+    Console.WriteLine("═══════════════════════════════════════════════════════");
+
+    // Sanitize connection string for logging (hide sensitive data)
+    var sanitizedConnStr = System.Text.RegularExpressions.Regex.Replace(
+        connectionString,
+        @"Password=[^;]+",
+        "Password=***",
+        System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+    Console.WriteLine($"Connection String: {sanitizedConnStr}");
+}
 
 try
 {
     using (var testConn = new Microsoft.Data.SqlClient.SqlConnection(connectionString))
     {
-        Console.WriteLine("Opening database connection...");
+        if (builder.Environment.IsDevelopment())
+        {
+            Console.WriteLine("Opening database connection...");
+        }
         testConn.Open();
 
         serverName = testConn.DataSource;
         databaseName = testConn.Database;
 
-        Console.WriteLine($"Server: {serverName}");
-        Console.WriteLine($"Database: {databaseName}");
-        Console.WriteLine($"Server Version: {testConn.ServerVersion}");
+        if (builder.Environment.IsDevelopment())
+        {
+            Console.WriteLine($"Server: {serverName}");
+            Console.WriteLine($"Database: {databaseName}");
+            Console.WriteLine($"Server Version: {testConn.ServerVersion}");
+        }
 
         using var cmd = testConn.CreateCommand();
         cmd.CommandText = "SELECT 1";
@@ -239,31 +258,47 @@ try
     System.Threading.Thread.Sleep(100);
 
     isDatabaseAvailable = true;
-    Console.WriteLine("[SUCCESS] Database connection successful");
+
+    if (builder.Environment.IsDevelopment())
+    {
+        Console.WriteLine("[SUCCESS] Database connection successful");
+    }
 }
 catch (Exception ex)
 {
     Console.WriteLine($"[ERROR] Database connection failed: {ex.Message}");
-    Console.WriteLine($"Error Type: {ex.GetType().Name}");
-    if (ex.InnerException != null)
+    if (builder.Environment.IsDevelopment())
     {
-        Console.WriteLine($"Inner Error: {ex.InnerException.Message}");
+        Console.WriteLine($"Error Type: {ex.GetType().Name}");
+        if (ex.InnerException != null)
+        {
+            Console.WriteLine($"Inner Error: {ex.InnerException.Message}");
+        }
     }
 }
 
-Console.WriteLine("═══════════════════════════════════════════════════════");
-Console.WriteLine();
+if (builder.Environment.IsDevelopment())
+{
+    Console.WriteLine("═══════════════════════════════════════════════════════");
+    Console.WriteLine();
+}
 
-Console.WriteLine("═══════════════════════════════════════════════════════");
-Console.WriteLine("HANGFIRE CONFIGURATION");
-Console.WriteLine("═══════════════════════════════════════════════════════");
+if (builder.Environment.IsDevelopment())
+{
+    Console.WriteLine("═══════════════════════════════════════════════════════");
+    Console.WriteLine("HANGFIRE CONFIGURATION");
+    Console.WriteLine("═══════════════════════════════════════════════════════");
+}
 
 if (isDatabaseAvailable)
 {
-    Console.WriteLine("Storage Type: SQL Server");
-    Console.WriteLine($"Server: {serverName}");
-    Console.WriteLine($"Database: {databaseName}");
-    Console.WriteLine("Schema: Hangfire");
+    if (builder.Environment.IsDevelopment())
+    {
+        Console.WriteLine("Storage Type: SQL Server");
+        Console.WriteLine($"Server: {serverName}");
+        Console.WriteLine($"Database: {databaseName}");
+        Console.WriteLine("Schema: Hangfire");
+    }
 
     builder.Services.AddHangfire(config => config
         .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
@@ -281,9 +316,16 @@ if (isDatabaseAvailable)
         }));
 
     var workerCount = builder.Configuration.GetValue<int>("Hangfire:WorkerCount", 5);
-    Console.WriteLine($"Worker Count: {workerCount}");
+    if (builder.Environment.IsDevelopment())
+    {
+        Console.WriteLine($"Worker Count: {workerCount}");
+    }
     builder.Services.AddHangfireServer(options => options.WorkerCount = workerCount);
-    Console.WriteLine("[SUCCESS] Hangfire server configured");
+
+    if (builder.Environment.IsDevelopment())
+    {
+        Console.WriteLine("[SUCCESS] Hangfire server configured");
+    }
 }
 else
 {
@@ -294,8 +336,11 @@ else
         .UseRecommendedSerializerSettings());
 }
 
-Console.WriteLine("═══════════════════════════════════════════════════════");
-Console.WriteLine();
+if (builder.Environment.IsDevelopment())
+{
+    Console.WriteLine("═══════════════════════════════════════════════════════");
+    Console.WriteLine();
+}
 
 // 5. CORS
 
@@ -491,9 +536,12 @@ if (app.Environment.IsDevelopment())
 
 if (isDatabaseAvailable)
 {
-    Console.WriteLine("═══════════════════════════════════════════════════════");
-    Console.WriteLine("DATABASE MIGRATIONS");
-    Console.WriteLine("═══════════════════════════════════════════════════════");
+    if (app.Environment.IsDevelopment())
+    {
+        Console.WriteLine("═══════════════════════════════════════════════════════");
+        Console.WriteLine("DATABASE MIGRATIONS");
+        Console.WriteLine("═══════════════════════════════════════════════════════");
+    }
 
     using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -502,26 +550,34 @@ if (isDatabaseAvailable)
     {
         if (db.Database.CanConnect())
         {
-            Console.WriteLine("Applying pending migrations...");
             var pendingMigrations = db.Database.GetPendingMigrations().ToList();
 
-            if (pendingMigrations.Any())
+            if (app.Environment.IsDevelopment())
             {
-                Console.WriteLine($"Found {pendingMigrations.Count} pending migration(s):");
-                foreach (var migration in pendingMigrations)
+                Console.WriteLine("Applying pending migrations...");
+
+                if (pendingMigrations.Any())
                 {
-                    Console.WriteLine($"  - {migration}");
+                    Console.WriteLine($"Found {pendingMigrations.Count} pending migration(s):");
+                    foreach (var migration in pendingMigrations)
+                    {
+                        Console.WriteLine($"  - {migration}");
+                    }
                 }
-            }
-            else
-            {
-                Console.WriteLine("Database is up to date - no pending migrations");
+                else
+                {
+                    Console.WriteLine("Database is up to date - no pending migrations");
+                }
             }
 
             db.Database.Migrate();
 
-            var appliedMigrations = db.Database.GetAppliedMigrations().ToList();
-            Console.WriteLine($"Total applied migrations: {appliedMigrations.Count}");
+            if (app.Environment.IsDevelopment())
+            {
+                var appliedMigrations = db.Database.GetAppliedMigrations().ToList();
+                Console.WriteLine($"Total applied migrations: {appliedMigrations.Count}");
+            }
+
             app.Logger.LogInformation("Database migrations applied successfully");
         }
     }
@@ -531,13 +587,19 @@ if (isDatabaseAvailable)
         app.Logger.LogError(ex, "Failed to apply migrations");
     }
 
-    Console.WriteLine("═══════════════════════════════════════════════════════");
-    Console.WriteLine();
+    if (app.Environment.IsDevelopment())
+    {
+        Console.WriteLine("═══════════════════════════════════════════════════════");
+        Console.WriteLine();
+    }
 
     // SEED ADMIN USERS
-    Console.WriteLine("═══════════════════════════════════════════════════════");
-    Console.WriteLine("ADMIN USER SEEDING");
-    Console.WriteLine("═══════════════════════════════════════════════════════");
+    if (app.Environment.IsDevelopment())
+    {
+        Console.WriteLine("═══════════════════════════════════════════════════════");
+        Console.WriteLine("ADMIN USER SEEDING");
+        Console.WriteLine("═══════════════════════════════════════════════════════");
+    }
 
     try
     {
@@ -549,13 +611,19 @@ if (isDatabaseAvailable)
         app.Logger.LogError(ex, "Failed to seed admin users");
     }
 
-    Console.WriteLine("═══════════════════════════════════════════════════════");
-    Console.WriteLine();
+    if (app.Environment.IsDevelopment())
+    {
+        Console.WriteLine("═══════════════════════════════════════════════════════");
+        Console.WriteLine();
+    }
 
     // VERIFY EMAIL TEMPLATES (Migration seeds them, this verifies)
-    Console.WriteLine("═══════════════════════════════════════════════════════");
-    Console.WriteLine("EMAIL TEMPLATE VERIFICATION");
-    Console.WriteLine("═══════════════════════════════════════════════════════");
+    if (app.Environment.IsDevelopment())
+    {
+        Console.WriteLine("═══════════════════════════════════════════════════════");
+        Console.WriteLine("EMAIL TEMPLATE VERIFICATION");
+        Console.WriteLine("═══════════════════════════════════════════════════════");
+    }
 
     try
     {
@@ -563,25 +631,36 @@ if (isDatabaseAvailable)
         var templateService = templateScope.ServiceProvider.GetRequiredService<KQAlumni.Core.Interfaces.IEmailTemplateService>();
 
         var existingTemplates = await templateService.GetAllTemplatesAsync();
-        Console.WriteLine($"Found {existingTemplates.Count} email template(s) in database");
+
+        if (app.Environment.IsDevelopment())
+        {
+            Console.WriteLine($"Found {existingTemplates.Count} email template(s) in database");
+        }
 
         if (existingTemplates.Count == 0)
         {
-            Console.WriteLine("[WARNING] No templates found - attempting to seed...");
-            Console.WriteLine("NOTE: Templates should be seeded by migration automatically");
+            if (app.Environment.IsDevelopment())
+            {
+                Console.WriteLine("[WARNING] No templates found - attempting to seed...");
+                Console.WriteLine("NOTE: Templates should be seeded by migration automatically");
+            }
+
             await templateService.SeedDefaultTemplatesAsync();
 
             var recheck = await templateService.GetAllTemplatesAsync();
-            if (recheck.Count > 0)
+            if (app.Environment.IsDevelopment())
             {
-                Console.WriteLine($"[SUCCESS] Seeded {recheck.Count} email template(s)");
-            }
-            else
-            {
-                Console.WriteLine("[ERROR] Seeding failed - no templates created");
+                if (recheck.Count > 0)
+                {
+                    Console.WriteLine($"[SUCCESS] Seeded {recheck.Count} email template(s)");
+                }
+                else
+                {
+                    Console.WriteLine("[ERROR] Seeding failed - no templates created");
+                }
             }
         }
-        else
+        else if (app.Environment.IsDevelopment())
         {
             Console.WriteLine("[SUCCESS] Email templates verified:");
             foreach (var template in existingTemplates.OrderBy(t => t.TemplateKey))
@@ -595,45 +674,63 @@ if (isDatabaseAvailable)
     catch (Exception ex)
     {
         Console.WriteLine($"[ERROR] Email template verification failed: {ex.Message}");
-        Console.WriteLine($"[ERROR] Stack trace: {ex.StackTrace}");
-        if (ex.InnerException != null)
+        if (app.Environment.IsDevelopment())
         {
-            Console.WriteLine($"[ERROR] Inner exception: {ex.InnerException.Message}");
+            Console.WriteLine($"[ERROR] Stack trace: {ex.StackTrace}");
+            if (ex.InnerException != null)
+            {
+                Console.WriteLine($"[ERROR] Inner exception: {ex.InnerException.Message}");
+            }
         }
         app.Logger.LogError(ex, "Failed to verify email templates");
     }
 
-    Console.WriteLine("═══════════════════════════════════════════════════════");
-    Console.WriteLine();
+    if (app.Environment.IsDevelopment())
+    {
+        Console.WriteLine("═══════════════════════════════════════════════════════");
+        Console.WriteLine();
+    }
 }
 
 // 12. SCHEDULE HANGFIRE JOBS
 
 if (isDatabaseAvailable)
 {
-    Console.WriteLine("═══════════════════════════════════════════════════════");
-    Console.WriteLine("BACKGROUND JOB SCHEDULING");
-    Console.WriteLine("═══════════════════════════════════════════════════════");
+    if (app.Environment.IsDevelopment())
+    {
+        Console.WriteLine("═══════════════════════════════════════════════════════");
+        Console.WriteLine("BACKGROUND JOB SCHEDULING");
+        Console.WriteLine("═══════════════════════════════════════════════════════");
+    }
 
     TimeZoneInfo tz;
     try
     {
         tz = TimeZoneInfo.FindSystemTimeZoneById(backgroundJobSettings.TimeZone);
-        Console.WriteLine($"Timezone: {backgroundJobSettings.TimeZone}");
+        if (app.Environment.IsDevelopment())
+        {
+            Console.WriteLine($"Timezone: {backgroundJobSettings.TimeZone}");
+        }
     }
     catch
     {
         app.Logger.LogWarning("Timezone '{TimeZone}' not found. Using UTC.", backgroundJobSettings.TimeZone);
-        Console.WriteLine("[WARNING] Timezone not found, using UTC");
+        if (app.Environment.IsDevelopment())
+        {
+            Console.WriteLine("[WARNING] Timezone not found, using UTC");
+        }
         tz = TimeZoneInfo.Utc;
     }
 
     if (backgroundJobSettings.EnableSmartScheduling)
     {
-        Console.WriteLine("Smart Scheduling: ENABLED");
-        Console.WriteLine($"  Business Hours: {backgroundJobSettings.BusinessHoursSchedule}");
-        Console.WriteLine($"  Off Hours: {backgroundJobSettings.OffHoursSchedule}");
-        Console.WriteLine($"  Weekends: {backgroundJobSettings.WeekendSchedule}");
+        if (app.Environment.IsDevelopment())
+        {
+            Console.WriteLine("Smart Scheduling: ENABLED");
+            Console.WriteLine($"  Business Hours: {backgroundJobSettings.BusinessHoursSchedule}");
+            Console.WriteLine($"  Off Hours: {backgroundJobSettings.OffHoursSchedule}");
+            Console.WriteLine($"  Weekends: {backgroundJobSettings.WeekendSchedule}");
+        }
 
         RecurringJob.AddOrUpdate<ApprovalProcessingJob>(
             "business-hours", job => job.ProcessPendingRegistrations(),
@@ -648,23 +745,37 @@ if (isDatabaseAvailable)
             backgroundJobSettings.WeekendSchedule, new RecurringJobOptions { TimeZone = tz });
 
         app.Logger.LogInformation("Hangfire jobs scheduled (Smart Scheduling)");
-        Console.WriteLine("[SUCCESS] 3 recurring jobs scheduled");
+
+        if (app.Environment.IsDevelopment())
+        {
+            Console.WriteLine("[SUCCESS] 3 recurring jobs scheduled");
+        }
     }
     else
     {
-        Console.WriteLine("Smart Scheduling: DISABLED");
-        Console.WriteLine("  Default Schedule: Every 5 minutes (*/5 * * * *)");
+        if (app.Environment.IsDevelopment())
+        {
+            Console.WriteLine("Smart Scheduling: DISABLED");
+            Console.WriteLine("  Default Schedule: Every 5 minutes (*/5 * * * *)");
+        }
 
         RecurringJob.AddOrUpdate<ApprovalProcessingJob>(
             "default", job => job.ProcessPendingRegistrations(),
             "*/5 * * * *", new RecurringJobOptions { TimeZone = tz });
 
         app.Logger.LogInformation("Hangfire jobs scheduled (Default Schedule)");
-        Console.WriteLine("[SUCCESS] 1 recurring job scheduled");
+
+        if (app.Environment.IsDevelopment())
+        {
+            Console.WriteLine("[SUCCESS] 1 recurring job scheduled");
+        }
     }
 
-    Console.WriteLine("═══════════════════════════════════════════════════════");
-    Console.WriteLine();
+    if (app.Environment.IsDevelopment())
+    {
+        Console.WriteLine("═══════════════════════════════════════════════════════");
+        Console.WriteLine();
+    }
 }
 
 // 13. RATE LIMIT CLEANUP
@@ -674,81 +785,75 @@ RateLimitingMiddleware.StartCleanupTask(window);
 
 // 14. DISPLAY ALL ENDPOINTS
 
-Console.WriteLine("═══════════════════════════════════════════════════════");
-Console.WriteLine("APPLICATION URLS & ENDPOINTS");
-Console.WriteLine("═══════════════════════════════════════════════════════");
-
 var baseUrl = builder.Configuration["AppSettings:BaseUrl"] ?? "http://localhost:5000";
 var urlsConfig = builder.Configuration["urls"] ?? builder.Configuration["ASPNETCORE_URLS"] ?? baseUrl;
 var urlList = urlsConfig.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
-Console.WriteLine("Listening on:");
-foreach (var url in urlList)
-{
-    Console.WriteLine($"  - {url}");
-}
-Console.WriteLine($"Environment: {app.Environment.EnvironmentName}");
-Console.WriteLine();
-
-Console.WriteLine("DOCUMENTATION & MANAGEMENT");
-if (app.Environment.IsDevelopment() || app.Environment.EnvironmentName == "UAT")
-{
-    Console.WriteLine($"  Swagger UI:    {urlList[0]}/swagger");
-    Console.WriteLine($"  OpenAPI JSON:  {urlList[0]}/swagger/v1/swagger.json");
-}
-else
-{
-    Console.WriteLine("  Swagger: Disabled (Production)");
-}
-
-if (isDatabaseAvailable && builder.Configuration.GetValue<bool>("Hangfire:DashboardEnabled", true))
-{
-    var dashboardPath = builder.Configuration.GetValue<string>("Hangfire:DashboardPath", "/hangfire");
-    Console.WriteLine($"  Hangfire:      {urlList[0]}{dashboardPath}");
-}
-
-Console.WriteLine();
-Console.WriteLine("HEALTH CHECK ENDPOINTS");
-Console.WriteLine($"  GET  {urlList[0]}/health         (Full health check)");
-Console.WriteLine($"  GET  {urlList[0]}/health/ready   (Readiness probe)");
-Console.WriteLine($"  GET  {urlList[0]}/health/live    (Liveness probe)");
-
 if (app.Environment.IsDevelopment())
 {
+    Console.WriteLine("═══════════════════════════════════════════════════════");
+    Console.WriteLine("APPLICATION URLS & ENDPOINTS");
+    Console.WriteLine("═══════════════════════════════════════════════════════");
+
+    Console.WriteLine("Listening on:");
+    foreach (var url in urlList)
+    {
+        Console.WriteLine($"  - {url}");
+    }
+    Console.WriteLine($"Environment: {app.Environment.EnvironmentName}");
+    Console.WriteLine();
+
+    Console.WriteLine("DOCUMENTATION & MANAGEMENT");
+    Console.WriteLine($"  Swagger UI:    {urlList[0]}/swagger");
+    Console.WriteLine($"  OpenAPI JSON:  {urlList[0]}/swagger/v1/swagger.json");
+
+    if (isDatabaseAvailable && builder.Configuration.GetValue<bool>("Hangfire:DashboardEnabled", true))
+    {
+        var dashboardPath = builder.Configuration.GetValue<string>("Hangfire:DashboardPath", "/hangfire");
+        Console.WriteLine($"  Hangfire:      {urlList[0]}{dashboardPath}");
+    }
+
+    Console.WriteLine();
+    Console.WriteLine("HEALTH CHECK ENDPOINTS");
+    Console.WriteLine($"  GET  {urlList[0]}/health         (Full health check)");
+    Console.WriteLine($"  GET  {urlList[0]}/health/ready   (Readiness probe)");
+    Console.WriteLine($"  GET  {urlList[0]}/health/live    (Liveness probe)");
     Console.WriteLine($"  GET  {urlList[0]}/api/test       (Test endpoint)");
+
+    Console.WriteLine();
+    Console.WriteLine("API ENDPOINTS");
+    Console.WriteLine("  Authentication:");
+    Console.WriteLine($"    POST   /api/v1/admin/login");
+    Console.WriteLine();
+    Console.WriteLine("  Registrations:");
+    Console.WriteLine($"    POST   /api/v1/registrations");
+    Console.WriteLine($"    GET    /api/v1/registrations/status?email={{email}}");
+    Console.WriteLine($"    GET    /api/v1/registrations/{{id}}");
+    Console.WriteLine($"    GET    /api/v1/registrations/check/staff-number/{{staffNumber}}");
+    Console.WriteLine($"    GET    /api/v1/registrations/check/email/{{email}}");
+    Console.WriteLine($"    GET    /api/v1/registrations/verify/{{token}}");
+    Console.WriteLine();
+    Console.WriteLine("  Admin Registrations:");
+    Console.WriteLine($"    GET    /api/v1/admin/registrations");
+    Console.WriteLine($"    GET    /api/v1/admin/registrations/{{id}}");
+    Console.WriteLine($"    PUT    /api/v1/admin/registrations/{{id}}/approve");
+    Console.WriteLine($"    PUT    /api/v1/admin/registrations/{{id}}/reject");
+    Console.WriteLine($"    GET    /api/v1/admin/statistics");
+    Console.WriteLine($"    GET    /api/v1/admin/audit-logs?registrationId={{id}}");
+
+    Console.WriteLine("═══════════════════════════════════════════════════════");
+    Console.WriteLine();
 }
-
-Console.WriteLine();
-Console.WriteLine("API ENDPOINTS");
-Console.WriteLine("  Authentication:");
-Console.WriteLine($"    POST   /api/v1/admin/login");
-Console.WriteLine();
-Console.WriteLine("  Registrations:");
-Console.WriteLine($"    POST   /api/v1/registrations");
-Console.WriteLine($"    GET    /api/v1/registrations/status?email={{email}}");
-Console.WriteLine($"    GET    /api/v1/registrations/{{id}}");
-Console.WriteLine($"    GET    /api/v1/registrations/check/staff-number/{{staffNumber}}");
-Console.WriteLine($"    GET    /api/v1/registrations/check/email/{{email}}");
-Console.WriteLine($"    GET    /api/v1/registrations/verify/{{token}}");
-Console.WriteLine();
-Console.WriteLine("  Admin Registrations:");
-Console.WriteLine($"    GET    /api/v1/admin/registrations");
-Console.WriteLine($"    GET    /api/v1/admin/registrations/{{id}}");
-Console.WriteLine($"    PUT    /api/v1/admin/registrations/{{id}}/approve");
-Console.WriteLine($"    PUT    /api/v1/admin/registrations/{{id}}/reject");
-Console.WriteLine($"    GET    /api/v1/admin/statistics");
-Console.WriteLine($"    GET    /api/v1/admin/audit-logs?registrationId={{id}}");
-
-Console.WriteLine("═══════════════════════════════════════════════════════");
-Console.WriteLine();
 
 app.Logger.LogInformation("KQ Alumni API Starting");
 app.Logger.LogInformation("Environment: {Env}", app.Environment.EnvironmentName);
 app.Logger.LogInformation("Primary URL: {BaseUrl}", urlList[0]);
 
-Console.WriteLine("Application is ready to accept requests");
-Console.WriteLine("Press Ctrl+C to shut down");
-Console.WriteLine();
+if (!app.Environment.IsDevelopment())
+{
+    Console.WriteLine($"KQ Alumni API started - {app.Environment.EnvironmentName}");
+    Console.WriteLine($"Listening on: {urlList[0]}");
+}
 
 app.Run();
 
