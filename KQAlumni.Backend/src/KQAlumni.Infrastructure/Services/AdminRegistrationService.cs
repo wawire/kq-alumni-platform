@@ -409,11 +409,43 @@ public class AdminRegistrationService : IAdminRegistrationService
         Guid registrationId,
         CancellationToken cancellationToken = default)
     {
-        return await _context.AuditLogs
+        // Use Select to project to a clean object without circular references
+        // This prevents JSON serialization errors caused by AdminUser <-> AuditLogs cycles
+        var auditLogs = await _context.AuditLogs
             .Where(a => a.RegistrationId == registrationId)
             .Include(a => a.AdminUser)
             .OrderByDescending(a => a.Timestamp)
+            .Select(a => new AuditLog
+            {
+                Id = a.Id,
+                RegistrationId = a.RegistrationId,
+                Action = a.Action,
+                PerformedBy = a.PerformedBy,
+                AdminUserId = a.AdminUserId,
+                // Create a clean AdminUser without navigation properties
+                AdminUser = a.AdminUser != null ? new AdminUser
+                {
+                    Id = a.AdminUser.Id,
+                    Username = a.AdminUser.Username,
+                    Email = a.AdminUser.Email,
+                    Role = a.AdminUser.Role,
+                    FullName = a.AdminUser.FullName,
+                    IsActive = a.AdminUser.IsActive,
+                    CreatedAt = a.AdminUser.CreatedAt,
+                    LastLoginAt = a.AdminUser.LastLoginAt
+                    // Explicitly exclude AuditLogs collection to break circular reference
+                } : null,
+                Notes = a.Notes,
+                RejectionReason = a.RejectionReason,
+                Timestamp = a.Timestamp,
+                IpAddress = a.IpAddress,
+                PreviousStatus = a.PreviousStatus,
+                NewStatus = a.NewStatus,
+                IsAutomated = a.IsAutomated
+            })
             .ToListAsync(cancellationToken);
+
+        return auditLogs;
     }
 
     /// <summary>
