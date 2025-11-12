@@ -359,7 +359,8 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
 
   // Check if form has any validation errors
   const hasErrors = Object.keys(errors).length > 0;
-  const canProceed = (verificationStatus === 'verified' || allowManualMode) && !emailCheck.isDuplicate && !hasErrors;
+  const hasVerificationError = verificationError && verificationError.length > 0;
+  const canProceed = (verificationStatus === 'verified' || allowManualMode) && !emailCheck.isDuplicate && !hasErrors && !hasVerificationError;
 
   return (
     <FormProvider {...methods}>
@@ -563,7 +564,8 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
           {verificationStatus === 'failed' && !allowManualMode && 'Enable Manual Review to Continue'}
           {verificationStatus === 'already_registered' && 'Already Registered'}
           {verificationStatus === 'verified' && emailCheck.isDuplicate && 'Email Already Used'}
-          {((verificationStatus === 'verified' || allowManualMode) && !emailCheck.isDuplicate && hasErrors) && 'Please Complete All Required Fields'}
+          {hasVerificationError && 'Please Provide ID or Passport Number'}
+          {!hasVerificationError && ((verificationStatus === 'verified' || allowManualMode) && !emailCheck.isDuplicate && hasErrors) && 'Please Complete All Required Fields'}
           {canProceed && (allowManualMode ? 'Continue with Manual Review' : 'Continue')}
         </Button>
         {verificationStatus === 'verified' && hasErrors && (
