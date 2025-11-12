@@ -166,22 +166,51 @@ public class ErpCacheService : IErpCacheService
 
     try
     {
-      var jsonArray = JsonDocument.Parse(jsonContent);
+      var jsonDoc = JsonDocument.Parse(jsonContent);
+      JsonElement arrayElement;
 
-      if (jsonArray.RootElement.ValueKind != JsonValueKind.Array)
+      // Handle both response formats:
+      // Format 1 (Old): Direct array [ {...}, {...} ]
+      // Format 2 (New): Object with array { "ExEmployeesView": [ {...}, {...} ] }
+      if (jsonDoc.RootElement.ValueKind == JsonValueKind.Array)
       {
-        _logger.LogWarning("ERP API returned non-array response");
+        arrayElement = jsonDoc.RootElement;
+        _logger.LogInformation("Cache: ERP returned direct array format");
+      }
+      else if (jsonDoc.RootElement.ValueKind == JsonValueKind.Object)
+      {
+        if (jsonDoc.RootElement.TryGetProperty("ExEmployeesView", out var exEmployeesView))
+        {
+          arrayElement = exEmployeesView;
+          _logger.LogInformation("Cache: ERP returned ExEmployeesView object format");
+        }
+        else
+        {
+          _logger.LogWarning("Cache: ERP API returned object but no ExEmployeesView property found");
+          return employees;
+        }
+      }
+      else
+      {
+        _logger.LogWarning("Cache: ERP API returned unexpected format");
+        return employees;
+      }
+
+      if (arrayElement.ValueKind != JsonValueKind.Array)
+      {
+        _logger.LogWarning("Cache: Expected array but got {ValueKind}", arrayElement.ValueKind);
         return employees;
       }
 
       // Parse each employee record
-      foreach (var element in jsonArray.RootElement.EnumerateArray())
+      foreach (var element in arrayElement.EnumerateArray())
       {
         try
         {
-          // Extract NATIONAL_IDENTIFIER (can be string or null object)
+          // Extract NATIONAL_IDENTIFIER (try both lowercase and uppercase)
           string? nationalId = null;
-          if (element.TryGetProperty("NATIONAL_IDENTIFIER", out var natIdProp))
+          if (element.TryGetProperty("nationalIdentifier", out var natIdProp) ||
+              element.TryGetProperty("NATIONAL_IDENTIFIER", out natIdProp))
           {
             if (natIdProp.ValueKind == JsonValueKind.String)
             {
@@ -193,17 +222,22 @@ public class ErpCacheService : IErpCacheService
           if (string.IsNullOrWhiteSpace(nationalId))
             continue;
 
-          // Extract other fields
-          var staffId = element.TryGetProperty("STAFFID", out var staffIdProp)
+          // Extract other fields (try both lowercase and uppercase)
+          var staffId = element.TryGetProperty("staffid", out var staffIdProp) ||
+                        element.TryGetProperty("STAFFID", out staffIdProp)
             ? staffIdProp.GetString() : null;
-          var fullName = element.TryGetProperty("FULLNAME", out var fullNameProp)
+          var fullName = element.TryGetProperty("fullname", out var fullNameProp) ||
+                         element.TryGetProperty("FULLNAME", out fullNameProp)
             ? fullNameProp.GetString() : null;
-          var department = element.TryGetProperty("DEPARTMENT", out var deptProp)
+          var department = element.TryGetProperty("department", out var deptProp) ||
+                           element.TryGetProperty("DEPARTMENT", out deptProp)
             ? deptProp.GetString()
-            : element.TryGetProperty("ORGANISATION", out var orgProp)
+            : element.TryGetProperty("organisation", out var orgProp) ||
+              element.TryGetProperty("ORGANISATION", out orgProp)
               ? orgProp.GetString()
               : null;
-          var actualTerminationDate = element.TryGetProperty("ACTUAL_TERMINATION_DATE", out var dateProp)
+          var actualTerminationDate = element.TryGetProperty("actualTerminationDate", out var dateProp) ||
+                                      element.TryGetProperty("ACTUAL_TERMINATION_DATE", out dateProp)
             ? dateProp.GetString() : null;
 
           // Parse exit date

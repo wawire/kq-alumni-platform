@@ -285,16 +285,45 @@ public class ErpService : IErpService
   {
     try
     {
-      // Parse JSON array
-      var jsonArray = JsonDocument.Parse(jsonContent);
+      var jsonDoc = JsonDocument.Parse(jsonContent);
+      JsonElement arrayElement;
 
-      if (jsonArray.RootElement.ValueKind != JsonValueKind.Array)
+      // Handle both response formats:
+      // Format 1 (Old): Direct array [ {...}, {...} ]
+      // Format 2 (New): Object with array { "ExEmployeesView": [ {...}, {...} ] }
+      if (jsonDoc.RootElement.ValueKind == JsonValueKind.Array)
       {
-        _logger.LogWarning("ERP API returned non-array response");
+        // Old format: Direct array
+        arrayElement = jsonDoc.RootElement;
+        _logger.LogInformation("ERP returned direct array format");
+      }
+      else if (jsonDoc.RootElement.ValueKind == JsonValueKind.Object)
+      {
+        // New format: Check for ExEmployeesView property
+        if (jsonDoc.RootElement.TryGetProperty("ExEmployeesView", out var exEmployeesView))
+        {
+          arrayElement = exEmployeesView;
+          _logger.LogInformation("ERP returned ExEmployeesView object format");
+        }
+        else
+        {
+          _logger.LogWarning("ERP API returned object but no ExEmployeesView property found");
+          return null;
+        }
+      }
+      else
+      {
+        _logger.LogWarning("ERP API returned unexpected format (not array or object)");
         return null;
       }
 
-      var totalRecords = jsonArray.RootElement.GetArrayLength();
+      if (arrayElement.ValueKind != JsonValueKind.Array)
+      {
+        _logger.LogWarning("Expected array but got {ValueKind}", arrayElement.ValueKind);
+        return null;
+      }
+
+      var totalRecords = arrayElement.GetArrayLength();
       _logger.LogInformation(
         "Parsing ERP response: {TotalRecords} records returned, searching for ID '{SearchId}' (Length: {Length})",
         totalRecords, searchNationalId, searchNationalId.Length);
@@ -303,11 +332,12 @@ public class ErpService : IErpService
       var sampleIds = new List<string>();
 
       // Search through array to find matching NATIONAL_IDENTIFIER
-      foreach (var element in jsonArray.RootElement.EnumerateArray())
+      foreach (var element in arrayElement.EnumerateArray())
       {
-        // Get NATIONAL_IDENTIFIER - can be string or null object
+        // Get NATIONAL_IDENTIFIER - try both lowercase (new API) and uppercase (old API)
         string? nationalId = null;
-        if (element.TryGetProperty("NATIONAL_IDENTIFIER", out var natIdProperty))
+        if (element.TryGetProperty("nationalIdentifier", out var natIdProperty) ||
+            element.TryGetProperty("NATIONAL_IDENTIFIER", out natIdProperty))
         {
           if (natIdProperty.ValueKind == JsonValueKind.String)
           {
@@ -331,17 +361,22 @@ public class ErpService : IErpService
           continue; // Not a match, try next record
         }
 
-        // Found matching record! Extract all fields
-        var staffId = element.TryGetProperty("STAFFID", out var staffIdProp)
+        // Found matching record! Extract all fields (try both lowercase and uppercase)
+        var staffId = element.TryGetProperty("staffid", out var staffIdProp) ||
+                      element.TryGetProperty("STAFFID", out staffIdProp)
             ? staffIdProp.GetString() : null;
-        var fullName = element.TryGetProperty("FULLNAME", out var fullNameProp)
+        var fullName = element.TryGetProperty("fullname", out var fullNameProp) ||
+                       element.TryGetProperty("FULLNAME", out fullNameProp)
             ? fullNameProp.GetString() : null;
-        var department = element.TryGetProperty("DEPARTMENT", out var deptProp)
+        var department = element.TryGetProperty("department", out var deptProp) ||
+                         element.TryGetProperty("DEPARTMENT", out deptProp)
             ? deptProp.GetString()
-            : element.TryGetProperty("ORGANISATION", out var orgProp)
+            : element.TryGetProperty("organisation", out var orgProp) ||
+              element.TryGetProperty("ORGANISATION", out orgProp)
                 ? orgProp.GetString()
                 : null;
-        var actualTerminationDate = element.TryGetProperty("ACTUAL_TERMINATION_DATE", out var dateProp)
+        var actualTerminationDate = element.TryGetProperty("actualTerminationDate", out var dateProp) ||
+                                    element.TryGetProperty("ACTUAL_TERMINATION_DATE", out dateProp)
             ? dateProp.GetString() : null;
 
         // Parse exit date
