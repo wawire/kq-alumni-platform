@@ -33,8 +33,8 @@ const personalInfoSchema = z.object({
     .transform((val) => val?.trim().toUpperCase() || undefined),
   idNumber: z
     .string()
-    .min(1, "ID Number or Passport Number is required")
-    .transform((val) => val?.trim().toUpperCase() || ""),
+    .optional()
+    .transform((val) => val?.trim().toUpperCase() || undefined),
   passportNumber: z
     .string()
     .optional()
@@ -313,6 +313,12 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
   };
 
   const onSubmit = (formData: PersonalInfoFormData): void => {
+    // Check that either ID or Passport is provided
+    if (!formData.idNumber && !formData.passportNumber) {
+      setVerificationError('Please provide either ID Number or Passport Number');
+      return;
+    }
+
     // Don't submit if duplicates found
     if (emailCheck.isDuplicate) {
       return;
@@ -394,12 +400,6 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
             {errors.idNumber && (
               <p className="mt-2 text-sm text-kq-red">
                 {errors.idNumber.message}
-              </p>
-            )}
-            {!errors.idNumber && verificationStatus === 'verifying' && (
-              <p className="mt-2 text-sm text-blue-600 flex items-center gap-2">
-                <span className="inline-block w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
-                Verifying with our records...
               </p>
             )}
             {!errors.idNumber && verificationStatus === 'failed' && !allowManualMode && (
@@ -559,12 +559,7 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
           disabled={!canProceed}
         >
           {verificationStatus === 'idle' && 'Enter ID Number to Start'}
-          {verificationStatus === 'verifying' && (
-            <span className="flex items-center justify-center gap-2">
-              <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              Verifying ID...
-            </span>
-          )}
+          {verificationStatus === 'verifying' && 'Verifying...'}
           {verificationStatus === 'failed' && !allowManualMode && 'Enable Manual Review to Continue'}
           {verificationStatus === 'already_registered' && 'Already Registered'}
           {verificationStatus === 'verified' && emailCheck.isDuplicate && 'Email Already Used'}
