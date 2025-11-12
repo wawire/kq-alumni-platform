@@ -209,12 +209,12 @@ public class ErpService : IErpService
           };
         }
 
-        _logger.LogWarning("ID/Passport {IdOrPassport} not found in cache", idOrPassport);
-        return CreateErrorResult("ID/Passport not found in our records. Please verify and contact HR if issue persists.");
+        _logger.LogWarning("ID/Passport {IdOrPassport} not found in cache - falling back to direct ERP API call", idOrPassport);
+        // Fall through to direct ERP API call below instead of returning error
       }
 
-      // [FALLBACK] Call real ERP API directly (when caching disabled)
-      _logger.LogInformation("Validating ID/Passport {IdOrPassport} against ERP (cache disabled)", idOrPassport);
+      // [FALLBACK] Call real ERP API directly (when caching disabled OR not found in cache)
+      _logger.LogInformation("Validating ID/Passport {IdOrPassport} against ERP API directly", idOrPassport);
 
       // Build full URL - use IdPassportEndpoint if specified, otherwise use Endpoint
       // Note: Must check for empty string, not just null
