@@ -77,10 +77,10 @@ public class RegistrationRequestValidator : AbstractValidator<RegistrationReques
     When(x => !string.IsNullOrEmpty(x.MobileNumber), () =>
     {
       RuleFor(x => x.MobileNumber)
-              .Length(6, 15)
-              .WithMessage("Phone number must be between 6 and 15 digits")
               .Matches(@"^\d+$")
-              .WithMessage("Phone number must contain only digits");
+              .WithMessage("Phone number must contain only digits")
+              .Must((request, mobileNumber) => ValidatePhoneNumberLength(request.MobileCountryCode, mobileNumber))
+              .WithMessage((request, mobileNumber) => GetPhoneNumberLengthErrorMessage(request.MobileCountryCode, mobileNumber));
     });
 
     When(x => !string.IsNullOrEmpty(x.MobileCountryCode), () =>
@@ -192,5 +192,70 @@ public class RegistrationRequestValidator : AbstractValidator<RegistrationReques
 
     var domain = email.Split('@').LastOrDefault()?.ToLower();
     return !DisposableEmailDomains.Contains(domain);
+  }
+
+  /// <summary>
+  /// Validates phone number length based on country code
+  /// </summary>
+  private bool ValidatePhoneNumberLength(string? countryCode, string phoneNumber)
+  {
+    if (string.IsNullOrEmpty(countryCode) || string.IsNullOrEmpty(phoneNumber))
+      return true; // Skip validation if no country code
+
+    // Get expected length for the country code
+    var expectedLength = GetExpectedPhoneLength(countryCode);
+
+    if (expectedLength == null)
+      return phoneNumber.Length >= 6 && phoneNumber.Length <= 15; // Default range
+
+    return phoneNumber.Length == expectedLength.Value;
+  }
+
+  /// <summary>
+  /// Gets user-friendly error message for phone number length
+  /// </summary>
+  private string GetPhoneNumberLengthErrorMessage(string? countryCode, string phoneNumber)
+  {
+    if (string.IsNullOrEmpty(countryCode))
+      return "Phone number must be between 6 and 15 digits";
+
+    var expectedLength = GetExpectedPhoneLength(countryCode);
+
+    if (expectedLength == null)
+      return $"Phone number for {countryCode} must be between 6 and 15 digits";
+
+    return $"Phone number for {countryCode} must be exactly {expectedLength} digits (currently {phoneNumber.Length} digits)";
+  }
+
+  /// <summary>
+  /// Returns expected phone number length for common country codes
+  /// Returns null for unknown country codes (will use default range)
+  /// </summary>
+  private int? GetExpectedPhoneLength(string countryCode)
+  {
+    return countryCode switch
+    {
+      "+1" => 10,    // USA, Canada
+      "+44" => 10,   // UK
+      "+254" => 9,   // Kenya
+      "+255" => 9,   // Tanzania
+      "+256" => 9,   // Uganda
+      "+250" => 9,   // Rwanda
+      "+27" => 9,    // South Africa
+      "+234" => 10,  // Nigeria
+      "+233" => 9,   // Ghana
+      "+86" => 11,   // China
+      "+91" => 10,   // India
+      "+81" => 10,   // Japan
+      "+82" => 10,   // South Korea
+      "+61" => 9,    // Australia
+      "+971" => 9,   // UAE
+      "+966" => 9,   // Saudi Arabia
+      "+33" => 9,    // France
+      "+49" => 10,   // Germany
+      "+39" => 10,   // Italy
+      "+34" => 9,    // Spain
+      _ => null      // Unknown - use default range
+    };
   }
 }
