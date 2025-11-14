@@ -215,7 +215,7 @@ public class RegistrationService : IRegistrationService
         var emailSent = await _emailService.SendConfirmationEmailAsync(
             registration.FullName,
             registration.Email,
-            registration.Id,
+            registration.RegistrationNumber,
             cancellationToken);
 
         if (emailSent)

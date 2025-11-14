@@ -27,7 +27,7 @@ export default function VerifyEmailPage() {
 
         // [API] Request verification from API
         const response = await axios.get<VerificationResponse>(
-          `${API_BASE_URL}/api/v1/verify/${token}`,
+          `${API_BASE_URL}/api/v1/registrations/verify/${token}`,
         );
 
         setStatus("success");
