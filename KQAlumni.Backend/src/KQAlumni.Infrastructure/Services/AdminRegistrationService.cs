@@ -265,8 +265,8 @@ public class AdminRegistrationService : IAdminRegistrationService
                 }
 
                 await _emailService.SendApprovalEmailAsync(
-                    registration.Email,
                     registration.FullName,
+                    registration.Email,
                     registration.EmailVerificationToken!);
 
                 registration.ApprovalEmailSent = true;
@@ -352,8 +352,8 @@ public class AdminRegistrationService : IAdminRegistrationService
             if (!registration.RejectionEmailSent)
             {
                 await _emailService.SendRejectionEmailAsync(
-                    registration.Email,
                     registration.FullName,
+                    registration.Email,
                     reason);
 
                 registration.RejectionEmailSent = true;
