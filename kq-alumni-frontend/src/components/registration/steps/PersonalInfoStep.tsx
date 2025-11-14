@@ -97,7 +97,15 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
   const [selectedCountryCode, setSelectedCountryCode] = useState<string>(
     data.currentCountryCode || "", // No default - user must select their location
   );
-  const [phoneValue, setPhoneValue] = useState<string>(data.mobileNumber || "");
+  // Initialize phone value with country code + number for proper display
+  const [phoneValue, setPhoneValue] = useState<string>(() => {
+    if (data.mobileCountryCode && data.mobileNumber) {
+      // Remove + from country code if present, PhoneInput adds it automatically
+      const code = data.mobileCountryCode.replace('+', '');
+      return `${code}${data.mobileNumber}`;
+    }
+    return "";
+  });
 
   // ID Verification State
   const [verificationStatus, setVerificationStatus] = useState<VerificationStatus>('idle');
@@ -299,14 +307,19 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
   ): void => {
     setPhoneValue(value);
 
+    // Always set the country code when country is selected
+    const dialCode = country.dialCode || "";
+    setValue("mobileCountryCode", `+${dialCode}`, { shouldValidate: true });
+
     // Remove country dial code from the phone number to avoid duplication
     // PhoneInput returns the full number (e.g., "254712345678")
     // We need to store just the local number (e.g., "712345678")
-    const dialCode = country.dialCode || "";
-    const localNumber = value.startsWith(dialCode) ? value.substring(dialCode.length) : value;
+    const localNumber = value.startsWith(dialCode)
+      ? value.substring(dialCode.length)
+      : value;
 
-    setValue("mobileNumber", localNumber, { shouldValidate: true });
-    setValue("mobileCountryCode", `+${dialCode}`, { shouldValidate: true });
+    // Set mobile number (empty string if only country code selected)
+    setValue("mobileNumber", localNumber || "", { shouldValidate: true });
 
     // Note: Current location is NOT updated here
     // You can live in Japan and have a Kenyan phone number
@@ -482,9 +495,10 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
             Mobile Number <span className="text-gray-500 font-normal">(Optional)</span>
           </label>
           <PhoneInput
-            country={""}
+            country={""} // No default country - user must select
             value={phoneValue}
             onChange={handlePhoneChange}
+            preferredCountries={["ke", "us", "gb", "ug", "tz"]} // Most common for KQ alumni
             inputStyle={{
               width: "100%",
               border: 0,

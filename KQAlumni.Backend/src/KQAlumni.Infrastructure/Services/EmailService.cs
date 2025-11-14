@@ -48,14 +48,14 @@ public class EmailService : IEmailService
     public async Task<bool> SendConfirmationEmailAsync(
         string alumniName,
         string email,
-        Guid registrationId,
+        string registrationNumber,
         CancellationToken cancellationToken = default)
     {
         try
         {
             _logger.LogInformation(
-                "[EMAIL] [EMAIL 1/3] Sending CONFIRMATION email to {Email}",
-                email);
+                "[EMAIL] [EMAIL 1/3] Sending CONFIRMATION email to {Email} (Registration: {RegistrationNumber})",
+                email, registrationNumber);
 
             // Try to use database template first
             string subject;
@@ -66,8 +66,7 @@ public class EmailService : IEmailService
                 var variables = new Dictionary<string, string>
                 {
                     { "alumniName", alumniName },
-                    { "registrationId", registrationId.ToString() },
-                    { "registrationNumber", $"KQA-{DateTime.UtcNow.Year}-{registrationId.ToString("N")[..5].ToUpper()}" },
+                    { "registrationNumber", registrationNumber },
                     { "currentDate", DateTime.UtcNow.ToString("MMMM dd, yyyy 'at' HH:mm UTC") }
                 };
 
@@ -84,7 +83,7 @@ public class EmailService : IEmailService
                     "[EMAIL] Could not load custom template, using default hardcoded template");
 
                 subject = "Registration Received - KQ Alumni Network";
-                body = GetConfirmationEmailTemplate(alumniName, registrationId);
+                body = GetConfirmationEmailTemplate(alumniName, registrationNumber);
             }
 
             await SendEmailAsync(email, subject, body, cancellationToken);
@@ -307,7 +306,7 @@ public class EmailService : IEmailService
     }
 
     // ... (keep all the email template methods from before)
-    private string GetConfirmationEmailTemplate(string recipientName, Guid registrationId)
+    private string GetConfirmationEmailTemplate(string recipientName, string registrationNumber)
     {
         return $@"
 <!DOCTYPE html>
@@ -423,8 +422,8 @@ public class EmailService : IEmailService
 
             <div class=""info-box"">
                 <div class=""info-row"">
-                    <span class=""info-label"">Registration ID:</span>
-                    <span style=""color: #6c757d; font-family: monospace; font-size: 13px;"">{registrationId}</span>
+                    <span class=""info-label"">Registration Number:</span>
+                    <span style=""color: #DC143C; font-family: monospace; font-size: 14px; font-weight: 600;"">{registrationNumber}</span>
                 </div>
                 <div class=""info-row"">
                     <span class=""info-label"">Status:</span>

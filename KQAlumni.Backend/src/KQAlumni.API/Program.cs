@@ -47,6 +47,45 @@ builder.Services.AddControllers()
         options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
         options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
         options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    })
+    .ConfigureApiBehaviorOptions(options =>
+    {
+        // Customize validation error responses to return field-specific errors
+        options.InvalidModelStateResponseFactory = context =>
+        {
+            var errors = new Dictionary<string, List<string>>();
+
+            foreach (var key in context.ModelState.Keys)
+            {
+                var state = context.ModelState[key];
+                if (state != null && state.Errors.Count > 0)
+                {
+                    var fieldName = key.Split('.').Last(); // Get last part for nested properties
+                    var errorMessages = state.Errors
+                        .Select(e => string.IsNullOrEmpty(e.ErrorMessage) ? e.Exception?.Message : e.ErrorMessage)
+                        .Where(msg => !string.IsNullOrEmpty(msg))
+                        .Cast<string>()
+                        .ToList();
+
+                    if (errorMessages.Any())
+                    {
+                        errors[fieldName] = errorMessages;
+                    }
+                }
+            }
+
+            var errorResponse = new ErrorResponse
+            {
+                Type = "https://tools.ietf.org/html/rfc7231#section-6.5.1",
+                Title = "Validation Error",
+                Status = StatusCodes.Status400BadRequest,
+                Detail = "One or more fields have validation errors. Please correct them and try again.",
+                Errors = errors,
+                Timestamp = DateTime.UtcNow
+            };
+
+            return new BadRequestObjectResult(errorResponse);
+        };
     });
 
 builder.Services.AddFluentValidationAutoValidation();

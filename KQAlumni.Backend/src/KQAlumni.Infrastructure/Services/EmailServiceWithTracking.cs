@@ -50,18 +50,18 @@ public class EmailServiceWithTracking : IEmailService
     public async Task<bool> SendConfirmationEmailAsync(
         string alumniName,
         string email,
-        Guid registrationId,
+        string registrationNumber,
         CancellationToken cancellationToken = default)
     {
         var subject = "Registration Received - KQ Alumni Network";
-        var body = GetConfirmationEmailTemplate(alumniName, registrationId);
+        var body = GetConfirmationEmailTemplate(alumniName, registrationNumber);
 
         return await SendEmailWithTrackingAsync(
             email,
             subject,
             body,
             EmailType.Confirmation,
-            registrationId,
+            null, // No registration ID tracking for confirmation email
             cancellationToken);
     }
 
@@ -267,7 +267,7 @@ public class EmailServiceWithTracking : IEmailService
     }
 
     // Email template methods (same as original)
-    private string GetConfirmationEmailTemplate(string recipientName, Guid registrationId)
+    private string GetConfirmationEmailTemplate(string recipientName, string registrationNumber)
     {
         return $@"
 <!DOCTYPE html>
@@ -335,7 +335,7 @@ public class EmailServiceWithTracking : IEmailService
             <p>We have received your registration and it is currently being processed.</p>
 
             <div class=""info-box"">
-                <strong>Registration ID:</strong> {registrationId}<br>
+                <strong>Registration Number:</strong> {registrationNumber}<br>
                 <strong>Status:</strong> Pending Verification<br>
                 <strong>Submitted:</strong> {DateTime.UtcNow:yyyy-MM-dd HH:mm} UTC
             </div>

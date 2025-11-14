@@ -11,13 +11,13 @@ public interface IEmailService
   /// </summary>
   /// <param name="alumniName">Alumni full name</param>
   /// <param name="email">Alumni email address</param>
-  /// <param name="registrationId">Registration ID for tracking</param>
+  /// <param name="registrationNumber">User-friendly registration number (e.g., KQA-2025-00001)</param>
   /// <param name="cancellationToken">Cancellation token</param>
   /// <returns>True if email sent successfully</returns>
   Task<bool> SendConfirmationEmailAsync(
       string alumniName,
       string email,
-      Guid registrationId,
+      string registrationNumber,
       CancellationToken cancellationToken = default);
 
   /// <summary>

@@ -127,6 +127,12 @@ public class AppDbContext : DbContext
 
                         // StaffNumber is optional (nullable) to support manual mode registrations
                         // entity.Property(e => e.StaffNumber).IsRequired(); // REMOVED: Must be nullable for manual mode
+                        // RegistrationNumber must be explicitly set (no default value)
+                        entity.Property(e => e.RegistrationNumber)
+                            .IsRequired()
+                            .HasMaxLength(20)
+                            .HasColumnType("varchar(20)");
+
                         entity.Property(e => e.FullName).IsRequired();
                         entity.Property(e => e.Email).IsRequired();
                         entity.Property(e => e.CurrentCountry).IsRequired();

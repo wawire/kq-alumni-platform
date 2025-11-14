@@ -33,6 +33,20 @@ import type {
 import { queryKeys } from '../queryClient';
 
 /**
+ * Custom error type for validation errors with field-specific messages
+ */
+export class ValidationError extends Error {
+  public fieldErrors: Record<string, string[]>;
+  public isValidationError = true;
+
+  constructor(message: string, fieldErrors: Record<string, string[]>) {
+    super(message);
+    this.name = 'ValidationError';
+    this.fieldErrors = fieldErrors;
+  }
+}
+
+/**
  * Submit registration mutation
  */
 export const useSubmitRegistration = () => {
@@ -52,8 +66,17 @@ export const useSubmitRegistration = () => {
           if (!error.response) {
             throw new Error('Network error. Please check your connection and try again.');
           }
-          // Server error with response
-          const message = error.response.data?.message || error.response.data?.detail || 'Registration failed. Please try again.';
+
+          const errorData = error.response.data;
+
+          // Validation error (400) with field-specific errors
+          if (error.response.status === 400 && errorData?.errors) {
+            const message = errorData.detail || 'Please correct the validation errors and try again.';
+            throw new ValidationError(message, errorData.errors);
+          }
+
+          // Other errors - use detail or message
+          const message = errorData?.detail || errorData?.message || 'Registration failed. Please try again.';
           throw new Error(message);
         }
         throw error;
