@@ -113,12 +113,37 @@ export default function RegistrationForm() {
         // Track failed submission
         trackFormSubmission(false, { error: error.message });
 
-        const supportEmail = "KQ.Alumni@kenya-airways.com";
-        toast.error(error.message || "Registration failed. Please try again.", {
-          duration: 10000,
-          description: `If the problem persists, please contact support at ${supportEmail}`,
-          style: { fontWeight: "600" },
-        });
+        // Check if this is a validation error with field-specific errors
+        const isValidationError = (error as any).isValidationError === true;
+        const fieldErrors = (error as any).fieldErrors as Record<string, string[]> | undefined;
+
+        if (isValidationError && fieldErrors) {
+          // For validation errors, show field-specific errors
+          const errorList = Object.entries(fieldErrors)
+            .map(([field, messages]) => {
+              // Convert camelCase to Title Case for display
+              const fieldName = field.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+              return `• ${fieldName}: ${messages.join(', ')}`;
+            })
+            .join('\n');
+
+          toast.error("Please correct the following errors:", {
+            duration: 12000,
+            description: errorList,
+            style: {
+              fontWeight: "600",
+              whiteSpace: "pre-line" // Preserve line breaks
+            },
+          });
+        } else {
+          // For server errors (500s) or other non-validation errors, show contact support
+          const supportEmail = "KQ.Alumni@kenya-airways.com";
+          toast.error(error.message || "Registration failed. Please try again.", {
+            duration: 10000,
+            description: `If the problem persists, please contact support at ${supportEmail}`,
+            style: { fontWeight: "600" },
+          });
+        }
       },
     });
   };
