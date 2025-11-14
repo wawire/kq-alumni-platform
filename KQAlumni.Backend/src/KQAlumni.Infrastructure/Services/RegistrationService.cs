@@ -134,6 +134,11 @@ public class RegistrationService : IRegistrationService
       // Generate user-friendly registration number
       var registrationNumber = await GenerateRegistrationNumberAsync(cancellationToken);
 
+      _logger.LogInformation(
+          "Generated registration number: {RegistrationNumber} for email: {Email}",
+          registrationNumber,
+          request.Email);
+
       var registration = new AlumniRegistration
       {
         Id = Guid.NewGuid(),
@@ -196,8 +201,10 @@ public class RegistrationService : IRegistrationService
       await _context.SaveChangesAsync(cancellationToken);
 
       _logger.LogInformation(
-          "Registration created with ID {Id} and status Pending",
-          registration.Id);
+          "Registration created - ID: {Id}, RegistrationNumber: {RegistrationNumber}, Email: {Email}, Status: Pending",
+          registration.Id,
+          registration.RegistrationNumber,
+          registration.Email);
 
 
       // SEND CONFIRMATION EMAIL
