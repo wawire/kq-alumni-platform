@@ -570,14 +570,18 @@ public class ErpService : IErpService
       return 0;
     }
 
-    // Normalize names (lowercase, remove extra spaces, trim)
+    // Normalize names (lowercase, remove extra spaces, trim, handle ERP format)
     var normalizedProvided = NormalizeName(providedName);
     var normalizedErp = NormalizeName(erpName);
+
+    _logger.LogDebug(
+        "Name normalization: Provided '{Original}' → '{Normalized}', ERP '{OriginalErp}' → '{NormalizedErp}'",
+        providedName, normalizedProvided, erpName, normalizedErp);
 
     // Exact match after normalization
     if (normalizedProvided == normalizedErp)
     {
-      _logger.LogDebug("Exact name match after normalization");
+      _logger.LogInformation("Exact name match after normalization: '{Name}'", normalizedProvided);
       return 100;
     }
 
@@ -629,6 +633,8 @@ public class ErpService : IErpService
 
   /// <summary>
   /// Normalizes a name for comparison
+  /// Handles ERP format: "lastname, Mr. firstname, othername"
+  /// Converts to standard format: "firstname othername lastname"
   /// </summary>
   private static string NormalizeName(string name)
   {
@@ -637,11 +643,74 @@ public class ErpService : IErpService
       return string.Empty;
     }
 
-    // Convert to lowercase, split by whitespace, remove empty entries, rejoin
-    var parts = name.ToLowerInvariant()
-                   .Split(new[] { ' ', '\t', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+    // Convert to lowercase first
+    var normalized = name.ToLowerInvariant().Trim();
 
-    return string.Join(" ", parts);
+    // Check if this is ERP format (contains comma)
+    if (normalized.Contains(','))
+    {
+      // ERP format: "lastname, Mr. firstname, othername"
+      // Split by comma and clean each part
+      var parts = normalized.Split(',')
+                           .Select(p => p.Trim())
+                           .Where(p => !string.IsNullOrWhiteSpace(p))
+                           .ToList();
+
+      if (parts.Count > 0)
+      {
+        var lastname = parts[0].Trim();
+        var firstAndMiddle = new List<string>();
+
+        // Process remaining parts (firstname and other names)
+        for (int i = 1; i < parts.Count; i++)
+        {
+          var part = parts[i].Trim();
+
+          // Remove titles (mr., mrs., ms., dr., prof., etc.)
+          part = RemoveTitles(part);
+
+          if (!string.IsNullOrWhiteSpace(part))
+          {
+            firstAndMiddle.Add(part);
+          }
+        }
+
+        // Reorder: firstname middlename lastname
+        var reorderedParts = new List<string>();
+        reorderedParts.AddRange(firstAndMiddle);
+        reorderedParts.Add(lastname);
+
+        normalized = string.Join(" ", reorderedParts);
+      }
+    }
+    else
+    {
+      // Standard format: just remove titles
+      normalized = RemoveTitles(normalized);
+    }
+
+    // Final cleanup: split by whitespace, remove empty entries, rejoin
+    var finalParts = normalized.Split(new[] { ' ', '\t', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+    return string.Join(" ", finalParts);
+  }
+
+  /// <summary>
+  /// Removes common titles from a name string
+  /// </summary>
+  private static string RemoveTitles(string name)
+  {
+    if (string.IsNullOrWhiteSpace(name))
+    {
+      return string.Empty;
+    }
+
+    // List of common titles to remove
+    var titles = new[] { "mr.", "mrs.", "ms.", "miss.", "dr.", "prof.", "professor", "sir", "madam" };
+
+    var words = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+    var cleanedWords = words.Where(w => !titles.Contains(w.ToLowerInvariant().TrimEnd('.'))).ToList();
+
+    return string.Join(" ", cleanedWords);
   }
 
   /// <summary>
