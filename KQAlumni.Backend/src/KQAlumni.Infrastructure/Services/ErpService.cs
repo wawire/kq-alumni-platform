@@ -148,11 +148,15 @@ public class ErpService : IErpService
       return result;
     }
 
-    // [PRODUCTION MODE] Perform strict name matching
+    // [PRODUCTION MODE] Perform name matching with improved tolerance
     result.NameSimilarityScore = CalculateNameSimilarity(fullName, result.StaffName);
 
-    // 80% threshold for name match
-    if (result.NameSimilarityScore < 80)
+    // 70% threshold for name match (lowered from 80% to accommodate name variations)
+    // This allows for:
+    // - Middle name differences (e.g., "John Doe" vs "John Michael Doe")
+    // - Spelling variations (e.g., "Catherine" vs "Katherine")
+    // - Initials vs full names (e.g., "J. Smith" vs "John Smith")
+    if (result.NameSimilarityScore < 70)
     {
       _logger.LogWarning(
           "Name mismatch for {StaffNumber}: Expected '{ErpName}', Got '{ProvidedName}' (Similarity: {Score}%)",
@@ -577,7 +581,36 @@ public class ErpService : IErpService
       return 100;
     }
 
-    // Calculate Levenshtein distance
+    // Check if one name is a subset of the other (handles middle names)
+    // E.g., "John Doe" matches "John Michael Doe" with 90% similarity
+    var providedParts = normalizedProvided.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+    var erpParts = normalizedErp.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+
+    // Check if all parts of the shorter name appear in the longer name
+    var shorterParts = providedParts.Length <= erpParts.Length ? providedParts : erpParts;
+    var longerParts = providedParts.Length > erpParts.Length ? providedParts : erpParts;
+
+    int matchingParts = 0;
+    foreach (var part in shorterParts)
+    {
+      if (longerParts.Any(lp => lp == part || LevenshteinDistance(part, lp) <= 1))
+      {
+        matchingParts++;
+      }
+    }
+
+    // If most parts match, give high similarity
+    if (shorterParts.Length > 0 && matchingParts == shorterParts.Length)
+    {
+      // Calculate penalty for extra parts in longer name
+      int extraParts = longerParts.Length - shorterParts.Length;
+      int similarity = 100 - (extraParts * 5); // -5% per extra part
+      _logger.LogDebug("Name subset match: {Matching}/{Total} parts (Similarity: {Score}%)",
+          matchingParts, shorterParts.Length, similarity);
+      return Math.Max(75, similarity); // Minimum 75% for subset matches
+    }
+
+    // Fall back to Levenshtein distance for non-subset matches
     int distance = LevenshteinDistance(normalizedProvided, normalizedErp);
     int maxLength = Math.Max(normalizedProvided.Length, normalizedErp.Length);
 

@@ -30,7 +30,15 @@ const personalInfoSchema = z.object({
   staffNumber: z
     .string()
     .optional()
-    .transform((val) => val?.trim().toUpperCase() || undefined),
+    .transform((val) => val?.trim().toUpperCase() || undefined)
+    .refine(
+      (val) => !val || val.length === 7,
+      { message: "Staff number must be exactly 7 characters" }
+    )
+    .refine(
+      (val) => !val || val.startsWith("00"),
+      { message: "Invalid staff number format. Must be 7 characters starting with '00' (e.g., 0012345, 00C5050, 00RG002)" }
+    ),
   idNumber: z
     .string()
     .optional()
@@ -469,6 +477,16 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
               disabled={!allowManualMode}
               className={allowManualMode ? "" : "bg-gray-50"}
             />
+            {errors?.staffNumber && (
+              <p className="mt-2 text-sm text-kq-red">
+                {errors.staffNumber.message}
+              </p>
+            )}
+            {!errors?.staffNumber && allowManualMode && (
+              <p className="mt-2 text-xs text-gray-500">
+                Format: 7 characters starting with &apos;00&apos; (e.g., 0012345, 00C5050)
+              </p>
+            )}
           </div>
 
           {/* Email */}
