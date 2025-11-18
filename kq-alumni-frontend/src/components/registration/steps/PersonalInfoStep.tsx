@@ -197,7 +197,9 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
     // ERP format: "lastname, Mr. firstname, othername"
     const parts = erpName.split(',').map(p => p.trim()).filter(p => p);
 
-    if (parts.length === 0) return erpName;
+    if (parts.length === 0) {
+      return erpName;
+    }
 
     const lastname = parts[0];
     const restParts: string[] = [];
