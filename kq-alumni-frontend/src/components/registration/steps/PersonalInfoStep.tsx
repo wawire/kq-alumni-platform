@@ -524,9 +524,12 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
                 {errors.staffNumber.message}
               </p>
             )}
-            {!errors?.staffNumber && allowManualMode && (
+            {/* Always show format hint when field is editable or there are no errors */}
+            {!errors?.staffNumber && (
               <p className="mt-2 text-xs text-gray-500">
-                Format: 7 characters starting with &apos;00&apos; (e.g., 0012345, 00C5050)
+                {allowManualMode
+                  ? "Format: 7 characters starting with '00' (e.g., 0012345, 00C5050, 00RG002)"
+                  : "Auto-filled from ID verification"}
               </p>
             )}
           </div>
