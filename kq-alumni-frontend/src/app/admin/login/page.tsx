@@ -9,12 +9,12 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { AlertCircle } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import { Button } from '@/components/ui/button/Button';
-import { useAdminLogin } from '@/lib/api/services/adminService';
+import { useAdminLogin, isAdminAuthenticated } from '@/lib/api/services/adminService';
 import { useAdminAuthActions } from '@/store/adminStore';
 import type { AdminLoginRequest } from '@/types/admin';
 
@@ -46,6 +46,13 @@ export default function AdminLoginPage() {
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
   });
+
+  // Redirect to dashboard if already authenticated
+  useEffect(() => {
+    if (isAdminAuthenticated()) {
+      router.replace('/admin/dashboard');
+    }
+  }, [router]);
 
   const onSubmit = (data: LoginFormData) => {
     login(data as AdminLoginRequest, {

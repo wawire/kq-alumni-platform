@@ -23,11 +23,8 @@ export function middleware(request: NextRequest) {
   if (pathname.startsWith('/admin')) {
     // Allow login page (public)
     if (pathname === '/admin/login') {
-      // If already authenticated, redirect to dashboard
-      const adminToken = request.cookies.get('admin_token')?.value;
-      if (adminToken) {
-        return NextResponse.redirect(new URL('/admin/dashboard', request.url));
-      }
+      // Don't redirect from login page to prevent redirect loops
+      // Let the login page component handle authentication checks
       return NextResponse.next();
     }
 

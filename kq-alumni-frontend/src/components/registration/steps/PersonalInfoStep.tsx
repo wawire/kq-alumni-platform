@@ -30,7 +30,15 @@ const personalInfoSchema = z.object({
   staffNumber: z
     .string()
     .optional()
-    .transform((val) => val?.trim().toUpperCase() || undefined),
+    .transform((val) => val?.trim().toUpperCase() || undefined)
+    .refine(
+      (val) => !val || val.length === 7,
+      { message: "Staff number must be exactly 7 characters" }
+    )
+    .refine(
+      (val) => !val || val.startsWith("00"),
+      { message: "Invalid staff number format. Must be 7 characters starting with '00' (e.g., 0012345, 00C5050, 00RG002)" }
+    ),
   idNumber: z
     .string()
     .optional()
@@ -176,6 +184,43 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
   }, [currentCountryCodeValue, selectedCountryCode]);
 
   // =====================================================
+  // HELPER: Normalize ERP name format to user-friendly format
+  // ERP returns: "lastname, Mr. firstname, othername"
+  // We convert to: "firstname othername lastname"
+  // =====================================================
+  const normalizeErpName = (erpName: string): string => {
+    if (!erpName || !erpName.includes(',')) {
+      // Not ERP format, return as-is
+      return erpName;
+    }
+
+    // ERP format: "lastname, Mr. firstname, othername"
+    const parts = erpName.split(',').map(p => p.trim()).filter(p => p);
+
+    if (parts.length === 0) return erpName;
+
+    const lastname = parts[0];
+    const restParts: string[] = [];
+
+    // Process remaining parts and remove titles
+    for (let i = 1; i < parts.length; i++) {
+      const part = parts[i];
+      // Remove common titles
+      const cleanedPart = part
+        .replace(/^(mr\.?|mrs\.?|ms\.?|miss\.?|dr\.?|prof\.?|professor|sir|madam)\s+/i, '')
+        .trim();
+
+      if (cleanedPart) {
+        restParts.push(cleanedPart);
+      }
+    }
+
+    // Reorder: firstname middlename lastname
+    const normalizedParts = [...restParts, lastname];
+    return normalizedParts.join(' ');
+  };
+
+  // =====================================================
   // ID VERIFICATION LOGIC
   // =====================================================
   const verifyIdWithERP = async (idOrPassport: string) => {
@@ -213,16 +258,21 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
 
       if (result.isVerified) {
         setVerificationStatus('verified');
+
+        // Normalize ERP name format before storing and displaying
+        // ERP format: "Mugo, Mr. Paul Ndungu" → "Paul Ndungu Mugo"
+        const normalizedFullName = result.fullName ? normalizeErpName(result.fullName) : '';
+
         setErpData({
           staffNumber: result.staffNumber,
-          fullName: result.fullName,
+          fullName: normalizedFullName, // Store normalized name
           department: result.department,
           exitDate: result.exitDate,
         });
 
-        // Auto-populate fields from ERP
-        if (result.fullName) {
-          setValue("fullName", result.fullName, { shouldValidate: true });
+        // Auto-populate fields from ERP with normalized name
+        if (normalizedFullName) {
+          setValue("fullName", normalizedFullName, { shouldValidate: true });
         }
         if (result.staffNumber) {
           setValue("staffNumber", result.staffNumber, { shouldValidate: true });
@@ -469,6 +519,19 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
               disabled={!allowManualMode}
               className={allowManualMode ? "" : "bg-gray-50"}
             />
+            {errors?.staffNumber && (
+              <p className="mt-2 text-sm text-kq-red">
+                {errors.staffNumber.message}
+              </p>
+            )}
+            {/* Always show format hint when field is editable or there are no errors */}
+            {!errors?.staffNumber && (
+              <p className="mt-2 text-xs text-gray-500">
+                {allowManualMode
+                  ? "Format: 7 characters starting with '00' (e.g., 0012345, 00C5050, 00RG002)"
+                  : "Auto-filled from ID verification"}
+              </p>
+            )}
           </div>
 
           {/* Email */}

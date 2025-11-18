@@ -148,11 +148,15 @@ public class ErpService : IErpService
       return result;
     }
 
-    // [PRODUCTION MODE] Perform strict name matching
+    // [PRODUCTION MODE] Perform name matching with improved tolerance
     result.NameSimilarityScore = CalculateNameSimilarity(fullName, result.StaffName);
 
-    // 80% threshold for name match
-    if (result.NameSimilarityScore < 80)
+    // 70% threshold for name match (lowered from 80% to accommodate name variations)
+    // This allows for:
+    // - Middle name differences (e.g., "John Doe" vs "John Michael Doe")
+    // - Spelling variations (e.g., "Catherine" vs "Katherine")
+    // - Initials vs full names (e.g., "J. Smith" vs "John Smith")
+    if (result.NameSimilarityScore < 70)
     {
       _logger.LogWarning(
           "Name mismatch for {StaffNumber}: Expected '{ErpName}', Got '{ProvidedName}' (Similarity: {Score}%)",
@@ -566,18 +570,51 @@ public class ErpService : IErpService
       return 0;
     }
 
-    // Normalize names (lowercase, remove extra spaces, trim)
+    // Normalize names (lowercase, remove extra spaces, trim, handle ERP format)
     var normalizedProvided = NormalizeName(providedName);
     var normalizedErp = NormalizeName(erpName);
+
+    _logger.LogDebug(
+        "Name normalization: Provided '{Original}' → '{Normalized}', ERP '{OriginalErp}' → '{NormalizedErp}'",
+        providedName, normalizedProvided, erpName, normalizedErp);
 
     // Exact match after normalization
     if (normalizedProvided == normalizedErp)
     {
-      _logger.LogDebug("Exact name match after normalization");
+      _logger.LogInformation("Exact name match after normalization: '{Name}'", normalizedProvided);
       return 100;
     }
 
-    // Calculate Levenshtein distance
+    // Check if one name is a subset of the other (handles middle names)
+    // E.g., "John Doe" matches "John Michael Doe" with 90% similarity
+    var providedParts = normalizedProvided.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+    var erpParts = normalizedErp.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+
+    // Check if all parts of the shorter name appear in the longer name
+    var shorterParts = providedParts.Length <= erpParts.Length ? providedParts : erpParts;
+    var longerParts = providedParts.Length > erpParts.Length ? providedParts : erpParts;
+
+    int matchingParts = 0;
+    foreach (var part in shorterParts)
+    {
+      if (longerParts.Any(lp => lp == part || LevenshteinDistance(part, lp) <= 1))
+      {
+        matchingParts++;
+      }
+    }
+
+    // If most parts match, give high similarity
+    if (shorterParts.Length > 0 && matchingParts == shorterParts.Length)
+    {
+      // Calculate penalty for extra parts in longer name
+      int extraParts = longerParts.Length - shorterParts.Length;
+      int similarity = 100 - (extraParts * 5); // -5% per extra part
+      _logger.LogDebug("Name subset match: {Matching}/{Total} parts (Similarity: {Score}%)",
+          matchingParts, shorterParts.Length, similarity);
+      return Math.Max(75, similarity); // Minimum 75% for subset matches
+    }
+
+    // Fall back to Levenshtein distance for non-subset matches
     int distance = LevenshteinDistance(normalizedProvided, normalizedErp);
     int maxLength = Math.Max(normalizedProvided.Length, normalizedErp.Length);
 
@@ -596,6 +633,8 @@ public class ErpService : IErpService
 
   /// <summary>
   /// Normalizes a name for comparison
+  /// Handles ERP format: "lastname, Mr. firstname, othername"
+  /// Converts to standard format: "firstname othername lastname"
   /// </summary>
   private static string NormalizeName(string name)
   {
@@ -604,11 +643,74 @@ public class ErpService : IErpService
       return string.Empty;
     }
 
-    // Convert to lowercase, split by whitespace, remove empty entries, rejoin
-    var parts = name.ToLowerInvariant()
-                   .Split(new[] { ' ', '\t', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+    // Convert to lowercase first
+    var normalized = name.ToLowerInvariant().Trim();
 
-    return string.Join(" ", parts);
+    // Check if this is ERP format (contains comma)
+    if (normalized.Contains(','))
+    {
+      // ERP format: "lastname, Mr. firstname, othername"
+      // Split by comma and clean each part
+      var parts = normalized.Split(',')
+                           .Select(p => p.Trim())
+                           .Where(p => !string.IsNullOrWhiteSpace(p))
+                           .ToList();
+
+      if (parts.Count > 0)
+      {
+        var lastname = parts[0].Trim();
+        var firstAndMiddle = new List<string>();
+
+        // Process remaining parts (firstname and other names)
+        for (int i = 1; i < parts.Count; i++)
+        {
+          var part = parts[i].Trim();
+
+          // Remove titles (mr., mrs., ms., dr., prof., etc.)
+          part = RemoveTitles(part);
+
+          if (!string.IsNullOrWhiteSpace(part))
+          {
+            firstAndMiddle.Add(part);
+          }
+        }
+
+        // Reorder: firstname middlename lastname
+        var reorderedParts = new List<string>();
+        reorderedParts.AddRange(firstAndMiddle);
+        reorderedParts.Add(lastname);
+
+        normalized = string.Join(" ", reorderedParts);
+      }
+    }
+    else
+    {
+      // Standard format: just remove titles
+      normalized = RemoveTitles(normalized);
+    }
+
+    // Final cleanup: split by whitespace, remove empty entries, rejoin
+    var finalParts = normalized.Split(new[] { ' ', '\t', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+    return string.Join(" ", finalParts);
+  }
+
+  /// <summary>
+  /// Removes common titles from a name string
+  /// </summary>
+  private static string RemoveTitles(string name)
+  {
+    if (string.IsNullOrWhiteSpace(name))
+    {
+      return string.Empty;
+    }
+
+    // List of common titles to remove
+    var titles = new[] { "mr.", "mrs.", "ms.", "miss.", "dr.", "prof.", "professor", "sir", "madam" };
+
+    var words = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+    var cleanedWords = words.Where(w => !titles.Contains(w.ToLowerInvariant().TrimEnd('.'))).ToList();
+
+    return string.Join(" ", cleanedWords);
   }
 
   /// <summary>
