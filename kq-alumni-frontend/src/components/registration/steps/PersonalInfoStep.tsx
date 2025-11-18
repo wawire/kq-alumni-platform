@@ -184,6 +184,43 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
   }, [currentCountryCodeValue, selectedCountryCode]);
 
   // =====================================================
+  // HELPER: Normalize ERP name format to user-friendly format
+  // ERP returns: "lastname, Mr. firstname, othername"
+  // We convert to: "firstname othername lastname"
+  // =====================================================
+  const normalizeErpName = (erpName: string): string => {
+    if (!erpName || !erpName.includes(',')) {
+      // Not ERP format, return as-is
+      return erpName;
+    }
+
+    // ERP format: "lastname, Mr. firstname, othername"
+    const parts = erpName.split(',').map(p => p.trim()).filter(p => p);
+
+    if (parts.length === 0) return erpName;
+
+    const lastname = parts[0];
+    const restParts: string[] = [];
+
+    // Process remaining parts and remove titles
+    for (let i = 1; i < parts.length; i++) {
+      const part = parts[i];
+      // Remove common titles
+      const cleanedPart = part
+        .replace(/^(mr\.?|mrs\.?|ms\.?|miss\.?|dr\.?|prof\.?|professor|sir|madam)\s+/i, '')
+        .trim();
+
+      if (cleanedPart) {
+        restParts.push(cleanedPart);
+      }
+    }
+
+    // Reorder: firstname middlename lastname
+    const normalizedParts = [...restParts, lastname];
+    return normalizedParts.join(' ');
+  };
+
+  // =====================================================
   // ID VERIFICATION LOGIC
   // =====================================================
   const verifyIdWithERP = async (idOrPassport: string) => {
@@ -221,16 +258,21 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
 
       if (result.isVerified) {
         setVerificationStatus('verified');
+
+        // Normalize ERP name format before storing and displaying
+        // ERP format: "Mugo, Mr. Paul Ndungu" → "Paul Ndungu Mugo"
+        const normalizedFullName = result.fullName ? normalizeErpName(result.fullName) : '';
+
         setErpData({
           staffNumber: result.staffNumber,
-          fullName: result.fullName,
+          fullName: normalizedFullName, // Store normalized name
           department: result.department,
           exitDate: result.exitDate,
         });
 
-        // Auto-populate fields from ERP
-        if (result.fullName) {
-          setValue("fullName", result.fullName, { shouldValidate: true });
+        // Auto-populate fields from ERP with normalized name
+        if (normalizedFullName) {
+          setValue("fullName", normalizedFullName, { shouldValidate: true });
         }
         if (result.staffNumber) {
           setValue("staffNumber", result.staffNumber, { shouldValidate: true });
