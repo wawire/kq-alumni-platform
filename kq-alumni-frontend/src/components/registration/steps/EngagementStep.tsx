@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { ArrowLeftIcon, ClockIcon } from "@heroicons/react/24/solid";
+import { ArrowLeftIcon } from "@heroicons/react/24/solid";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -85,10 +85,6 @@ const EngagementStep: React.FC<Props> = ({
           <h2 className="text-3xl font-cabrito font-bold text-kq-dark mb-2">
             Alumni Engagement & Consent
           </h2>
-          <div className="flex items-center gap-2 text-sm text-gray-600">
-            <ClockIcon className="w-4 h-4" />
-            <span>About 2 minutes</span>
-          </div>
         </div>
 
         {/* Engagement Areas */}
