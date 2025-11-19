@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { ClockIcon } from "@heroicons/react/24/solid";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { City, Country, ICity, ICountry } from "country-state-city";
 import { FormProvider, useForm } from "react-hook-form";
@@ -439,10 +438,6 @@ export default function PersonalInfoStep({ data, onNext }: Props) {
           <h2 className="text-3xl font-cabrito font-bold text-kq-dark mb-2">
             Personal Information & Contact Information
           </h2>
-          <div className="flex items-center gap-2 text-sm text-gray-600">
-            <ClockIcon className="w-4 h-4" />
-            <span>About 5 minutes</span>
-          </div>
         </div>
 
         {/* Row 1: ID Number / Passport & Full Name - Side by Side */}

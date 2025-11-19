@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowLeftIcon, ClockIcon } from "@heroicons/react/24/solid";
+import { ArrowLeftIcon } from "@heroicons/react/24/solid";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { FormProvider, useForm } from "react-hook-form";
 import { z } from "zod";
@@ -103,10 +103,6 @@ export default function EmploymentStep({ data, onNext, onBack }: Props) {
           <h2 className="text-3xl font-cabrito font-bold text-kq-dark mb-2">
             Employment Information & Education
           </h2>
-          <div className="flex items-center gap-2 text-sm text-gray-600">
-            <ClockIcon className="w-4 h-4" />
-            <span>About 3 minutes</span>
-          </div>
         </div>
 
         {/* Employer and Job Title */}
