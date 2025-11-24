@@ -17,9 +17,9 @@ public class RegistrationRequestValidator : AbstractValidator<RegistrationReques
   // Email: Standard RFC 5322 format
   private const string EmailPattern = @"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$";
 
-  // Full Name: Letters, spaces, hyphens, apostrophes, periods, and commas
-  // Allows titles (Mr., Dr.), initials (J.K.), and suffixes (Jr., Sr.)
-  private const string FullNamePattern = @"^[a-zA-Z\s\-'.,]+$";
+  // Full Name: Letters, spaces, hyphens, apostrophes, periods, commas, and backticks
+  // Allows titles (Mr., Dr.), initials (J.K.), suffixes (Jr., Sr.), and special characters from ERP
+  private const string FullNamePattern = @"^[a-zA-Z\s\-'.,`]+$";
 
   // LinkedIn: Must contain linkedin.com
   private const string LinkedInPattern = @"^https?:\/\/(www\.)?linkedin\.com\/.*$";
@@ -61,7 +61,7 @@ public class RegistrationRequestValidator : AbstractValidator<RegistrationReques
         .Length(2, 200)
         .WithMessage("Full name must be between 2 and 200 characters")
         .Matches(FullNamePattern)
-        .WithMessage("Full name can only contain letters, spaces, hyphens, apostrophes, periods, and commas");
+        .WithMessage("Full name can only contain letters, spaces, hyphens, apostrophes, periods, commas, and backticks");
 
     RuleFor(x => x.Email)
         .NotEmpty()
