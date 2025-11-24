@@ -32,7 +32,7 @@ const ERROR_MESSAGES = {
   FULL_NAME_TOO_SHORT: "Full name must be at least 2 characters",
   FULL_NAME_TOO_LONG: "Full name cannot exceed 200 characters",
   FULL_NAME_INVALID_CHARS:
-    "Full name can only contain letters (including accented characters), spaces, hyphens, apostrophes, periods, commas, and backticks",
+    "Full name can only contain letters (including accented characters), spaces, and special characters: - ' . , ` _ \" ~",
   FULL_NAME_MISMATCH: "Name does not match our records",
   EMAIL_REQUIRED: "Email address is required",
   EMAIL_INVALID: "Please enter a valid email address",

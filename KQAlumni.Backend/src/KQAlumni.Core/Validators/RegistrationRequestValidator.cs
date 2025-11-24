@@ -20,8 +20,8 @@ public class RegistrationRequestValidator : AbstractValidator<RegistrationReques
   // Full Name: Letters (including accented/African language characters), spaces, and common punctuation
   // Supports: Basic Latin (a-z, A-Z), Latin Extended (À-ÿ, Ā-ſ) for African names with diacritics
   // Examples: François, Ngọ́zị, Ouédraogo, N'Dour, O'Brien, José María
-  // Punctuation: spaces, hyphens, apostrophes, periods, commas, backticks
-  private const string FullNamePattern = @"^[a-zA-ZÀ-ÿĀ-ſ\s\-'.,`]+$";
+  // Punctuation: spaces, hyphens, apostrophes, periods, commas, backticks, underscores, double quotes, tildes
+  private const string FullNamePattern = @"^[a-zA-ZÀ-ÿĀ-ſ\s\-'.,`_""~]+$";
 
   // LinkedIn: Must contain linkedin.com
   private const string LinkedInPattern = @"^https?:\/\/(www\.)?linkedin\.com\/.*$";
@@ -63,7 +63,7 @@ public class RegistrationRequestValidator : AbstractValidator<RegistrationReques
         .Length(2, 200)
         .WithMessage("Full name must be between 2 and 200 characters")
         .Matches(FullNamePattern)
-        .WithMessage("Full name can only contain letters (including accented characters), spaces, hyphens, apostrophes, periods, commas, and backticks");
+        .WithMessage("Full name can only contain letters (including accented characters), spaces, and special characters: - ' . , ` _ \" ~");
 
     RuleFor(x => x.Email)
         .NotEmpty()
