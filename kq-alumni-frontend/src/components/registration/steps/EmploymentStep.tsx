@@ -139,8 +139,8 @@ export default function EmploymentStep({ data, onNext, onBack }: Props) {
           <FormField
             name="linkedInProfile"
             label="LinkedIn Profile (Optional)"
-            type="url"
-            placeholder="https://www.linkedin.com/in/yourprofile"
+            type="text"
+            placeholder="https://www.linkedin.com/in/yourprofile or N/A"
             variant="underline"
           />
         </div>
