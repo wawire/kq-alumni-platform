@@ -149,9 +149,7 @@ public class RegistrationRequestValidator : AbstractValidator<RegistrationReques
     {
       RuleFor(x => x.LinkedInProfile)
               .MaximumLength(500)
-              .WithMessage("LinkedIn URL too long")
-              .Matches(LinkedInPattern)
-              .WithMessage("Please provide a valid LinkedIn profile URL");
+              .WithMessage("LinkedIn URL too long");
     });
 
     RuleFor(x => x.QualificationsAttained)
