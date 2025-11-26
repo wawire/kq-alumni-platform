@@ -308,6 +308,11 @@ public class ApprovalProcessingJob
 
     _context.AuditLogs.Add(auditLog);
 
+    // Save changes to database BEFORE sending email
+    // This ensures the verification token is persisted before users can click the link
+    // Prevents "token not found" errors when users click verification links quickly
+    await _context.SaveChangesAsync(CancellationToken.None);
+
     // Send approval email with verification link
     try
     {

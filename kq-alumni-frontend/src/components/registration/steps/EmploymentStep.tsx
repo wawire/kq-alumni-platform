@@ -30,13 +30,9 @@ const employmentSchema = z.object({
     .or(z.literal("")),
   linkedInProfile: z
     .string()
+    .max(500, "LinkedIn URL too long")
     .optional()
-    .transform((val) => val?.trim() || undefined)
-    .refine(
-      (val) => !val || /^https?:\/\/(www\.)?linkedin\.com\/.*$/.test(val),
-      "Please provide a valid LinkedIn profile URL"
-    )
-    .optional(),
+    .or(z.literal("")),
   qualificationsAttained: z
     .array(z.string())
     .min(1, "Please select at least one qualification"),
