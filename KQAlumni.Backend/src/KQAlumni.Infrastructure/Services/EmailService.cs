@@ -321,7 +321,7 @@ public class EmailService : IEmailService
         <tr>
             <td align=""center"">
                 <!-- Main content table with max width -->
-                <table width=""600"" cellpadding=""0"" cellspacing=""0"" border=""0"" style=""background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); max-width: 600px;"">
+                <table width=""520"" cellpadding=""0"" cellspacing=""0"" border=""0"" style=""background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); max-width: 520px;"">
 
                     <!-- Header with Kenya Airways Red -->
                     <tr>
@@ -446,9 +446,6 @@ public class EmailService : IEmailService
 
     private string GetApprovalEmailTemplate(string recipientName, string verificationToken)
     {
-        var baseUrl = _configuration["AppSettings:BaseUrl"] ?? "http://localhost:3000";
-        var verificationLink = $"{baseUrl}/verify/{verificationToken}";
-
         return $@"
 <!DOCTYPE html>
 <html>
@@ -462,138 +459,91 @@ public class EmailService : IEmailService
         <tr>
             <td align=""center"">
                 <!-- Main content table -->
-                <table width=""600"" cellpadding=""0"" cellspacing=""0"" border=""0"" style=""background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); max-width: 600px;"">
+                <table width=""520"" cellpadding=""0"" cellspacing=""0"" border=""0"" style=""background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); max-width: 520px;"">
 
                     <!-- Header -->
                     <tr>
-                        <td style=""background-color: #DC143C; padding: 35px 30px; text-align: center;"">
-                            <h1 style=""margin: 0; color: #ffffff; font-size: 24px; font-weight: 600; letter-spacing: 0.5px;"">Kenya Airways Alumni Network</h1>
-                            <p style=""margin: 8px 0 0 0; color: #ffffff; font-size: 14px; opacity: 0.95;"">Welcome! Your Registration is Approved 🎉</p>
+                        <td style=""background-color: #DC143C; padding: 30px 30px; text-align: center;"">
+                            <h1 style=""margin: 0; color: #ffffff; font-size: 22px; font-weight: 600; letter-spacing: 0.5px;"">Welcome to KQ Alumni Network!</h1>
                         </td>
                     </tr>
 
                     <!-- Main content -->
                     <tr>
-                        <td style=""padding: 40px 35px;"">
-                            <h2 style=""margin: 0 0 20px 0; color: #1a1a1a; font-size: 20px; font-weight: 600;"">Dear {recipientName},</h2>
+                        <td style=""padding: 35px 30px;"">
+                            <h2 style=""margin: 0 0 20px 0; color: #1a1a1a; font-size: 18px; font-weight: 600;"">Dear {recipientName},</h2>
 
-                            <p style=""margin: 0 0 15px 0; color: #4a5568; font-size: 15px; line-height: 1.6;"">
-                                Congratulations! We are pleased to inform you that your registration has been <strong style=""color: #22c55e;"">approved</strong>.
+                            <p style=""margin: 0 0 15px 0; color: #4a5568; font-size: 15px; line-height: 1.7;"">
+                                We are delighted to welcome you to the <strong>Kenya Airways Alumni Association!</strong>
                             </p>
 
-                            <!-- Success box -->
-                            <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0"" style=""background-color: #f0fdf4; border: 1px solid #86efac; border-left: 4px solid #22c55e; border-radius: 6px; margin: 25px 0;"">
+                            <p style=""margin: 0 0 20px 0; color: #4a5568; font-size: 15px; line-height: 1.7;"">
+                                Your registration has been successfully approved, and your profile is now active in our Alumni Network.
+                            </p>
+
+                            <h3 style=""margin: 25px 0 15px 0; color: #DC143C; font-size: 16px; font-weight: 600;"">As a valued member, you will have access to:</h3>
+
+                            <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0"" style=""margin-bottom: 20px;"">
                                 <tr>
-                                    <td style=""padding: 20px;"">
-                                        <table width=""100%"" cellpadding=""6"" cellspacing=""0"" border=""0"">
-                                            <tr>
-                                                <td style=""font-weight: 600; color: #166534; font-size: 14px;"">Status:</td>
-                                                <td style=""color: #166534; font-size: 14px; text-align: right;"">✓ Approved</td>
-                                            </tr>
-                                            <tr>
-                                                <td style=""font-weight: 600; color: #166534; font-size: 14px;"">Next Step:</td>
-                                                <td style=""color: #166534; font-size: 14px; text-align: right;"">Verify your email</td>
-                                            </tr>
-                                        </table>
+                                    <td style=""padding: 5px 0;"">
+                                        <span style=""color: #DC143C; font-size: 16px; margin-right: 8px;"">·</span>
+                                        <span style=""color: #4a5568; font-size: 14px; line-height: 1.6;"">Exclusive networking events and reunions</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style=""padding: 5px 0;"">
+                                        <span style=""color: #DC143C; font-size: 16px; margin-right: 8px;"">·</span>
+                                        <span style=""color: #4a5568; font-size: 14px; line-height: 1.6;"">Alumni newsletters and updates</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style=""padding: 5px 0;"">
+                                        <span style=""color: #DC143C; font-size: 16px; margin-right: 8px;"">·</span>
+                                        <span style=""color: #4a5568; font-size: 14px; line-height: 1.6;"">Mentorship and career growth opportunities</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style=""padding: 5px 0;"">
+                                        <span style=""color: #DC143C; font-size: 16px; margin-right: 8px;"">·</span>
+                                        <span style=""color: #4a5568; font-size: 14px; line-height: 1.6;"">Opportunities to participate in CSR and community projects</span>
                                     </td>
                                 </tr>
                             </table>
 
-                            <p style=""margin: 0 0 25px 0; color: #4a5568; font-size: 15px; line-height: 1.6;"">
-                                To activate your account and access all alumni benefits, please verify your email address by clicking the button below:
+                            <p style=""margin: 20px 0 15px 0; color: #4a5568; font-size: 15px; line-height: 1.7;"">
+                                We're proud to continue this journey with you beyond your time at Kenya Airways.
                             </p>
 
-                            <!-- Verify button -->
-                            <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0"">
-                                <tr>
-                                    <td align=""center"" style=""padding: 20px 0;"">
-                                        <table cellpadding=""0"" cellspacing=""0"" border=""0"">
-                                            <tr>
-                                                <td align=""center"" style=""background-color: #DC143C; border-radius: 6px;"">
-                                                    <a href=""{verificationLink}"" style=""display: inline-block; padding: 16px 45px; color: #ffffff; text-decoration: none; font-weight: 600; font-size: 15px; letter-spacing: 0.5px;"">VERIFY EMAIL ADDRESS</a>
-                                                </td>
-                                            </tr>
-                                        </table>
-                                    </td>
-                                </tr>
-                            </table>
+                            <p style=""margin: 0 0 20px 0; color: #4a5568; font-size: 15px; line-height: 1.7;"">
+                                Stay tuned for upcoming activities, and don't forget to keep your profile updated with your current professional journey.
+                            </p>
 
-                            <!-- Alternative link -->
+                            <!-- Corporate webpage link box -->
                             <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0"" style=""background-color: #f8f9fa; border: 1px solid #dee2e6; border-radius: 6px; margin: 20px 0;"">
                                 <tr>
-                                    <td style=""padding: 15px;"">
-                                        <p style=""margin: 0 0 8px 0; color: #495057; font-size: 13px; font-weight: 600;"">Alternative Verification Link:</p>
-                                        <a href=""{verificationLink}"" style=""color: #DC143C; word-break: break-all; font-size: 12px; text-decoration: none;"">{verificationLink}</a>
+                                    <td style=""padding: 15px; text-align: center;"">
+                                        <p style=""margin: 0 0 8px 0; color: #495057; font-size: 14px; font-weight: 600;"">Learn More About Our Alumni Network</p>
+                                        <a href=""https://corporate.kenya-airways.com/en/alumni-network/"" style=""color: #DC143C; font-size: 14px; text-decoration: none; font-weight: 500;"">Visit Our Corporate Alumni Webpage →</a>
                                     </td>
                                 </tr>
                             </table>
 
-                            <!-- Expiry note -->
-                            <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0"" style=""margin: 20px 0;"">
-                                <tr>
-                                    <td style=""background-color: #fff7ed; border-left: 3px solid #fb923c; padding: 12px 15px; border-radius: 4px;"">
-                                        <p style=""margin: 0; color: #9a3412; font-size: 14px; line-height: 1.6;"">
-                                            <strong>Important:</strong> This verification link will expire in 30 days.
-                                        </p>
-                                    </td>
-                                </tr>
-                            </table>
-
-                            <h3 style=""margin: 30px 0 15px 0; color: #DC143C; font-size: 16px; font-weight: 600;"">Your Alumni Benefits</h3>
-
-                            <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0"">
-                                <tr>
-                                    <td style=""padding: 6px 0;"">
-                                        <span style=""color: #DC143C; font-size: 18px; margin-right: 10px;"">✓</span>
-                                        <span style=""color: #4a5568; font-size: 14px; line-height: 1.6;"">Access to exclusive networking events and reunions</span>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td style=""padding: 6px 0;"">
-                                        <span style=""color: #DC143C; font-size: 18px; margin-right: 10px;"">✓</span>
-                                        <span style=""color: #4a5568; font-size: 14px; line-height: 1.6;"">Career development and mentorship opportunities</span>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td style=""padding: 6px 0;"">
-                                        <span style=""color: #DC143C; font-size: 18px; margin-right: 10px;"">✓</span>
-                                        <span style=""color: #4a5568; font-size: 14px; line-height: 1.6;"">Connect with fellow alumni worldwide</span>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td style=""padding: 6px 0;"">
-                                        <span style=""color: #DC143C; font-size: 18px; margin-right: 10px;"">✓</span>
-                                        <span style=""color: #4a5568; font-size: 14px; line-height: 1.6;"">Volunteering and community service opportunities</span>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td style=""padding: 6px 0;"">
-                                        <span style=""color: #DC143C; font-size: 18px; margin-right: 10px;"">✓</span>
-                                        <span style=""color: #4a5568; font-size: 14px; line-height: 1.6;"">Regular alumni newsletters and industry updates</span>
-                                    </td>
-                                </tr>
-                            </table>
-
-                            <p style=""margin: 30px 0 0 0; color: #4a5568; font-size: 15px; line-height: 1.6;"">
-                                We look forward to your active participation in the KQ Alumni community!
-                            </p>
-
-                            <p style=""margin: 25px 0 0 0; color: #4a5568; font-size: 15px; line-height: 1.6;"">
-                                Best regards,<br>
-                                <strong style=""color: #1a1a1a;"">The KQ Alumni Team</strong>
+                            <p style=""margin: 25px 0 0 0; color: #4a5568; font-size: 15px; line-height: 1.7;"">
+                                Warm regards,<br>
+                                <strong style=""color: #1a1a1a;"">Kenya Airways Alumni Relations Team</strong>
                             </p>
                         </td>
                     </tr>
 
                     <!-- Footer -->
                     <tr>
-                        <td style=""background-color: #f9fafb; padding: 25px 30px; text-align: center; border-top: 1px solid #e5e7eb;"">
-                            <p style=""margin: 0 0 8px 0; font-weight: 600; color: #4a5568; font-size: 14px;"">Kenya Airways Alumni Association</p>
-                            <p style=""margin: 0 0 15px 0;"">
-                                <a href=""mailto:KQ.Alumni@kenya-airways.com"" style=""color: #DC143C; text-decoration: none; font-size: 14px;"">KQ.Alumni@kenya-airways.com</a>
+                        <td style=""background-color: #f9fafb; padding: 20px 25px; text-align: center; border-top: 1px solid #e5e7eb;"">
+                            <p style=""margin: 0 0 8px 0; font-weight: 600; color: #4a5568; font-size: 13px;"">Kenya Airways Alumni Association</p>
+                            <p style=""margin: 0 0 12px 0;"">
+                                <a href=""mailto:KQ.Alumni@kenya-airways.com"" style=""color: #DC143C; text-decoration: none; font-size: 13px;"">KQ.Alumni@kenya-airways.com</a>
                             </p>
-                            <p style=""font-size: 12px; color: #9ca3af; margin: 0; line-height: 1.4;"">
-                                If you did not register for this account, please disregard this email.
+                            <p style=""font-size: 11px; color: #9ca3af; margin: 0; line-height: 1.4;"">
+                                This is an automated message. Please do not reply to this email.
                             </p>
                         </td>
                     </tr>
