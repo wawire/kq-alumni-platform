@@ -148,7 +148,7 @@ public class EmailService : IEmailService
                 _logger.LogWarning(templateEx,
                     "[EMAIL] Could not load custom template, using default hardcoded template");
 
-                subject = "Welcome to KQ Alumni Network - Verify Your Email";
+                subject = "Welcome to Kenya Airways Alumni Network!";
                 body = GetApprovalEmailTemplate(alumniName, verificationToken);
             }
 
