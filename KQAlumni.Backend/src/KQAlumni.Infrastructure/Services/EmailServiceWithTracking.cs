@@ -277,8 +277,9 @@ public class EmailServiceWithTracking : IEmailService
     <style>
         body {{
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
+            line-height: 1.7;
             color: #333333;
+            font-size: 15px;
             max-width: 600px;
             margin: 0 auto;
             padding: 20px;
@@ -313,18 +314,21 @@ public class EmailServiceWithTracking : IEmailService
             padding: 15px;
             margin: 20px 0;
             border-radius: 4px;
+            font-size: 15px;
         }}
-        h1 {{ margin: 0; font-size: 28px; }}
-        h2 {{ color: #DC143C; font-size: 22px; }}
+        h1 {{ margin: 0; font-size: 22px; }}
+        h2 {{ color: #DC143C; font-size: 18px; }}
+        h3 {{ color: #DC143C; font-size: 18px; }}
+        p {{ font-size: 15px; }}
         ul {{ padding-left: 20px; }}
-        li {{ margin-bottom: 8px; }}
+        li {{ margin-bottom: 8px; font-size: 15px; }}
     </style>
 </head>
 <body>
     <div class=""email-container"">
         <div class=""header"">
             <h1>Kenya Airways Alumni Network</h1>
-            <p style=""margin: 10px 0 0 0; font-size: 16px;"">Registration Received</p>
+            <p style=""margin: 10px 0 0 0; font-size: 15px;"">Registration Received</p>
         </div>
 
         <div class=""content"">
@@ -344,8 +348,7 @@ public class EmailServiceWithTracking : IEmailService
             <ul>
                 <li>Your registration details are being verified against our records</li>
                 <li>You will receive an approval email within 24-48 hours</li>
-                <li>The approval email will contain a verification link to activate your account</li>
-                <li>Once verified, you'll have full access to alumni benefits</li>
+                <li>Once approved, you'll have full access to alumni benefits</li>
             </ul>
 
             <p><strong>Important:</strong> Please check your spam/junk folder if you don't see our next email.</p>
@@ -353,14 +356,14 @@ public class EmailServiceWithTracking : IEmailService
             <p>We're excited to have you as part of the KQ Alumni family!</p>
 
             <p style=""margin-top: 30px;"">
-                Best regards,<br>
-                <strong>The KQ Alumni Team</strong>
+                Warm regards,<br>
+                <strong>Kenya Airways Alumni Relations Team</strong>
             </p>
         </div>
 
         <div class=""footer"">
-            <p style=""margin: 0 0 10px 0;""><strong>Kenya Airways Alumni Association</strong></p>
-            <p style=""margin: 0 0 10px 0;"">
+            <p style=""margin: 0 0 10px 0; font-size: 14px;""><strong>Kenya Airways Alumni Association</strong></p>
+            <p style=""margin: 0 0 10px 0; font-size: 14px;"">
                 <a href=""mailto:KQ.Alumni@kenya-airways.com"" style=""color: #DC143C; text-decoration: none;"">KQ.Alumni@kenya-airways.com</a>
             </p>
             <p style=""font-size: 12px; color: #9ca3af; margin: 10px 0 0 0;"">
@@ -409,31 +412,31 @@ public class EmailServiceWithTracking : IEmailService
                                 Your registration has been successfully approved, and your profile is now active in our Alumni Network.
                             </p>
 
-                            <h3 style=""margin: 25px 0 15px 0; color: #DC143C; font-size: 16px; font-weight: 600;"">As a valued member, you will have access to:</h3>
+                            <h3 style=""margin: 25px 0 15px 0; color: #DC143C; font-size: 18px; font-weight: 600;"">As a valued member, you will have access to:</h3>
 
                             <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0"" style=""margin-bottom: 20px;"">
                                 <tr>
                                     <td style=""padding: 5px 0;"">
-                                        <span style=""color: #DC143C; font-size: 16px; margin-right: 8px;"">·</span>
-                                        <span style=""color: #4a5568; font-size: 14px; line-height: 1.6;"">Exclusive networking events and reunions</span>
+                                        <span style=""color: #DC143C; font-size: 15px; margin-right: 8px;"">·</span>
+                                        <span style=""color: #4a5568; font-size: 15px; line-height: 1.7;"">Exclusive networking events and reunions</span>
                                     </td>
                                 </tr>
                                 <tr>
                                     <td style=""padding: 5px 0;"">
-                                        <span style=""color: #DC143C; font-size: 16px; margin-right: 8px;"">·</span>
-                                        <span style=""color: #4a5568; font-size: 14px; line-height: 1.6;"">Alumni newsletters and updates</span>
+                                        <span style=""color: #DC143C; font-size: 15px; margin-right: 8px;"">·</span>
+                                        <span style=""color: #4a5568; font-size: 15px; line-height: 1.7;"">Alumni newsletters and updates</span>
                                     </td>
                                 </tr>
                                 <tr>
                                     <td style=""padding: 5px 0;"">
-                                        <span style=""color: #DC143C; font-size: 16px; margin-right: 8px;"">·</span>
-                                        <span style=""color: #4a5568; font-size: 14px; line-height: 1.6;"">Mentorship and career growth opportunities</span>
+                                        <span style=""color: #DC143C; font-size: 15px; margin-right: 8px;"">·</span>
+                                        <span style=""color: #4a5568; font-size: 15px; line-height: 1.7;"">Mentorship and career growth opportunities</span>
                                     </td>
                                 </tr>
                                 <tr>
                                     <td style=""padding: 5px 0;"">
-                                        <span style=""color: #DC143C; font-size: 16px; margin-right: 8px;"">·</span>
-                                        <span style=""color: #4a5568; font-size: 14px; line-height: 1.6;"">Opportunities to participate in CSR and community projects</span>
+                                        <span style=""color: #DC143C; font-size: 15px; margin-right: 8px;"">·</span>
+                                        <span style=""color: #4a5568; font-size: 15px; line-height: 1.7;"">Opportunities to participate in CSR and community projects</span>
                                     </td>
                                 </tr>
                             </table>
@@ -450,8 +453,8 @@ public class EmailServiceWithTracking : IEmailService
                             <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0"" style=""background-color: #f8f9fa; border: 1px solid #dee2e6; border-radius: 6px; margin: 20px 0;"">
                                 <tr>
                                     <td style=""padding: 15px; text-align: center;"">
-                                        <p style=""margin: 0 0 8px 0; color: #495057; font-size: 14px; font-weight: 600;"">Learn More About Our Alumni Network</p>
-                                        <a href=""https://corporate.kenya-airways.com/en/alumni-network/"" style=""color: #DC143C; font-size: 14px; text-decoration: none; font-weight: 500;"">Visit Our Corporate Alumni Webpage →</a>
+                                        <p style=""margin: 0 0 8px 0; color: #495057; font-size: 15px; font-weight: 600;"">Learn More About Our Alumni Network</p>
+                                        <a href=""https://corporate.kenya-airways.com/en/alumni-network/"" style=""color: #DC143C; font-size: 15px; text-decoration: none; font-weight: 500;"">Visit Our Corporate Alumni Webpage →</a>
                                     </td>
                                 </tr>
                             </table>
@@ -466,11 +469,11 @@ public class EmailServiceWithTracking : IEmailService
                     <!-- Footer -->
                     <tr>
                         <td style=""background-color: #f9fafb; padding: 20px 25px; text-align: center; border-top: 1px solid #e5e7eb;"">
-                            <p style=""margin: 0 0 8px 0; font-weight: 600; color: #4a5568; font-size: 13px;"">Kenya Airways Alumni Association</p>
+                            <p style=""margin: 0 0 8px 0; font-weight: 600; color: #4a5568; font-size: 14px;"">Kenya Airways Alumni Association</p>
                             <p style=""margin: 0 0 12px 0;"">
-                                <a href=""mailto:KQ.Alumni@kenya-airways.com"" style=""color: #DC143C; text-decoration: none; font-size: 13px;"">KQ.Alumni@kenya-airways.com</a>
+                                <a href=""mailto:KQ.Alumni@kenya-airways.com"" style=""color: #DC143C; text-decoration: none; font-size: 14px;"">KQ.Alumni@kenya-airways.com</a>
                             </p>
-                            <p style=""font-size: 11px; color: #9ca3af; margin: 0; line-height: 1.4;"">
+                            <p style=""font-size: 12px; color: #9ca3af; margin: 0; line-height: 1.4;"">
                                 This is an automated message. Please do not reply to this email.
                             </p>
                         </td>
@@ -494,8 +497,9 @@ public class EmailServiceWithTracking : IEmailService
     <style>
         body {{
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
+            line-height: 1.7;
             color: #333333;
+            font-size: 15px;
             max-width: 600px;
             margin: 0 auto;
             padding: 20px;
@@ -530,16 +534,21 @@ public class EmailServiceWithTracking : IEmailService
             padding: 15px;
             margin: 20px 0;
             border-radius: 4px;
+            font-size: 15px;
         }}
-        h1 {{ margin: 0; font-size: 28px; }}
-        h2 {{ color: #DC143C; font-size: 22px; }}
+        h1 {{ margin: 0; font-size: 22px; }}
+        h2 {{ color: #DC143C; font-size: 18px; }}
+        h3 {{ color: #DC143C; font-size: 18px; }}
+        p {{ font-size: 15px; }}
+        ul {{ padding-left: 20px; }}
+        li {{ margin-bottom: 8px; font-size: 15px; }}
     </style>
 </head>
 <body>
     <div class=""email-container"">
         <div class=""header"">
             <h1>Kenya Airways Alumni Network</h1>
-            <p style=""margin: 10px 0 0 0; font-size: 16px;"">Registration Update</p>
+            <p style=""margin: 10px 0 0 0; font-size: 15px;"">Registration Update</p>
         </div>
 
         <div class=""content"">
@@ -563,7 +572,7 @@ public class EmailServiceWithTracking : IEmailService
             <h3>Next Steps:</h3>
             <p>Please contact our HR department to verify your employment record:</p>
 
-            <p style=""background: #f9fafb; padding: 15px; border-radius: 4px;"">
+            <p style=""background: #f9fafb; padding: 15px; border-radius: 4px; font-size: 15px;"">
                 <strong>Email:</strong> <a href=""mailto:KQ.Alumni@kenya-airways.com"" style=""color: #DC143C;"">KQ.Alumni@kenya-airways.com</a><br>
                 <strong>Phone:</strong> +254 20 661 6000
             </p>
@@ -571,15 +580,18 @@ public class EmailServiceWithTracking : IEmailService
             <p>We apologize for any inconvenience and look forward to welcoming you to our alumni network.</p>
 
             <p style=""margin-top: 30px;"">
-                Best regards,<br>
-                <strong>The KQ Alumni Team</strong>
+                Warm regards,<br>
+                <strong>Kenya Airways Alumni Relations Team</strong>
             </p>
         </div>
 
         <div class=""footer"">
-            <p style=""margin: 0 0 10px 0;""><strong>Kenya Airways Alumni Association</strong></p>
-            <p style=""margin: 0 0 10px 0;"">
+            <p style=""margin: 0 0 10px 0; font-size: 14px;""><strong>Kenya Airways Alumni Association</strong></p>
+            <p style=""margin: 0 0 10px 0; font-size: 14px;"">
                 <a href=""mailto:KQ.Alumni@kenya-airways.com"" style=""color: #DC143C; text-decoration: none;"">KQ.Alumni@kenya-airways.com</a>
+            </p>
+            <p style=""font-size: 12px; color: #9ca3af; margin: 10px 0 0 0;"">
+                This is an automated message. Please do not reply to this email.
             </p>
         </div>
     </div>
