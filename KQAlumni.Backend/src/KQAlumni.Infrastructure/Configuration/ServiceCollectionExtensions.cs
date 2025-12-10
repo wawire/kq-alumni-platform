@@ -60,7 +60,6 @@ public static class ServiceCollectionExtensions
     services.AddScoped<ITokenService, TokenService>();
     services.AddScoped<IAuthService, AuthService>();
     services.AddScoped<IAdminRegistrationService, AdminRegistrationService>();
-    services.AddScoped<IEmailTemplateService, EmailTemplateService>();
 
     services.AddHttpClient<IErpService, ErpService>()
         .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler

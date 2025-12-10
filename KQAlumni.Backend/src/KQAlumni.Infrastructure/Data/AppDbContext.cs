@@ -33,11 +33,6 @@ public class AppDbContext : DbContext
         /// </summary>
         public DbSet<EmailLog> EmailLogs { get; set; } = null!;
 
-        /// <summary>
-        /// Email templates table (customizable email templates)
-        /// </summary>
-        public DbSet<EmailTemplate> EmailTemplates { get; set; } = null!;
-
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
                 base.OnModelCreating(modelBuilder);

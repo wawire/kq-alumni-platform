@@ -10,25 +10,22 @@ namespace KQAlumni.Infrastructure.Services;
 
 /// <summary>
 /// Email service for sending confirmation and approval emails
-/// Now uses customizable templates from database
+/// Uses hardcoded email templates
 /// </summary>
 public class EmailService : IEmailService
 {
     private readonly IConfiguration _configuration;
     private readonly ILogger<EmailService> _logger;
     private readonly EmailSettings _emailSettings;
-    private readonly IEmailTemplateService _templateService;
 
     public EmailService(
         IConfiguration configuration,
         ILogger<EmailService> logger,
-        IOptions<EmailSettings> emailSettings,
-        IEmailTemplateService templateService)
+        IOptions<EmailSettings> emailSettings)
     {
         _configuration = configuration;
         _logger = logger;
         _emailSettings = emailSettings.Value;
-        _templateService = templateService;
 
         _logger.LogInformation(
             "[EMAIL] Email Service Initialized:\n" +
@@ -57,34 +54,8 @@ public class EmailService : IEmailService
                 "[EMAIL] [EMAIL 1/3] Sending CONFIRMATION email to {Email} (Registration: {RegistrationNumber})",
                 email, registrationNumber);
 
-            // Try to use database template first
-            string subject;
-            string body;
-
-            try
-            {
-                var variables = new Dictionary<string, string>
-                {
-                    { "alumniName", alumniName },
-                    { "registrationNumber", registrationNumber },
-                    { "currentDate", DateTime.UtcNow.ToString("MMMM dd, yyyy 'at' HH:mm UTC") }
-                };
-
-                (subject, body) = await _templateService.RenderTemplateAsync(
-                    EmailTemplateKeys.Confirmation,
-                    variables,
-                    cancellationToken);
-
-                _logger.LogDebug("[EMAIL] Using customizable template for confirmation email");
-            }
-            catch (Exception templateEx)
-            {
-                _logger.LogWarning(templateEx,
-                    "[EMAIL] Could not load custom template, using default hardcoded template");
-
-                subject = "Registration Received - KQ Alumni Network";
-                body = GetConfirmationEmailTemplate(alumniName, registrationNumber);
-            }
+            var subject = "Registration Received - KQ Alumni Network";
+            var body = GetConfirmationEmailTemplate(alumniName, registrationNumber);
 
             await SendEmailAsync(email, subject, body, cancellationToken);
 
@@ -105,7 +76,7 @@ public class EmailService : IEmailService
     }
 
     /// <summary>
-    /// Send approval email with verification link (Email 2)
+    /// Send approval email (Email 2)
     /// </summary>
     public async Task<bool> SendApprovalEmailAsync(
         string alumniName,
@@ -119,38 +90,8 @@ public class EmailService : IEmailService
                 "[EMAIL] [EMAIL 2/3] Sending APPROVAL email to {Email}",
                 email);
 
-            // Try to use database template first
-            string subject;
-            string body;
-
-            try
-            {
-                var baseUrl = _configuration["AppSettings:BaseUrl"] ?? "http://localhost:3000";
-                var verificationLink = $"{baseUrl}/verify/{verificationToken}";
-
-                var variables = new Dictionary<string, string>
-                {
-                    { "alumniName", alumniName },
-                    { "verificationLink", verificationLink },
-                    { "verificationToken", verificationToken },
-                    { "registrationNumber", "N/A" } // Can be enhanced to include actual registration number
-                };
-
-                (subject, body) = await _templateService.RenderTemplateAsync(
-                    EmailTemplateKeys.Approval,
-                    variables,
-                    cancellationToken);
-
-                _logger.LogDebug("[EMAIL] Using customizable template for approval email");
-            }
-            catch (Exception templateEx)
-            {
-                _logger.LogWarning(templateEx,
-                    "[EMAIL] Could not load custom template, using default hardcoded template");
-
-                subject = "Welcome to Kenya Airways Alumni Network!";
-                body = GetApprovalEmailTemplate(alumniName, verificationToken);
-            }
+            var subject = "Welcome to Kenya Airways Alumni Network!";
+            var body = GetApprovalEmailTemplate(alumniName, verificationToken);
 
             await SendEmailAsync(email, subject, body, cancellationToken);
 
@@ -185,34 +126,8 @@ public class EmailService : IEmailService
                 "[EMAIL] [EMAIL 3/3] Sending REJECTION email to {Email}",
                 email);
 
-            // Try to use database template first
-            string subject;
-            string body;
-
-            try
-            {
-                var variables = new Dictionary<string, string>
-                {
-                    { "alumniName", alumniName },
-                    { "staffNumber", staffNumber },
-                    { "rejectionReason", "Unable to verify staff number against our records" }
-                };
-
-                (subject, body) = await _templateService.RenderTemplateAsync(
-                    EmailTemplateKeys.Rejection,
-                    variables,
-                    cancellationToken);
-
-                _logger.LogDebug("[EMAIL] Using customizable template for rejection email");
-            }
-            catch (Exception templateEx)
-            {
-                _logger.LogWarning(templateEx,
-                    "[EMAIL] Could not load custom template, using default hardcoded template");
-
-                subject = "KQ Alumni Registration - Unable to Verify";
-                body = GetRejectionEmailTemplate(alumniName, staffNumber);
-            }
+            var subject = "KQ Alumni Registration - Unable to Verify";
+            var body = GetRejectionEmailTemplate(alumniName, staffNumber);
 
             await SendEmailAsync(email, subject, body, cancellationToken);
 
