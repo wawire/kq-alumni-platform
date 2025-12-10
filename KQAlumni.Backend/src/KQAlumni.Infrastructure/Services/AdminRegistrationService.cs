@@ -502,6 +502,13 @@ public class AdminRegistrationService : IAdminRegistrationService
                 registration.UpdatedAt = now;
                 registration.UpdatedBy = adminUsername;
 
+                // Generate verification token if it doesn't exist
+                if (string.IsNullOrEmpty(registration.EmailVerificationToken))
+                {
+                    registration.EmailVerificationToken = Guid.NewGuid().ToString("N");
+                    registration.EmailVerificationTokenExpiry = now.AddDays(30);
+                }
+
                 // Create audit log
                 auditLogs.Add(new AuditLog
                 {
@@ -546,6 +553,43 @@ public class AdminRegistrationService : IAdminRegistrationService
             await _context.SaveChangesAsync(cancellationToken);
         }
 
+        // Send approval emails for all successfully approved registrations
+        var approvedRegistrations = registrations
+            .Where(r => r.RegistrationStatus == "Approved" && !r.ApprovalEmailSent)
+            .ToList();
+
+        foreach (var registration in approvedRegistrations)
+        {
+            try
+            {
+                await _emailService.SendApprovalEmailAsync(
+                    registration.FullName,
+                    registration.Email,
+                    registration.EmailVerificationToken!,
+                    cancellationToken);
+
+                registration.ApprovalEmailSent = true;
+                registration.ApprovalEmailSentAt = DateTime.UtcNow;
+
+                _logger.LogInformation(
+                    "Approval email sent successfully for registration {RegistrationId} in bulk operation",
+                    registration.Id);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex,
+                    "Failed to send approval email for registration {RegistrationId} in bulk operation",
+                    registration.Id);
+                // Don't fail the entire operation if email fails
+            }
+        }
+
+        // Save email status updates
+        if (approvedRegistrations.Any())
+        {
+            await _context.SaveChangesAsync(cancellationToken);
+        }
+
         // Add results for IDs that weren't found
         var foundIds = registrations.Select(r => r.Id).ToHashSet();
         foreach (var missingId in registrationIds.Where(id => !foundIds.Contains(id)))
@@ -560,8 +604,8 @@ public class AdminRegistrationService : IAdminRegistrationService
         }
 
         _logger.LogInformation(
-            "Bulk approve completed by {AdminUsername}. Success: {SuccessCount}, Failed: {FailureCount}",
-            adminUsername, successCount, failureCount);
+            "Bulk approve completed by {AdminUsername}. Success: {SuccessCount}, Failed: {FailureCount}, Emails Sent: {EmailsSent}",
+            adminUsername, successCount, failureCount, approvedRegistrations.Count);
 
         return (successCount, failureCount, results);
     }
