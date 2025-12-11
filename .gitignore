@@ -133,3 +133,5 @@ pids
 *.backup
 *~.nib
 *.orig
+kq-alumni-deployment-*.tar.gz
+kq-alumni-deployment-*.zip

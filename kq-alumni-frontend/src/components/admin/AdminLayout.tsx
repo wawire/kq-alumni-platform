@@ -16,7 +16,6 @@ import {
   FileText,
   LayoutDashboard,
   LogOut,
-  Mail,
   Menu,
   Settings,
   User as UserIcon,
